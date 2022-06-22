@@ -2,7 +2,9 @@
 
 Bufferfish is a schemaless binary protocol designed for the tiny packets in game networking.
 
-It makes some compromises in order to accomodate this use-case, for example, preferring to sacrifice pure compactness in order to remain usable as partially read, in-memory byte arrays. There are two libraries in this repo: one for Rust and one for JavaScript/TypeScript. Neither of the libraries have any required dependencies. The Rust version uses the `unicode-width` crate _(enabled by default with the "pretty-print" feature)_ for formatting buffer output.
+It makes some compromises in order to accomodate this use-case, for example, preferring to sacrifice pure compactness in order to remain usable as partially read, in-memory byte arrays. 
+
+There are two libraries in this repo: one for Rust and one for JavaScript/TypeScript. Neither of the libraries have any required dependencies. The Rust version uses the `unicode-width` crate _(enabled by default with the "pretty-print" feature)_ for formatting buffer output.
 
 _This is currently a work-in-progress and not feature complete. There are no built-in (de-)serializers yet, variable-length encoding support is missing, and the public API is highly unstable._
 
@@ -116,6 +118,7 @@ Some of my goals:
 - Can we use VL encoding on packet IDs? _(7 bit + 8 bit)_ with the first bit as a flag for 1-byte or 2-byte encoding?
 - Best way to automatically detect the last value in a serialized buffer and skip length encoding?
 - Define a proper spec for the structure.
+- Add WebSocket server-client example (basic chat server?).
 
 ## Safety
 
@@ -134,6 +137,11 @@ See [here](/SPECIFICATION.md).
 ## Contributing
 
 Bufferfish welcomes any and all contributions; please open an issue before you work on any new features, though. Just note that the scope of this project is fairly tight, and I am not looking to cover a wider 'general' use-case; there are plenty of other full-featured options for that.
+
+## Self Notes
+
+- Run tests with `cargo test -- --show-output` and `npm run test` from their respective directories.
+- Run `./build.sh` to build both the Rust and TypeScript libraries.
 
 ## License
 
