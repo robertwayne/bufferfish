@@ -1,0 +1,25 @@
+# Directories
+build
+target
+node_modules
+
+# Yarn v2 (Zero Installs)
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Files
+Cargo.lock
+
+# Config Files
+.env
+.cargo/config
+.cargo/config.toml
+
+# User Settings
+.vscode
+.idea

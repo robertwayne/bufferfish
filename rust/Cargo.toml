@@ -1,0 +1,19 @@
+[package]
+name = "bufferfish"
+description = "Schemaless binary protocol for game networking."
+authors = ["Rob Wagner <rob@sombia.com>"]
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+unicode-width = { version = "0.1", optional = true }
+
+[features]
+default = ["pretty-print"]
+pretty-print = ["unicode-width"]
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true
