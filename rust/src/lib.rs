@@ -64,6 +64,12 @@ impl From<Vec<u8>> for Bufferfish {
     }
 }
 
+impl Into<Vec<u8>> for Bufferfish {
+    fn into(self) -> Vec<u8> {
+        self.inner.into_inner()
+    }
+}
+
 impl Write for Bufferfish {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         if buf.len() > self.capacity || self.as_ref().len() + buf.len() > self.capacity {
