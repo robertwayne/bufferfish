@@ -2,8 +2,9 @@
 
 Bufferfish is a schemaless binary protocol designed for the tiny packets in game networking.
 
-It makes some compromises in order to accomodate this use-case, for example, preferring to sacrifice
-pure compactness in order to remain usable as partially read, in-memory byte arrays.
+It makes some compromises in order to accomodate this use-case, for example, discarding any
+versioning / backwards compatability overhead. It does prefer to sacrifice pure compactness in order
+to remain usable as partially read, in-memory byte arrays - another primary goal.
 
 There are two libraries in this repo: one for Rust and one for JavaScript/TypeScript. Neither of the
 libraries have any required dependencies. The Rust version uses the `unicode-width` crate _(enabled
