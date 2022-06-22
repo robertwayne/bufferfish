@@ -39,7 +39,7 @@ You can also download either `dist/bufferfish.es.js` or `dist/bufferfish.umd.js`
 
 ```rust
 // src/main.rs
-use bufferfish::*;
+use bufferfish::Bufferfish;
 
 fn main() {
     let mut buf = Bufferfish::new();
