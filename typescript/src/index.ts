@@ -1,3 +1,5 @@
+import { TextDecoder, TextEncoder } from "util"
+
 export class Bufferfish {
     private inner: Uint8Array
     private pos: number
@@ -184,22 +186,19 @@ export class Bufferfish {
      * as a u16 (two bytes).
      */
     public writeString = (value: string) => {
-        const encoder = new TextEncoder()
-        const encodedText = encoder.encode(value)
-        const len = encodedText.length
+        const slice: Uint8Array = new TextEncoder().encode(value)
 
-        this.writeUint16(len)
-        this.write(encodedText)
+        this.writeUint16(slice.length)
+        this.write(slice)
     }
 
     /**
      * Writes a string to the buffer without a length prefix.
      */
     public writeSizedString = (value: string) => {
-        const encoder = new TextEncoder()
-        const encodedText = encoder.encode(value)
+        const slice: Uint8Array = new TextEncoder().encode(value)
 
-        this.write(encodedText)
+        this.write(slice)
     }
 
     /**
@@ -315,7 +314,7 @@ export class Bufferfish {
 
         const len = this.readUint16()
         const slice = this.inner.subarray(this.pos, this.pos + len)
-        const str = new TextDecoder("utf-8").decode(slice) as string
+        const str = new TextDecoder("utf-8").decode(slice)
         this.pos += len
 
         return str
@@ -328,7 +327,7 @@ export class Bufferfish {
         this.start_reading()
 
         const slice = this.inner.subarray(this.pos, this.pos + size)
-        const str = new TextDecoder("utf-8").decode(slice) as string
+        const str = new TextDecoder("utf-8").decode(slice)
         this.pos += size
 
         return str
@@ -344,7 +343,7 @@ export class Bufferfish {
         this.start_reading()
 
         const slice = this.inner.subarray(this.pos, this.inner.length)
-        const str = new TextDecoder("utf-8").decode(slice) as string
+        const str = new TextDecoder("utf-8").decode(slice)
         this.pos = this.inner.length
 
         return str
