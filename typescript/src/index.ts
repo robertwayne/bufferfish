@@ -159,9 +159,9 @@ export class Bufferfish {
     }
 
     /**
-     * Writes a series of bools to the buffer as a single byte. This allows up to 4 bools to be
-     * represented as a single byte. The first 4 bits are used as a mask to determine which of the
-     * last 4 bits are set.
+     * Writes a series of bools to the buffer as a single byte. This allows up
+     * to 4 bools to be represented as a single byte. The first 4 bits are used
+     * as a mask to determine which of the last 4 bits are set.
      */
     public writePackedBools = (values: Array<boolean>) => {
         if (values.length > 4) {
@@ -182,8 +182,8 @@ export class Bufferfish {
     }
 
     /**
-     * Writes a variable length string to the buffer. It will be prefixed with its length in bytes
-     * as a u16 (two bytes).
+     * Writes a variable length string to the buffer. It will be prefixed with
+     * its length in bytes as a u16 (two bytes).
      */
     public writeString = (value: string) => {
         const slice: Uint8Array = new TextEncoder().encode(value)
@@ -321,7 +321,8 @@ export class Bufferfish {
     }
 
     /**
-     * Reads a sized string from the buffer. You must pass the length of the string in bytes.
+     * Reads a sized string from the buffer. You must pass the length of the
+     * string in bytes.
      */
     public readSizedString = (size: number): string => {
         this.start_reading()
@@ -334,10 +335,11 @@ export class Bufferfish {
     }
 
     /**
-     * Reads a sized string from the buffer. This will read from the buffers current position until
-     * the end of the buffer, so this function should not be used unless you know that the string is
-     * the last value in the buffer. This removes the overhead of a length prefix; it is recommended
-     * to plan your packets out such that they end with a sized string where possible.
+     * Reads a sized string from the buffer. This will read from the buffers
+     * current position until the end of the buffer, so this function should not
+     * be used unless you know that the string is the last value in the buffer.
+     * This removes the overhead of a length prefix; it is recommended to plan
+     * your packets out such that they end with a sized string where possible.
      */
     public readStringRemaining = (): string => {
         this.start_reading()
@@ -358,9 +360,9 @@ export class Bufferfish {
     public serializeBoolean = (bool: boolean) => {}
 }
 
-// FIXME: `Property 'vitest' does not exist on type 'ImportMeta'.`
-// This should be working (as per the docs) due to "types": ["vitest/importMeta"] in our tsconfig.
-// https://vitest.dev/guide/in-source.html#typescript
+// FIXME: `Property 'vitest' does not exist on type 'ImportMeta'.` This should
+// be working (as per the docs) due to "types": ["vitest/importMeta"] in our
+// tsconfig. https://vitest.dev/guide/in-source.html#typescript
 
 // @ts-ignore
 if (import.meta.vitest) {
