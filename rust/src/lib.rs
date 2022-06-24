@@ -96,7 +96,8 @@ impl Seek for Bufferfish {
 
 impl Bufferfish {
     /// #[doc(hidden)]
-    /// Resets the buffer cursor to the start position when reading after a write.
+    /// Resets the buffer cursor to the start position when reading after a
+    /// write.
     fn start_reading(&mut self) {
         if self.reading {
             return;
@@ -157,9 +158,9 @@ impl Bufferfish {
         Ok(())
     }
 
-    /// Writes a series of bools to the buffer as one byte. This allows up to 4 bools to be
-    /// represented as a single byte. The first 4 bits are used as a mask to determine which of the
-    /// last 4 bits are set.
+    /// Writes a series of bools to the buffer as one byte. This allows up to 4
+    /// bools to be represented as a single byte. The first 4 bits are used as a
+    /// mask to determine which of the last 4 bits are set.
     pub fn write_packed_bools(&mut self, values: &[bool]) -> std::io::Result<()> {
         if values.len() > 4 {
             return Err(std::io::Error::new(
@@ -180,8 +181,8 @@ impl Bufferfish {
         Ok(())
     }
 
-    /// Writes a variable length string to the buffer. It will be prefixed with its length in bytes
-    /// as a u16 (two bytes).
+    /// Writes a variable length string to the buffer. It will be prefixed with
+    /// its length in bytes as a u16 (two bytes).
     pub fn write_string(&mut self, value: &str) -> std::io::Result<()> {
         self.write_u16(value.len().try_into().unwrap())?;
         self.write_all(value.as_bytes())?;
@@ -277,7 +278,8 @@ impl Bufferfish {
         }
     }
 
-    /// Reads a sized string from the buffer. You must pass the length of the string in bytes.
+    /// Reads a sized string from the buffer. You must pass the length of the
+    /// string in bytes.
     pub fn read_sized_string(&mut self, size: usize) -> std::io::Result<String> {
         self.start_reading();
 
@@ -294,10 +296,12 @@ impl Bufferfish {
         }
     }
 
-    /// Reads a sized string from the buffer. This will read from the buffers current position until
-    /// the end of the buffer, so this function should not be used unless you know that the string
-    /// is the last value in the buffer. This removes the overhead of a length prefix; it is
-    /// recommended to plan your packets out such that they end with a sized string where possible.
+    /// Reads a sized string from the buffer. This will read from the buffers
+    /// current position until the end of the buffer, so this function should
+    /// not be used unless you know that the string is the last value in the
+    /// buffer. This removes the overhead of a length prefix; it is recommended
+    /// to plan your packets out such that they end with a sized string where
+    /// possible.
     pub fn read_string_remaining(&mut self) -> std::io::Result<String> {
         self.start_reading();
 
