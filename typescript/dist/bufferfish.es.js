@@ -66,16 +66,13 @@ class Bufferfish {
       this.writeUint8(packed_value);
     };
     this.writeString = (value) => {
-      const encoder = new TextEncoder();
-      const encodedText = encoder.encode(value);
-      const len = encodedText.length;
-      this.writeUint16(len);
-      this.write(encodedText);
+      const slice = new TextEncoder().encode(value);
+      this.writeUint16(slice.length);
+      this.write(slice);
     };
     this.writeSizedString = (value) => {
-      const encoder = new TextEncoder();
-      const encodedText = encoder.encode(value);
-      this.write(encodedText);
+      const slice = new TextEncoder().encode(value);
+      this.write(slice);
     };
     this.readUint8 = () => {
       this.start_reading();
