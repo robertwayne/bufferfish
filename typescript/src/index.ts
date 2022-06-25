@@ -14,7 +14,8 @@ export class Bufferfish {
     }
 
     /**
-     * Writes a byte array to the internal buffer.
+     * Writes a byte array to the internal buffer. Returns the numbers of bytes
+     * written to the buffer.
      *
      * This should only be called by the library.
      */
