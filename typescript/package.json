@@ -5,6 +5,7 @@
     "main": "./dist/bufferfish.es.js",
     "author": "Rob Wagner <rob@sombia.com>",
     "private": true,
+    "types": "./dist/index.d.ts",
     "scripts": {
         "build": "vite build",
         "mini": "terser ./lib/index.js --output ./lib/index.min.js",
