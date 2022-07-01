@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config"
+import dts from "vite-plugin-dts"
 import path from "path"
 
 export default defineConfig({
@@ -17,4 +18,5 @@ export default defineConfig({
     define: {
         "import.meta.vitest": false,
     },
+    plugins: [dts()],
 })
