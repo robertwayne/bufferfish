@@ -3,7 +3,7 @@
         "target": "es5",
         "module": "esnext",
         "moduleResolution": "node",
-        "lib": ["esnext"],
+        "lib": ["esnext", "DOM"],
 
         "rootDir": "src",
         "outDir": "dist",
@@ -29,8 +29,10 @@
         "downlevelIteration": true,
         "declaration": true,
 
-        "pretty": true
+        "pretty": true,
+        "types": [
+            "vitest/importMeta"
+        ],
     },
-    "types": ["vitest/importMeta"],
     "include": ["src/**/*"]
 }
