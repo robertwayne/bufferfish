@@ -1,5 +1,3 @@
-import { TextDecoder, TextEncoder } from "util"
-
 export class Bufferfish {
     private inner: Uint8Array
     private pos: number
