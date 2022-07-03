@@ -478,7 +478,7 @@ mod tests {
     #[test]
     fn test_bufferfish_overflow() {
         let mut buf = Bufferfish::new();
-        buf.write(&[0u8; 1024]).unwrap();
+        buf.write_all(&[0u8; 1024]).unwrap();
 
         assert!(buf.write_u8(0).is_err());
     }
@@ -579,8 +579,8 @@ mod tests {
         buf.write_bool(true).unwrap();
         buf.write_bool(false).unwrap();
 
-        assert_eq!(buf.read_bool().unwrap(), true);
-        assert_eq!(buf.read_bool().unwrap(), false);
+        assert!(buf.read_bool().unwrap());
+        assert!(!buf.read_bool().unwrap());
     }
 
     #[test]
