@@ -361,13 +361,7 @@ export class Bufferfish {
     public serializeBoolean = (bool: boolean) => {}
 }
 
-// FIXME: `Property 'vitest' does not exist on type 'ImportMeta'.` This should
-// be working (as per the docs) due to "types": ["vitest/importMeta"] in our
-// tsconfig. https://vitest.dev/guide/in-source.html#typescript
-
-// @ts-ignore
 if (import.meta.vitest) {
-    // @ts-ignore
     const { it, expect } = import.meta.vitest
 
     it("test write u8", () => {
