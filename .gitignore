@@ -14,11 +14,7 @@ node_modules
 
 # Files
 Cargo.lock
-
-# Config Files
 .env
-.cargo/config
-.cargo/config.toml
 
 # User Settings
 .vscode
