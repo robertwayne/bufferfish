@@ -19,12 +19,14 @@ class Bufferfish {
       if (value > 4294967295 || value < 0) {
         throw new Error("Value is out of range");
       }
-      this.write(new Uint8Array([
-        value >> 24,
-        value >> 16 & 255,
-        value >> 8 & 255,
-        value & 255
-      ]));
+      this.write(
+        new Uint8Array([
+          value >> 24,
+          value >> 16 & 255,
+          value >> 8 & 255,
+          value & 255
+        ])
+      );
     };
     this.writeInt8 = (value) => {
       if (value > 127 || value < -128) {
@@ -42,19 +44,23 @@ class Bufferfish {
       if (value > 2147483647 || value < -2147483648) {
         throw new Error("Value is out of range");
       }
-      this.write(new Uint8Array([
-        value >> 24,
-        value >> 16 & 255,
-        value >> 8 & 255,
-        value & 255
-      ]));
+      this.write(
+        new Uint8Array([
+          value >> 24,
+          value >> 16 & 255,
+          value >> 8 & 255,
+          value & 255
+        ])
+      );
     };
     this.writeBool = (value) => {
       this.writeUint8(value ? 1 : 0);
     };
     this.writePackedBools = (values) => {
       if (values.length > 4) {
-        throw new Error("Each packed bool can only represent 4 or fewer values");
+        throw new Error(
+          "Each packed bool can only represent 4 or fewer values"
+        );
       }
       let packed_value = 0;
       for (const value of values) {
@@ -191,4 +197,6 @@ class Bufferfish {
     this.capacity = capacity;
   }
 }
-export { Bufferfish };
+export {
+  Bufferfish
+};
