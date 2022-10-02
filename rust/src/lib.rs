@@ -10,11 +10,7 @@ pub struct Bufferfish {
 
 impl Bufferfish {
     pub fn new() -> Self {
-        Self {
-            inner: Cursor::new(Vec::with_capacity(12)),
-            reading: false,
-            capacity: 1024,
-        }
+        Self { inner: Cursor::new(Vec::with_capacity(12)), reading: false, capacity: 1024 }
     }
 }
 
@@ -56,11 +52,7 @@ impl PartialEq for Bufferfish {
 
 impl From<Vec<u8>> for Bufferfish {
     fn from(vec: Vec<u8>) -> Self {
-        Self {
-            inner: Cursor::new(vec),
-            reading: false,
-            capacity: 1024,
-        }
+        Self { inner: Cursor::new(vec), reading: false, capacity: 1024 }
     }
 }
 
@@ -74,10 +66,7 @@ impl Into<Vec<u8>> for Bufferfish {
 impl Write for Bufferfish {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         if buf.len() > self.capacity || self.as_ref().len() + buf.len() > self.capacity {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "Bufferfish is full",
-            ));
+            return Err(std::io::Error::new(std::io::ErrorKind::Other, "Bufferfish is full"));
         }
 
         self.reading = false;
@@ -272,10 +261,7 @@ impl Bufferfish {
 
         match string {
             Ok(s) => Ok(s),
-            Err(e) => Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                e.to_string(),
-            )),
+            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())),
         }
     }
 
@@ -290,10 +276,7 @@ impl Bufferfish {
 
         match string {
             Ok(s) => Ok(s),
-            Err(e) => Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                e.to_string(),
-            )),
+            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())),
         }
     }
 
@@ -312,10 +295,7 @@ impl Bufferfish {
 
         match string {
             Ok(s) => Ok(s),
-            Err(e) => Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                e.to_string(),
-            )),
+            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())),
         }
     }
 }
@@ -350,10 +330,7 @@ mod tests {
         buf.write_u32(1234567890).unwrap();
         buf.write_u32(u32::max_value()).unwrap();
 
-        assert_eq!(
-            buf.as_ref(),
-            &[0, 0, 0, 0, 73, 150, 2, 210, 255, 255, 255, 255]
-        );
+        assert_eq!(buf.as_ref(), &[0, 0, 0, 0, 73, 150, 2, 210, 255, 255, 255, 255]);
     }
 
     #[test]
@@ -419,10 +396,7 @@ mod tests {
         buf.write_i32(2147483647).unwrap();
         buf.write_i32(-2147483648).unwrap();
 
-        assert_eq!(
-            buf.as_ref(),
-            &[0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0]
-        );
+        assert_eq!(buf.as_ref(), &[0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0]);
     }
 
     #[test]
@@ -495,10 +469,7 @@ mod tests {
         let mut buf = Bufferfish::new();
         buf.write_string("Bufferfish").unwrap();
 
-        assert_eq!(
-            buf.as_ref(),
-            &[0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104]
-        );
+        assert_eq!(buf.as_ref(), &[0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104]);
     }
 
     #[test]
@@ -532,10 +503,7 @@ mod tests {
         let mut buf = Bufferfish::new();
         buf.write_sized_string("Bufferfish").unwrap();
 
-        assert_eq!(
-            buf.as_ref(),
-            &[66, 117, 102, 102, 101, 114, 102, 105, 115, 104]
-        );
+        assert_eq!(buf.as_ref(), &[66, 117, 102, 102, 101, 114, 102, 105, 115, 104]);
     }
 
     #[test]
@@ -567,8 +535,7 @@ mod tests {
     fn test_write_packed_bools() {
         let mut buf = Bufferfish::new();
         buf.write_packed_bools(&[true, false, true, true]).unwrap();
-        buf.write_packed_bools(&[false, false, true, false])
-            .unwrap();
+        buf.write_packed_bools(&[false, false, true, false]).unwrap();
 
         assert_eq!(buf.as_ref(), &[11, 2]);
     }
