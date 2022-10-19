@@ -1,212 +1,163 @@
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-class Bufferfish {
-  constructor(buf = new ArrayBuffer(0)) {
-    __publicField(this, "inner");
-    __publicField(this, "pos");
-    __publicField(this, "reading");
-    __publicField(this, "capacity");
-    __publicField(this, "view", () => {
-      return this.inner.slice();
-    });
-    __publicField(this, "writeUint8", (value) => {
-      if (value > 255 || value < 0) {
+var n = Object.defineProperty;
+var o = (e, t, r) => t in e ? n(e, t, { enumerable: !0, configurable: !0, writable: !0, value: r }) : e[t] = r;
+var i = (e, t, r) => (o(e, typeof t != "symbol" ? t + "" : t, r), r);
+class a {
+  constructor(t = new ArrayBuffer(0)) {
+    i(this, "inner");
+    i(this, "pos");
+    i(this, "reading");
+    i(this, "capacity");
+    i(this, "view", () => this.inner.slice());
+    i(this, "writeUint8", (t) => {
+      if (t > 255 || t < 0)
         throw new Error("Value is out of range");
-      }
-      this.write(new Uint8Array([value]));
+      this.write(new Uint8Array([t]));
     });
-    __publicField(this, "writeUint16", (value) => {
-      if (value > 65535 || value < 0) {
+    i(this, "writeUint16", (t) => {
+      if (t > 65535 || t < 0)
         throw new Error("Value is out of range");
-      }
-      this.write(new Uint8Array([value >> 8, value & 255]));
+      this.write(new Uint8Array([t >> 8, t & 255]));
     });
-    __publicField(this, "writeUint32", (value) => {
-      if (value > 4294967295 || value < 0) {
+    i(this, "writeUint32", (t) => {
+      if (t > 4294967295 || t < 0)
         throw new Error("Value is out of range");
-      }
       this.write(
         new Uint8Array([
-          value >> 24,
-          value >> 16 & 255,
-          value >> 8 & 255,
-          value & 255
+          t >> 24,
+          t >> 16 & 255,
+          t >> 8 & 255,
+          t & 255
         ])
       );
     });
-    __publicField(this, "writeInt8", (value) => {
-      if (value > 127 || value < -128) {
+    i(this, "writeInt8", (t) => {
+      if (t > 127 || t < -128)
         throw new Error("Value is out of range");
-      }
-      this.write(new Uint8Array([value]));
+      this.write(new Uint8Array([t]));
     });
-    __publicField(this, "writeInt16", (value) => {
-      if (value > 32767 || value < -32768) {
+    i(this, "writeInt16", (t) => {
+      if (t > 32767 || t < -32768)
         throw new Error("Value is out of range");
-      }
-      this.write(new Uint8Array([value >> 8, value & 255]));
+      this.write(new Uint8Array([t >> 8, t & 255]));
     });
-    __publicField(this, "writeInt32", (value) => {
-      if (value > 2147483647 || value < -2147483648) {
+    i(this, "writeInt32", (t) => {
+      if (t > 2147483647 || t < -2147483648)
         throw new Error("Value is out of range");
-      }
       this.write(
         new Uint8Array([
-          value >> 24,
-          value >> 16 & 255,
-          value >> 8 & 255,
-          value & 255
+          t >> 24,
+          t >> 16 & 255,
+          t >> 8 & 255,
+          t & 255
         ])
       );
     });
-    __publicField(this, "writeBool", (value) => {
-      this.writeUint8(value ? 1 : 0);
+    i(this, "writeBool", (t) => {
+      this.writeUint8(t ? 1 : 0);
     });
-    __publicField(this, "writePackedBools", (values) => {
-      if (values.length > 4) {
+    i(this, "writePackedBools", (t) => {
+      if (t.length > 4)
         throw new Error(
           "Each packed bool can only represent 4 or fewer values"
         );
-      }
-      let packed_value = 0;
-      for (const value of values) {
-        packed_value <<= 1;
-        if (value) {
-          packed_value |= 1;
-        }
-      }
-      this.writeUint8(packed_value);
+      let r = 0;
+      for (const s of t)
+        r <<= 1, s && (r |= 1);
+      this.writeUint8(r);
     });
-    __publicField(this, "writeString", (value) => {
-      const slice = new TextEncoder().encode(value);
-      this.writeUint16(slice.length);
-      this.write(slice);
+    i(this, "writeString", (t) => {
+      const r = new TextEncoder().encode(t);
+      this.writeUint16(r.length), this.write(r);
     });
-    __publicField(this, "writeSizedString", (value) => {
-      const slice = new TextEncoder().encode(value);
-      this.write(slice);
+    i(this, "writeSizedString", (t) => {
+      const r = new TextEncoder().encode(t);
+      this.write(r);
     });
-    __publicField(this, "readUint8", () => {
+    i(this, "readUint8", () => {
       this.start_reading();
-      const buf = new Uint8Array(1);
-      buf.set(this.inner.subarray(this.pos, this.pos + 1));
-      this.pos += 1;
-      return buf[0];
+      const t = new Uint8Array(1);
+      return t.set(this.inner.subarray(this.pos, this.pos + 1)), this.pos += 1, t[0];
     });
-    __publicField(this, "readUint16", () => {
+    i(this, "readUint16", () => {
       this.start_reading();
-      const buf = new Uint8Array(2);
-      buf.set(this.inner.subarray(this.pos, this.pos + 2));
-      this.pos += 2;
-      return buf[0] << 8 | buf[1];
+      const t = new Uint8Array(2);
+      return t.set(this.inner.subarray(this.pos, this.pos + 2)), this.pos += 2, t[0] << 8 | t[1];
     });
-    __publicField(this, "readUint32", () => {
+    i(this, "readUint32", () => {
       this.start_reading();
-      const buf = new Uint8Array(4);
-      buf.set(this.inner.subarray(this.pos, this.pos + 4));
-      this.pos += 4;
-      return (buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3]) >>> 0;
+      const t = new Uint8Array(4);
+      return t.set(this.inner.subarray(this.pos, this.pos + 4)), this.pos += 4, (t[0] << 24 | t[1] << 16 | t[2] << 8 | t[3]) >>> 0;
     });
-    __publicField(this, "readInt8", () => {
+    i(this, "readInt8", () => {
       this.start_reading();
-      const buf = new Uint8Array(1);
-      buf.set(this.inner.subarray(this.pos, this.pos + 1));
-      this.pos += 1;
-      const value = buf[0];
-      return buf[0] & 128 ? -value : value;
+      const t = new Uint8Array(1);
+      t.set(this.inner.subarray(this.pos, this.pos + 1)), this.pos += 1;
+      const r = t[0];
+      return t[0] & 128 ? -r : r;
     });
-    __publicField(this, "readInt16", () => {
+    i(this, "readInt16", () => {
       this.start_reading();
-      const buf = new Uint8Array(2);
-      buf.set(this.inner.subarray(this.pos, this.pos + 2));
-      this.pos += 2;
-      const value = buf[0] << 8 | buf[1];
-      return buf[0] & 128 ? -value : value;
+      const t = new Uint8Array(2);
+      t.set(this.inner.subarray(this.pos, this.pos + 2)), this.pos += 2;
+      const r = t[0] << 8 | t[1];
+      return t[0] & 128 ? -r : r;
     });
-    __publicField(this, "readInt32", () => {
+    i(this, "readInt32", () => {
       this.start_reading();
-      const buf = new Uint8Array(4);
-      buf.set(this.inner.subarray(this.pos, this.pos + 4));
-      this.pos += 4;
-      const value = (buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3]) >>> 0;
-      return buf[0] & 128 ? -value : value;
+      const t = new Uint8Array(4);
+      t.set(this.inner.subarray(this.pos, this.pos + 4)), this.pos += 4;
+      const r = (t[0] << 24 | t[1] << 16 | t[2] << 8 | t[3]) >>> 0;
+      return t[0] & 128 ? -r : r;
     });
-    __publicField(this, "readBool", () => {
+    i(this, "readBool", () => {
       this.start_reading();
-      const buf = new Uint8Array(1);
-      buf.set(this.inner.subarray(this.pos, this.pos + 1));
-      this.pos += 1;
-      return buf[0] === 1;
+      const t = new Uint8Array(1);
+      return t.set(this.inner.subarray(this.pos, this.pos + 1)), this.pos += 1, t[0] === 1;
     });
-    __publicField(this, "readPackedBools", () => {
-      return [];
-    });
-    __publicField(this, "readString", () => {
+    i(this, "readPackedBools", () => []);
+    i(this, "readString", () => {
       this.start_reading();
-      const len = this.readUint16();
-      const slice = this.inner.subarray(this.pos, this.pos + len);
-      const str = new TextDecoder("utf-8").decode(slice);
-      this.pos += len;
-      return str;
+      const t = this.readUint16(), r = this.inner.subarray(this.pos, this.pos + t), s = new TextDecoder("utf-8").decode(r);
+      return this.pos += t, s;
     });
-    __publicField(this, "readSizedString", (size) => {
+    i(this, "readSizedString", (t) => {
       this.start_reading();
-      const slice = this.inner.subarray(this.pos, this.pos + size);
-      const str = new TextDecoder("utf-8").decode(slice);
-      this.pos += size;
-      return str;
+      const r = this.inner.subarray(this.pos, this.pos + t), s = new TextDecoder("utf-8").decode(r);
+      return this.pos += t, s;
     });
-    __publicField(this, "readStringRemaining", () => {
+    i(this, "readStringRemaining", () => {
       this.start_reading();
-      const slice = this.inner.subarray(this.pos, this.inner.length);
-      const str = new TextDecoder("utf-8").decode(slice);
-      this.pos = this.inner.length;
-      return str;
+      const t = this.inner.subarray(this.pos, this.inner.length), r = new TextDecoder("utf-8").decode(t);
+      return this.pos = this.inner.length, r;
     });
-    __publicField(this, "serialize", (obj) => {
+    i(this, "serialize", (t) => {
     });
-    __publicField(this, "serializeNumber", (number) => {
+    i(this, "serializeNumber", (t) => {
     });
-    __publicField(this, "serializeString", (string) => {
+    i(this, "serializeString", (t) => {
     });
-    __publicField(this, "serializeBoolean", (bool) => {
+    i(this, "serializeBoolean", (t) => {
     });
-    this.inner = new Uint8Array(buf);
-    this.pos = 0;
-    this.reading = false;
-    this.capacity = 1024;
+    this.inner = new Uint8Array(t), this.pos = 0, this.reading = !1, this.capacity = 1024;
   }
-  write(buf) {
-    if (buf.length > this.capacity || this.inner.length + buf.length > this.capacity) {
+  write(t) {
+    if (t.length > this.capacity || this.inner.length + t.length > this.capacity)
       throw new Error("Bufferfish is full");
-    }
-    this.reading = false;
-    const tmp = new Uint8Array(this.inner.length + buf.length);
-    tmp.set(this.inner, 0);
-    tmp.set(buf, this.inner.length);
-    this.inner = tmp;
-    const bytesWritten = buf.length;
-    this.pos += bytesWritten;
-    return bytesWritten;
+    this.reading = !1;
+    const r = new Uint8Array(this.inner.length + t.length);
+    r.set(this.inner, 0), r.set(t, this.inner.length), this.inner = r;
+    const s = t.length;
+    return this.pos += s, s;
   }
   start_reading() {
-    if (this.reading) {
-      return;
-    }
-    this.pos = 0;
-    this.reading = true;
+    this.reading || (this.pos = 0, this.reading = !0);
   }
-  set_max_capacity(capacity) {
-    if (capacity < 1) {
+  set_max_capacity(t) {
+    if (t < 1)
       throw new Error("Max capacity must be at least 1 byte");
-    }
-    this.capacity = capacity;
+    this.capacity = t;
   }
 }
 export {
-  Bufferfish
+  a as Bufferfish
 };
