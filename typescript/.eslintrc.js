@@ -8,7 +8,10 @@ module.exports = {
     overrides: [
         {
             files: ["*.ts"],
-            extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+            extends: [
+                "eslint:recommended",
+                "plugin:@typescript-eslint/recommended",
+            ],
             rules: {
                 "@typescript-eslint/array-type": [
                     "error",
