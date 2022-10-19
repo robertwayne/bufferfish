@@ -350,13 +350,13 @@ export class Bufferfish {
         return str
     }
 
-    public serialize = (obj: object) => {}
+    // public serialize = (obj: object) => {}
 
-    public serializeNumber = (number: number) => {}
+    // public serializeNumber = (number: number) => {}
 
-    public serializeString = (string: string) => {}
+    // public serializeString = (string: string) => {}
 
-    public serializeBoolean = (bool: boolean) => {}
+    // public serializeBoolean = (bool: boolean) => {}
 }
 
 if (import.meta.vitest) {

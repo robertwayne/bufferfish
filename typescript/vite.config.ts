@@ -10,10 +10,11 @@ export default defineConfig({
             fileName: (format) => `bufferfish.${format}.js`,
         },
         emptyOutDir: true,
-        minify: "terser",
     },
     test: {
         includeSource: ["src/**/*.ts"],
+        globals: true,
+        environment: "happy-dom",
     },
     define: {
         "import.meta.vitest": false,

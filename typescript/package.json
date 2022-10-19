@@ -8,22 +8,24 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "vite build",
-        "mini": "terser ./lib/index.js --output ./lib/index.min.js",
-        "fmt": "prettier --write **/*.{js,ts,html,css,cjs,mjs,json}",
+        "fmt": "prettier --write --plugin-search-dir=. **/*.{js,ts,html,css,cjs,mjs,json}",
         "lint": "eslint src/**/*.{js,ts}",
         "lint:fix": "eslint --fix --fix-type problem,suggestion src/**/*.{js,ts}",
-        "test": "vitest",
-        "coverage": "vitest run --coverage"
+        "tsc": "tsc --noEmit",
+        "tsc:watch": "tsc --noEmit --watch",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "check": "npm run tsc && npm run lint:fix && npm run test && npm run fmt"
     },
     "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^5.38.1",
-        "@typescript-eslint/parser": "^5.38.1",
-        "eslint": "^8.24.0",
+        "@typescript-eslint/eslint-plugin": "^5.40.1",
+        "@typescript-eslint/parser": "^5.40.1",
+        "eslint": "^8.25.0",
+        "happy-dom": "^7.6.0",
         "prettier": "^2.7.1",
-        "terser": "^5.15.0",
         "typescript": "^4.8.4",
-        "vite": "^3.1.4",
-        "vitest": "^0.23.4",
-        "vite-plugin-dts": "^1.6.4"
+        "vite": "^3.1.8",
+        "vitest": "^0.24.3",
+        "vite-plugin-dts": "^1.6.6"
     }
 }
