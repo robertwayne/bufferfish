@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /rust
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build"
+      prefix-development: "build"
+
+  - package-ecosystem: npm
+    directory: /typescript
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build"
+      prefix-development: "build"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build"
+      prefix-development: "build"
