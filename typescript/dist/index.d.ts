@@ -69,6 +69,11 @@ export declare class Bufferfish {
      */
     writeSizedString: (value: string) => void;
     /**
+     * Writes an array of raw bytes to the buffer. Useful for serializing ///
+       distinct structs into byte arrays and appending them to a buffer later.
+     */
+    writeRawBytes: (value: Uint8Array) => void;
+    /**
      * Reads a u8 from the buffer.
      */
     readUint8: () => number;
@@ -117,8 +122,4 @@ export declare class Bufferfish {
      * your packets out such that they end with a sized string where possible.
      */
     readStringRemaining: () => string;
-    serialize: (obj: object) => void;
-    serializeNumber: (number: number) => void;
-    serializeString: (string: string) => void;
-    serializeBoolean: (bool: boolean) => void;
 }

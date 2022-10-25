@@ -73,6 +73,9 @@ class a {
       const r = new TextEncoder().encode(t);
       this.write(r);
     });
+    i(this, "writeRawBytes", (t) => {
+      this.write(t);
+    });
     i(this, "readUint8", () => {
       this.start_reading();
       const t = new Uint8Array(1);
@@ -129,14 +132,6 @@ class a {
       this.start_reading();
       const t = this.inner.subarray(this.pos, this.inner.length), r = new TextDecoder("utf-8").decode(t);
       return this.pos = this.inner.length, r;
-    });
-    i(this, "serialize", (t) => {
-    });
-    i(this, "serializeNumber", (t) => {
-    });
-    i(this, "serializeString", (t) => {
-    });
-    i(this, "serializeBoolean", (t) => {
     });
     this.inner = new Uint8Array(t), this.pos = 0, this.reading = !1, this.capacity = 1024;
   }

@@ -201,6 +201,14 @@ export class Bufferfish {
     }
 
     /**
+     * Writes an array of raw bytes to the buffer. Useful for serializing ///
+       distinct structs into byte arrays and appending them to a buffer later.
+     */
+    public writeRawBytes = (value: Uint8Array) => {
+        this.write(value)
+    }
+
+    /**
      * Reads a u8 from the buffer.
      */
     public readUint8 = (): number => {
@@ -598,4 +606,17 @@ if (import.meta.vitest) {
     })
 
     it("test read packed bools")
+
+    it("test write raw bytes", () => {
+        const buf = new Bufferfish()
+        buf.writeString("Bufferfish")
+
+        const buf2 = new Bufferfish()
+        buf2.writeString("안녕하세요")
+
+        buf.writeRawBytes(buf2.view())
+
+        expect(buf.readString()).toEqual("Bufferfish")
+        expect(buf.readString()).toEqual("안녕하세요")
+    })
 }
