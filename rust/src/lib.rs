@@ -185,6 +185,13 @@ impl Bufferfish {
         Ok(())
     }
 
+    /// Writes an array of raw bytes to the buffer. Useful for serializing
+    /// distinct structs into byte arrays and appending them to a buffer later.
+    pub fn write_raw_bytes(&mut self, bytes: &[u8]) -> std::io::Result<()> {
+        self.write_all(bytes)?;
+        Ok(())
+    }
+
     /// Reads a u8 from the buffer.
     pub fn read_u8(&mut self) -> std::io::Result<u8> {
         self.start_reading();
@@ -568,5 +575,19 @@ mod tests {
         //  Byte:  0  4  0  10  66  117  102  102  101  114  102  105  115  104
         // Index:  0  1  2   3   4    5    6    7    8    9   10   11   12   13
         println!("{}", buf);
+    }
+
+    #[test]
+    fn test_write_raw_bytes() {
+        let mut buf = Bufferfish::new();
+        buf.write_string("Bufferfish").unwrap();
+
+        let mut buf2 = Bufferfish::new();
+        buf2.write_string("안녕하세요").unwrap();
+
+        buf.write_raw_bytes(buf2.as_ref()).unwrap();
+
+        assert!(buf.read_string().unwrap() == "Bufferfish");
+        assert!(buf.read_string().unwrap() == "안녕하세요");
     }
 }
