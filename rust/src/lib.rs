@@ -256,6 +256,7 @@ impl Bufferfish {
 
         let len = self.read_u16()? as usize;
         let pos = self.inner.position() as usize;
+        self.inner.set_position((pos + len) as u64);
         let slice = &mut self.inner.get_mut()[pos..pos + len];
         let string = String::from_utf8(slice.to_vec());
 
@@ -271,6 +272,7 @@ impl Bufferfish {
         self.start_reading();
 
         let pos = self.inner.position() as usize;
+        self.inner.set_position((pos + size) as u64);
         let slice = &mut self.inner.get_mut()[pos..pos + size];
         let string = String::from_utf8(slice.to_vec());
 
@@ -290,6 +292,7 @@ impl Bufferfish {
         self.start_reading();
 
         let pos = self.inner.position() as usize;
+        self.inner.set_position(self.inner.get_ref().len() as u64);
         let slice = &mut self.inner.get_mut()[pos..];
         let string = String::from_utf8(slice.to_vec());
 
