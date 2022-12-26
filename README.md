@@ -1,49 +1,36 @@
 # Bufferfish
 
-Bufferfish is a schemaless binary protocol designed for the tiny packets in game
-networking.
+Bufferfish is a schemaless binary protocol designed for game networking. Specifically, this library focuses on communication between TypeScript / JavaScript clients and Rust servers via WebSockets.
 
 It makes some compromises in order to accomodate this use-case, for example,
 discarding any versioning / backwards compatability overhead. It does prefer to
 sacrifice pure compactness in order to remain usable as partially read,
 in-memory byte arrays - another primary goal.
 
-There are two libraries in this repo: one for Rust and one for
-JavaScript/TypeScript. Neither of the libraries have any required dependencies.
+There are two seperate libraries in this repo: one for Rust and one for
+TypeScript / JavaScript. Neither of the libraries have any required dependencies.
 The Rust version uses the `unicode-width` crate _(enabled by default with the
 "pretty-print" feature)_ for formatting buffer output.
 
-_This is currently a work-in-progress and not feature complete. There are no
-built-in (de-)serializers yet, variable-length encoding support is missing, and
-the public API is highly unstable._
+_This is currently a work-in-progress. Please don't use this._
 
-**I recommend you use one of the well-implemented protocols instead, like
+**I strongly recommend you use a popular binary protocol instead, like
 protobufs, msgpack, flatbuffers, etc.**
 
 ## Install
 
 <!-- markdownlint-disable -->
 
-<details>
-<summary>Rust</summary>
+### Rust
 
-```rust
-// Cargo.toml
-[dependencies]
-bufferfish = { git = "https://github.com/robertwayne/bufferfish/rust" }
-```
+    cargo add bufferfish --git https://github.com/robertwayne/bufferfish
 
-</details>
+### TypeScript / JavaScript
 
-<details>
-<summary>JavaScript/TypeScript</summary>
+    npm i https://github.com/robertwayne/bufferfish/typescript
 
-```ts
-npm i https://github.com/robertwayne/bufferfish/typescript
-```
-
-You can also download either `dist/bufferfish.es.js` or `dist/bufferfish.umd.js`
-directly and include it locally.
+*You can also download either `dist/bufferfish.es.js` or `dist/bufferfish.umd.js`
+directly and include it locally.*
 
 </details>
 
@@ -77,7 +64,7 @@ Output:
 </details>
 
 <details>
-  <summary>JavaScript/TypeScript</summary>
+  <summary>TypeScript / JavaScript</summary>
 
   ```ts
   import { Bufferfish } from "bufferfish"
