@@ -27,10 +27,7 @@ protobufs, msgpack, flatbuffers, etc.**
 
 ### TypeScript / JavaScript
 
-    npm i https://github.com/robertwayne/bufferfish/typescript
-
-*You can also download either `dist/bufferfish.es.js` or `dist/bufferfish.umd.js`
-directly and include it locally.*
+NPM doesn't support pointing to sub-directories in git repositories, so you have to download either `dist/bufferfish.es.js` or `dist/bufferfish.umd.js` directly and include it locally. Make sure to include the `index.d.ts` file in your project as well.
 
 </details>
 
