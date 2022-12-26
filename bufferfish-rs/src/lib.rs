@@ -50,6 +50,12 @@ impl PartialEq for Bufferfish {
     }
 }
 
+impl From<&[u8]> for Bufferfish {
+    fn from(slice: &[u8]) -> Self {
+        Self { inner: Cursor::new(slice.to_vec()), reading: false, capacity: 1024 }
+    }
+}
+
 impl From<Vec<u8>> for Bufferfish {
     fn from(vec: Vec<u8>) -> Self {
         Self { inner: Cursor::new(vec), reading: false, capacity: 1024 }
