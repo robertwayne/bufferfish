@@ -23,11 +23,12 @@ protobufs, msgpack, flatbuffers, etc.**
 
 <!-- markdownlint-disable -->
 
-### Rust
+<details>
+<summary>Rust</summary>
 
     cargo add bufferfish --git https://github.com/robertwayne/bufferfish
 
-**Feature Flags**
+### Feature Flags
 
 <!-- markdownlint-disable -->
 | Flag          | Default  | Description                                                                                    | Dependencies          |
@@ -36,7 +37,10 @@ protobufs, msgpack, flatbuffers, etc.**
 | `impl-bytes`  | Disabled | Adds `From<Bytes>`, `From<BytesMut>`, and `From<Bufferfish>` impls for the `bytes` crate.      | `bytes`               |
 <!-- markdownlint-enable -->
 
-### TypeScript / JavaScript
+</details>
+
+<details>
+  <summary>TypeScript / JavaScript</summary>
 
 NPM doesn't support pointing to sub-directories in git repositories, so you have
 to download either `dist/bufferfish.es.js` or `dist/bufferfish.umd.js` directly
