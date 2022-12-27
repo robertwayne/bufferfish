@@ -30,10 +30,10 @@ protobufs, msgpack, flatbuffers, etc.**
 **Feature Flags**
 
 <!-- markdownlint-disable -->
-| Flag        | Default  | Description                                                                                    | Dependencies          |
-|-------------|----------|------------------------------------------------------------------------------------------------|-----------------------|
-| `pretty`    | Enabled  | Enables pretty-printing for the Display impl.                                                  | `unicode-width`       |
-| `impl-bytes`| Disabled | Adds `From<Bytes>`, `From<BytesMut>`, and `From<Bufferfish>` impls for the `bytes` crate.      | `bytes`               |
+| Flag          | Default  | Description                                                                                    | Dependencies          |
+|---------------|----------|------------------------------------------------------------------------------------------------|-----------------------|
+| `pretty-print`| Enabled  | Enables pretty-printing for the Display impl.                                                  | `unicode-width`       |
+| `impl-bytes`  | Disabled | Adds `From<Bytes>`, `From<BytesMut>`, and `From<Bufferfish>` impls for the `bytes` crate.      | `bytes`               |
 <!-- markdownlint-enable -->
 
 ### TypeScript / JavaScript
