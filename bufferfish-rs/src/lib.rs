@@ -44,6 +44,12 @@ impl AsRef<[u8]> for Bufferfish {
     }
 }
 
+impl AsMut<[u8]> for Bufferfish {
+    fn as_mut(&mut self) -> &mut [u8] {
+        self.inner.get_mut()
+    }
+}
+
 impl PartialEq for Bufferfish {
     fn eq(&self, other: &Self) -> bool {
         self.inner.get_ref() == other.inner.get_ref()
@@ -62,10 +68,30 @@ impl From<Vec<u8>> for Bufferfish {
     }
 }
 
-#[allow(clippy::from_over_into)]
-impl Into<Vec<u8>> for Bufferfish {
-    fn into(self) -> Vec<u8> {
-        self.inner.into_inner()
+impl From<Bufferfish> for Vec<u8> {
+    fn from(buffer: Bufferfish) -> Self {
+        buffer.inner.into_inner()
+    }
+}
+
+#[cfg(feature = "impl-bytes")]
+impl From<bytes::Bytes> for Bufferfish {
+    fn from(bytes: bytes::Bytes) -> Self {
+        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity: 1024 }
+    }
+}
+
+#[cfg(feature = "impl-bytes")]
+impl From<bytes::BytesMut> for Bufferfish {
+    fn from(bytes: bytes::BytesMut) -> Self {
+        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity: 1024 }
+    }
+}
+
+#[cfg(feature = "impl-bytes")]
+impl From<Bufferfish> for bytes::Bytes {
+    fn from(buffer: Bufferfish) -> Self {
+        bytes::Bytes::from(buffer.inner.into_inner())
     }
 }
 
@@ -101,6 +127,11 @@ impl Bufferfish {
 
         self.inner.set_position(0);
         self.reading = true;
+    }
+
+    /// Returns a Vec<u8> of the internal byte buffer.
+    pub fn to_vec(&self) -> Vec<u8> {
+        self.inner.get_ref().to_vec()
     }
 
     /// Set the max capacity (in bytes) for the internal buffer.
