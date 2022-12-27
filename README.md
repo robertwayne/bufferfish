@@ -1,6 +1,8 @@
 # Bufferfish
 
-Bufferfish is a schemaless binary protocol designed for game networking. Specifically, this library focuses on communication between TypeScript / JavaScript clients and Rust servers via WebSockets.
+Bufferfish is a schemaless binary protocol designed for game networking.
+Specifically, this library focuses on communication between TypeScript /
+JavaScript clients and Rust servers via WebSockets.
 
 It makes some compromises in order to accomodate this use-case, for example,
 discarding any versioning / backwards compatability overhead. It does prefer to
@@ -8,9 +10,9 @@ sacrifice pure compactness in order to remain usable as partially read,
 in-memory byte arrays - another primary goal.
 
 There are two seperate libraries in this repo: one for Rust and one for
-TypeScript / JavaScript. Neither of the libraries have any required dependencies.
-The Rust version uses the `unicode-width` crate _(enabled by default with the
-"pretty-print" feature)_ for formatting buffer output.
+TypeScript / JavaScript. Neither of the libraries have any required
+dependencies. The Rust version uses the `unicode-width` crate _(enabled by
+default with the "pretty-print" feature)_ for formatting buffer output.
 
 _This is currently a work-in-progress. Please don't use this._
 
@@ -25,9 +27,21 @@ protobufs, msgpack, flatbuffers, etc.**
 
     cargo add bufferfish --git https://github.com/robertwayne/bufferfish
 
+**Feature Flags**
+
+<!-- markdownlint-disable -->
+| Flag        | Default  | Description                                                                                    | Dependencies          |
+|-------------|----------|------------------------------------------------------------------------------------------------|-----------------------|
+| `pretty`    | Enabled  | Enables pretty-printing for the Display impl.                                                  | `unicode-width`       |
+| `impl-bytes`| Disabled | Adds `From<Bytes>`, `From<BytesMut>`, and `From<Bufferfish>` impls for the `bytes` crate.      | `bytes`               |
+<!-- markdownlint-enable -->
+
 ### TypeScript / JavaScript
 
-NPM doesn't support pointing to sub-directories in git repositories, so you have to download either `dist/bufferfish.es.js` or `dist/bufferfish.umd.js` directly and include it locally. Make sure to include the `index.d.ts` file in your project as well.
+NPM doesn't support pointing to sub-directories in git repositories, so you have
+to download either `dist/bufferfish.es.js` or `dist/bufferfish.umd.js` directly
+and include it locally. Make sure to include the `index.d.ts` file in your
+project as well.
 
 </details>
 
