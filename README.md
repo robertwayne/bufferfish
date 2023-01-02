@@ -33,7 +33,7 @@ protobufs, msgpack, flatbuffers, etc.**
 <!-- markdownlint-disable -->
 | Flag          | Default  | Description                                                                                    | Dependencies          |
 |---------------|----------|------------------------------------------------------------------------------------------------|-----------------------|
-| `pretty-print`| Enabled  | Enables pretty-printing for the Display impl.                                                  | `unicode-width`       |
+| `pretty-print`| Disabled  | Enables pretty-printing for the Display impl.                                                 | `unicode-width`       |
 | `impl-bytes`  | Disabled | Adds `From<Bytes>`, `From<BytesMut>`, and `From<Bufferfish>` impls for the `bytes` crate.      | `bytes`               |
 <!-- markdownlint-enable -->
 
