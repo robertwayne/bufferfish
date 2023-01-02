@@ -23,6 +23,7 @@ impl std::fmt::Display for Bufferfish {
         }
 
         write!(f, "\nIndex: ")?;
+        #[allow(unused_variables)]
         for (i, c) in inner.iter().enumerate() {
             #[cfg(feature = "pretty-print")]
             let width = unicode_width::UnicodeWidthStr::width(c.to_string().as_str());
