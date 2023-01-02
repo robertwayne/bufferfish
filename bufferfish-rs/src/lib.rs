@@ -1,5 +1,4 @@
 use std::io::{Cursor, Read, Seek, Write};
-use unicode_width::UnicodeWidthStr;
 
 #[derive(Debug, Default)]
 pub struct Bufferfish {
@@ -26,7 +25,7 @@ impl std::fmt::Display for Bufferfish {
         write!(f, "\nIndex: ")?;
         for (i, c) in inner.iter().enumerate() {
             #[cfg(feature = "pretty-print")]
-            let width = UnicodeWidthStr::width(c.to_string().as_str());
+            let width = unicode_width::UnicodeWidthStr::width(c.to_string().as_str());
 
             #[cfg(not(feature = "pretty-print"))]
             let width = 1;
