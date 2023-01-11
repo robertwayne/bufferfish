@@ -78,7 +78,11 @@ export class Bufferfish {
             throw new Error("Value is out of range")
         }
 
-        this.write(new Uint8Array([value]))
+        const slice: Uint8Array = new Uint8Array(1)
+        const view = new DataView(slice.buffer)
+        view.setUint8(0, value)
+
+        this.write(slice)
     }
 
     /**
@@ -89,7 +93,11 @@ export class Bufferfish {
             throw new Error("Value is out of range")
         }
 
-        this.write(new Uint8Array([value >> 8, value & 0xff]))
+        const slice: Uint8Array = new Uint8Array(2)
+        const view = new DataView(slice.buffer)
+        view.setUint16(0, value)
+
+        this.write(slice)
     }
 
     /**
@@ -100,14 +108,11 @@ export class Bufferfish {
             throw new Error("Value is out of range")
         }
 
-        this.write(
-            new Uint8Array([
-                value >> 24,
-                (value >> 16) & 0xff,
-                (value >> 8) & 0xff,
-                value & 0xff,
-            ])
-        )
+        const slice: Uint8Array = new Uint8Array(4)
+        const view = new DataView(slice.buffer)
+        view.setUint32(0, value)
+
+        this.write(slice)
     }
 
     /**
@@ -118,7 +123,11 @@ export class Bufferfish {
             throw new Error("Value is out of range")
         }
 
-        this.write(new Uint8Array([value]))
+        const slice: Uint8Array = new Uint8Array(1)
+        const view = new DataView(slice.buffer)
+        view.setInt8(0, value)
+
+        this.write(slice)
     }
 
     /**
@@ -129,7 +138,11 @@ export class Bufferfish {
             throw new Error("Value is out of range")
         }
 
-        this.write(new Uint8Array([value >> 8, value & 0xff]))
+        const slice: Uint8Array = new Uint8Array(2)
+        const view = new DataView(slice.buffer)
+        view.setInt16(0, value)
+
+        this.write(slice)
     }
 
     /**
@@ -140,14 +153,11 @@ export class Bufferfish {
             throw new Error("Value is out of range")
         }
 
-        this.write(
-            new Uint8Array([
-                value >> 24,
-                (value >> 16) & 0xff,
-                (value >> 8) & 0xff,
-                value & 0xff,
-            ])
-        )
+        const slice: Uint8Array = new Uint8Array(4)
+        const view = new DataView(slice.buffer)
+        view.setInt32(0, value)
+
+        this.write(slice)
     }
 
     /**
@@ -218,7 +228,7 @@ export class Bufferfish {
         buf.set(this.inner.subarray(this.pos, this.pos + 1))
         this.pos += 1
 
-        return buf[0]
+        return new DataView(buf.buffer).getUint8(0)
     }
 
     /**
@@ -231,7 +241,7 @@ export class Bufferfish {
         buf.set(this.inner.subarray(this.pos, this.pos + 2))
         this.pos += 2
 
-        return (buf[0] << 8) | buf[1]
+        return new DataView(buf.buffer).getUint16(0)
     }
 
     /**
@@ -244,7 +254,7 @@ export class Bufferfish {
         buf.set(this.inner.subarray(this.pos, this.pos + 4))
         this.pos += 4
 
-        return ((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]) >>> 0
+        return new DataView(buf.buffer).getUint32(0)
     }
 
     /**
@@ -257,9 +267,7 @@ export class Bufferfish {
         buf.set(this.inner.subarray(this.pos, this.pos + 1))
         this.pos += 1
 
-        const value = buf[0]
-
-        return buf[0] & 0x80 ? -value : value
+        return new DataView(buf.buffer).getInt8(0)
     }
 
     /**
@@ -272,9 +280,7 @@ export class Bufferfish {
         buf.set(this.inner.subarray(this.pos, this.pos + 2))
         this.pos += 2
 
-        const value = (buf[0] << 8) | buf[1]
-
-        return buf[0] & 0x80 ? -value : value
+        return new DataView(buf.buffer).getInt16(0)
     }
 
     /**
@@ -287,10 +293,7 @@ export class Bufferfish {
         buf.set(this.inner.subarray(this.pos, this.pos + 4))
         this.pos += 4
 
-        const value =
-            ((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]) >>> 0
-
-        return buf[0] & 0x80 ? -value : value
+        return new DataView(buf.buffer).getInt32(0)
     }
 
     /**
@@ -494,11 +497,13 @@ if (import.meta.vitest) {
         buf.writeInt32(1234567890)
         buf.writeInt32(2147483647)
         buf.writeInt32(-2147483648)
+        buf.writeInt32(-1)
 
         expect(buf.readInt32()).toEqual(0)
         expect(buf.readInt32()).toEqual(1234567890)
         expect(buf.readInt32()).toEqual(2147483647)
         expect(buf.readInt32()).toEqual(-2147483648)
+        expect(buf.readInt32()).toEqual(-1)
     })
 
     it("test read reset", () => {
