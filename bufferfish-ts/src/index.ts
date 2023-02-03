@@ -50,7 +50,7 @@ export class Bufferfish {
      *
      * This should only be called by the library.
      */
-    private start_reading() {
+    private start_reading(): void {
         if (this.reading) {
             return
         }
@@ -62,7 +62,7 @@ export class Bufferfish {
     /**
      * Sets the max capacity (in bytes) for the internal buffer.
      */
-    public set_max_capacity(capacity: number) {
+    public set_max_capacity(capacity: number): void {
         if (capacity < 1) {
             throw new Error("Max capacity must be at least 1 byte")
         }
@@ -73,7 +73,7 @@ export class Bufferfish {
     /**
      * Writes a single u8 to the buffer as one byte.
      */
-    public writeUint8 = (value: number) => {
+    public writeUint8 = (value: number): void => {
         if (value > 255 || value < 0) {
             throw new Error("Value is out of range")
         }
@@ -88,7 +88,7 @@ export class Bufferfish {
     /**
      * Writes a u16 to the buffer as two bytes.
      */
-    public writeUint16 = (value: number) => {
+    public writeUint16 = (value: number): void => {
         if (value > 65535 || value < 0) {
             throw new Error("Value is out of range")
         }
@@ -103,7 +103,7 @@ export class Bufferfish {
     /**
      * Writes a u32 to the buffer as four bytes.
      */
-    public writeUint32 = (value: number) => {
+    public writeUint32 = (value: number): void => {
         if (value > 4294967295 || value < 0) {
             throw new Error("Value is out of range")
         }
@@ -118,7 +118,7 @@ export class Bufferfish {
     /**
      * Writes an i8 to the buffer as one byte.
      */
-    public writeInt8 = (value: number) => {
+    public writeInt8 = (value: number): void => {
         if (value > 127 || value < -128) {
             throw new Error("Value is out of range")
         }
@@ -133,7 +133,7 @@ export class Bufferfish {
     /**
      * Writes an i16 to the buffer as two bytes.
      */
-    public writeInt16 = (value: number) => {
+    public writeInt16 = (value: number): void => {
         if (value > 32767 || value < -32768) {
             throw new Error("Value is out of range")
         }
@@ -148,7 +148,7 @@ export class Bufferfish {
     /**
      * Writes an i32 to the buffer as four bytes.
      */
-    public writeInt32 = (value: number) => {
+    public writeInt32 = (value: number): void => {
         if (value > 2147483647 || value < -2147483648) {
             throw new Error("Value is out of range")
         }
@@ -163,7 +163,7 @@ export class Bufferfish {
     /**
      * Writes a bool to the buffer as a single byte.
      */
-    public writeBool = (value: boolean) => {
+    public writeBool = (value: boolean): void => {
         this.writeUint8(value ? 1 : 0)
     }
 
@@ -172,7 +172,7 @@ export class Bufferfish {
      * to 4 bools to be represented as a single byte. The first 4 bits are used
      * as a mask to determine which of the last 4 bits are set.
      */
-    public writePackedBools = (values: Array<boolean>) => {
+    public writePackedBools = (values: Array<boolean>): void => {
         if (values.length > 4) {
             throw new Error(
                 "Each packed bool can only represent 4 or fewer values"
@@ -194,7 +194,7 @@ export class Bufferfish {
      * Writes a variable length string to the buffer. It will be prefixed with
      * its length in bytes as a u16 (two bytes).
      */
-    public writeString = (value: string) => {
+    public writeString = (value: string): void => {
         const slice: Uint8Array = new TextEncoder().encode(value)
 
         this.writeUint16(slice.length)
@@ -204,7 +204,7 @@ export class Bufferfish {
     /**
      * Writes a string to the buffer without a length prefix.
      */
-    public writeSizedString = (value: string) => {
+    public writeSizedString = (value: string): void => {
         const slice: Uint8Array = new TextEncoder().encode(value)
 
         this.write(slice)
@@ -214,7 +214,7 @@ export class Bufferfish {
      * Writes an array of raw bytes to the buffer. Useful for serializing ///
        distinct structs into byte arrays and appending them to a buffer later.
      */
-    public writeRawBytes = (value: Uint8Array) => {
+    public writeRawBytes = (value: Uint8Array): void => {
         this.write(value)
     }
 
