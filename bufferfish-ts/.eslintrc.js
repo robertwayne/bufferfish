@@ -7,7 +7,7 @@ module.exports = {
     plugins: ["@typescript-eslint"],
     overrides: [
         {
-            files: ["*.ts"],
+            files: ["*.ts", "*.tsx"],
             extends: [
                 "eslint:recommended",
                 "plugin:@typescript-eslint/recommended",
@@ -29,8 +29,10 @@ module.exports = {
                     },
                 ],
                 "@typescript-eslint/no-empty-function": "warn",
+                "@typescript-eslint/explicit-function-return-type": "warn",
             },
         },
     ],
     rules: {},
+    settings: {},
 }

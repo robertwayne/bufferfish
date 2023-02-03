@@ -1,5 +1,4 @@
 import { defineConfig } from "vitest/config"
-import dts from "vite-plugin-dts"
 import path from "path"
 
 export default defineConfig({
@@ -10,14 +9,14 @@ export default defineConfig({
             fileName: (format) => `bufferfish.${format}.js`,
         },
         emptyOutDir: true,
+        modulePreload: { polyfill: false },
     },
     test: {
-        includeSource: ["src/**/*.ts"],
+        includeSource: ["tests/**/*.ts"],
         globals: true,
         environment: "happy-dom",
     },
     define: {
         "import.meta.vitest": false,
     },
-    plugins: [dts()],
 })
