@@ -12,7 +12,7 @@ export default defineConfig({
         modulePreload: { polyfill: false },
     },
     test: {
-        includeSource: ["tests/**/*.ts"],
+        includeSource: ["src/**/*.ts"],
         globals: true,
         environment: "happy-dom",
     },
