@@ -2,15 +2,17 @@
     "name": "bufferfish",
     "version": "0.1.0",
     "description": "Schemaless binary protocol for game networking.",
-    "main": "./dist/bufferfish.es.js",
+    "repository": "https://github.com/robertwayne/bufferfish",
     "author": "Rob Wagner <rob@sombia.com>",
+    "license": "(MIT OR Apache-2.0)",
+    "main": "src/index.ts",
+    "types": "dist/index.d.ts",
     "private": true,
-    "types": "./dist/index.d.ts",
     "scripts": {
-        "build": "vite build && tsc --emitDeclarationOnly",
-        "fmt": "prettier --write --plugin-search-dir=. \"**/*.{js,ts,html,css,cjs,mjs,json}\"",
-        "lint": "eslint \"src/**/*.{js,ts}\"",
-        "lint:fix": "eslint --fix --fix-type problem,suggestion \"src/**/*.{js,ts}\"",
+        "build": "vite build && tsc",
+        "fmt": "prettier --write --plugin-search-dir=. \"**/*.{ts,html,css,cjs,json,tsx}\"",
+        "lint": "eslint \"src/**/*.{ts,tsx}\"",
+        "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,tsx}\"",
         "tsc": "tsc --noEmit",
         "tsc:watch": "tsc --noEmit --watch",
         "test": "vitest run",
@@ -21,10 +23,10 @@
         "@typescript-eslint/eslint-plugin": "^5.50.0",
         "@typescript-eslint/parser": "^5.50.0",
         "eslint": "^8.33.0",
-        "happy-dom": "^8.2.3",
+        "happy-dom": "^8.2.6",
         "prettier": "^2.8.3",
         "typescript": "^4.9.5",
         "vite": "^4.1.1",
-        "vitest": "^0.28.3"
+        "vitest": "^0.28.4"
     }
 }
