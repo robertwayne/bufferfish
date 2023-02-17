@@ -1,6 +1,6 @@
-var s = Object.defineProperty;
-var a = (n, t, e) => t in n ? s(n, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : n[t] = e;
-var i = (n, t, e) => (a(n, typeof t != "symbol" ? t + "" : t, e), e);
+var n = Object.defineProperty;
+var a = (s, t, e) => t in s ? n(s, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : s[t] = e;
+var i = (s, t, e) => (a(s, typeof t != "symbol" ? t + "" : t, e), e);
 class h {
   constructor(t = new ArrayBuffer(0)) {
     i(this, "inner");
@@ -11,6 +11,22 @@ class h {
      * Returns the (immutable) internal Uint8Array.
      */
     i(this, "view", () => this.inner.slice());
+    /**
+     * Returns the next byte in the buffer without advancing the cursor.
+     * Returns undefined if the cursor is at the end of the buffer.
+     */
+    i(this, "peek", () => {
+      if (this.startReading(), !(this.pos >= this.inner.length))
+        return this.inner[this.pos];
+    });
+    /**
+     * Returns the next n bytes in the buffer without advancing the cursor.
+     * Returns undefined if the cursor is at the end of the buffer.
+     */
+    i(this, "peekN", (t) => {
+      if (this.startReading(), !(this.pos + t > this.inner.length))
+        return this.inner.slice(this.pos, this.pos + t);
+    });
     /**
      * Writes a single u8 to the buffer as one byte.
      */
@@ -112,7 +128,7 @@ class h {
      * Reads a u8 from the buffer.
      */
     i(this, "readUint8", () => {
-      this.start_reading();
+      this.startReading();
       const t = new Uint8Array(1);
       return t.set(this.inner.subarray(this.pos, this.pos + 1)), this.pos += 1, new DataView(t.buffer).getUint8(0);
     });
@@ -120,7 +136,7 @@ class h {
      * Reads a u16 from the buffer.
      */
     i(this, "readUint16", () => {
-      this.start_reading();
+      this.startReading();
       const t = new Uint8Array(2);
       return t.set(this.inner.subarray(this.pos, this.pos + 2)), this.pos += 2, new DataView(t.buffer).getUint16(0);
     });
@@ -128,7 +144,7 @@ class h {
      * Reads a u32 from the buffer.
      */
     i(this, "readUint32", () => {
-      this.start_reading();
+      this.startReading();
       const t = new Uint8Array(4);
       return t.set(this.inner.subarray(this.pos, this.pos + 4)), this.pos += 4, new DataView(t.buffer).getUint32(0);
     });
@@ -136,7 +152,7 @@ class h {
      * Reads an i8 from the buffer.
      */
     i(this, "readInt8", () => {
-      this.start_reading();
+      this.startReading();
       const t = new Uint8Array(1);
       return t.set(this.inner.subarray(this.pos, this.pos + 1)), this.pos += 1, new DataView(t.buffer).getInt8(0);
     });
@@ -144,7 +160,7 @@ class h {
      * Reads an i16 from the buffer.
      */
     i(this, "readInt16", () => {
-      this.start_reading();
+      this.startReading();
       const t = new Uint8Array(2);
       return t.set(this.inner.subarray(this.pos, this.pos + 2)), this.pos += 2, new DataView(t.buffer).getInt16(0);
     });
@@ -152,7 +168,7 @@ class h {
      * Reads an i32 from the buffer.
      */
     i(this, "readInt32", () => {
-      this.start_reading();
+      this.startReading();
       const t = new Uint8Array(4);
       return t.set(this.inner.subarray(this.pos, this.pos + 4)), this.pos += 4, new DataView(t.buffer).getInt32(0);
     });
@@ -160,7 +176,7 @@ class h {
      * Reads a bool from the buffer.
      */
     i(this, "readBool", () => {
-      this.start_reading();
+      this.startReading();
       const t = new Uint8Array(1);
       return t.set(this.inner.subarray(this.pos, this.pos + 1)), this.pos += 1, t[0] === 1;
     });
@@ -172,7 +188,7 @@ class h {
      * Reads a variable length string from the buffer.
      */
     i(this, "readString", () => {
-      this.start_reading();
+      this.startReading();
       const t = this.readUint16(), e = this.inner.subarray(this.pos, this.pos + t), r = new TextDecoder("utf-8").decode(e);
       return this.pos += t, r;
     });
@@ -181,7 +197,7 @@ class h {
      * string in bytes.
      */
     i(this, "readSizedString", (t) => {
-      this.start_reading();
+      this.startReading();
       const e = this.inner.subarray(this.pos, this.pos + t), r = new TextDecoder("utf-8").decode(e);
       return this.pos += t, r;
     });
@@ -193,7 +209,7 @@ class h {
      * your packets out such that they end with a sized string where possible.
      */
     i(this, "readStringRemaining", () => {
-      this.start_reading();
+      this.startReading();
       const t = this.inner.subarray(this.pos, this.inner.length), e = new TextDecoder("utf-8").decode(t);
       return this.pos = this.inner.length, e;
     });
@@ -219,13 +235,13 @@ class h {
    *
    * This should only be called by the library.
    */
-  start_reading() {
+  startReading() {
     this.reading || (this.pos = 0, this.reading = !0);
   }
   /**
    * Sets the max capacity (in bytes) for the internal buffer.
    */
-  set_max_capacity(t) {
+  setMaxCapacity(t) {
     if (t < 1)
       throw new Error("Max capacity must be at least 1 byte");
     this.capacity = t;
