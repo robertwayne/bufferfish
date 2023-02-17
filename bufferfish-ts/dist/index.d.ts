@@ -20,11 +20,21 @@ export declare class Bufferfish {
      *
      * This should only be called by the library.
      */
-    private start_reading;
+    private startReading;
     /**
      * Sets the max capacity (in bytes) for the internal buffer.
      */
-    set_max_capacity(capacity: number): void;
+    setMaxCapacity(capacity: number): void;
+    /**
+     * Returns the next byte in the buffer without advancing the cursor.
+     * Returns undefined if the cursor is at the end of the buffer.
+     */
+    peek: () => number | undefined;
+    /**
+     * Returns the next n bytes in the buffer without advancing the cursor.
+     * Returns undefined if the cursor is at the end of the buffer.
+     */
+    peekN: (n: number) => Uint8Array | undefined;
     /**
      * Writes a single u8 to the buffer as one byte.
      */

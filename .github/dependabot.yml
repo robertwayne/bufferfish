@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: cargo
-    directory: /rust
+    directory: /bufferfish-rs
     schedule:
       interval: weekly
     commit-message:
@@ -9,7 +9,7 @@ updates:
       prefix-development: "build"
 
   - package-ecosystem: npm
-    directory: /typescript
+    directory: /bufferfish-ts
     schedule:
       interval: weekly
     commit-message:

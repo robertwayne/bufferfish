@@ -50,7 +50,7 @@ export class Bufferfish {
      *
      * This should only be called by the library.
      */
-    private start_reading(): void {
+    private startReading(): void {
         if (this.reading) {
             return
         }
@@ -62,12 +62,40 @@ export class Bufferfish {
     /**
      * Sets the max capacity (in bytes) for the internal buffer.
      */
-    public set_max_capacity(capacity: number): void {
+    public setMaxCapacity(capacity: number): void {
         if (capacity < 1) {
             throw new Error("Max capacity must be at least 1 byte")
         }
 
         this.capacity = capacity
+    }
+
+    /**
+     * Returns the next byte in the buffer without advancing the cursor.
+     * Returns undefined if the cursor is at the end of the buffer.
+     */
+    public peek = (): number | undefined => {
+        this.startReading()
+
+        if (this.pos >= this.inner.length) {
+            return undefined
+        }
+
+        return this.inner[this.pos]
+    }
+
+    /**
+     * Returns the next n bytes in the buffer without advancing the cursor.
+     * Returns undefined if the cursor is at the end of the buffer.
+     */
+    public peekN = (n: number): Uint8Array | undefined => {
+        this.startReading()
+
+        if (this.pos + n > this.inner.length) {
+            return undefined
+        }
+
+        return this.inner.slice(this.pos, this.pos + n)
     }
 
     /**
@@ -222,7 +250,7 @@ export class Bufferfish {
      * Reads a u8 from the buffer.
      */
     public readUint8 = (): number => {
-        this.start_reading()
+        this.startReading()
 
         const buf = new Uint8Array(1)
         buf.set(this.inner.subarray(this.pos, this.pos + 1))
@@ -235,7 +263,7 @@ export class Bufferfish {
      * Reads a u16 from the buffer.
      */
     public readUint16 = (): number => {
-        this.start_reading()
+        this.startReading()
 
         const buf = new Uint8Array(2)
         buf.set(this.inner.subarray(this.pos, this.pos + 2))
@@ -248,7 +276,7 @@ export class Bufferfish {
      * Reads a u32 from the buffer.
      */
     public readUint32 = (): number => {
-        this.start_reading()
+        this.startReading()
 
         const buf = new Uint8Array(4)
         buf.set(this.inner.subarray(this.pos, this.pos + 4))
@@ -261,7 +289,7 @@ export class Bufferfish {
      * Reads an i8 from the buffer.
      */
     public readInt8 = (): number => {
-        this.start_reading()
+        this.startReading()
 
         const buf = new Uint8Array(1)
         buf.set(this.inner.subarray(this.pos, this.pos + 1))
@@ -274,7 +302,7 @@ export class Bufferfish {
      * Reads an i16 from the buffer.
      */
     public readInt16 = (): number => {
-        this.start_reading()
+        this.startReading()
 
         const buf = new Uint8Array(2)
         buf.set(this.inner.subarray(this.pos, this.pos + 2))
@@ -287,7 +315,7 @@ export class Bufferfish {
      * Reads an i32 from the buffer.
      */
     public readInt32 = (): number => {
-        this.start_reading()
+        this.startReading()
 
         const buf = new Uint8Array(4)
         buf.set(this.inner.subarray(this.pos, this.pos + 4))
@@ -300,7 +328,7 @@ export class Bufferfish {
      * Reads a bool from the buffer.
      */
     public readBool = (): boolean => {
-        this.start_reading()
+        this.startReading()
 
         const buf = new Uint8Array(1)
         buf.set(this.inner.subarray(this.pos, this.pos + 1))
@@ -320,7 +348,7 @@ export class Bufferfish {
      * Reads a variable length string from the buffer.
      */
     public readString = (): string => {
-        this.start_reading()
+        this.startReading()
 
         const len = this.readUint16()
         const slice = this.inner.subarray(this.pos, this.pos + len)
@@ -335,7 +363,7 @@ export class Bufferfish {
      * string in bytes.
      */
     public readSizedString = (size: number): string => {
-        this.start_reading()
+        this.startReading()
 
         const slice = this.inner.subarray(this.pos, this.pos + size)
         const str = new TextDecoder("utf-8").decode(slice)
@@ -352,7 +380,7 @@ export class Bufferfish {
      * your packets out such that they end with a sized string where possible.
      */
     public readStringRemaining = (): string => {
-        this.start_reading()
+        this.startReading()
 
         const slice = this.inner.subarray(this.pos, this.inner.length)
         const str = new TextDecoder("utf-8").decode(slice)
@@ -372,6 +400,24 @@ export class Bufferfish {
 
 if (import.meta.vitest) {
     const { it, expect } = import.meta.vitest
+
+    it("should peek one byte", () => {
+        const buf = new Bufferfish()
+        buf.writeUint8(0)
+        buf.writeUint8(255)
+
+        expect(buf.peek()).toEqual(0)
+        expect(buf.peek()).toEqual(0)
+    })
+
+    it("should peek two bytes", () => {
+        const buf = new Bufferfish()
+        buf.writeUint8(0)
+        buf.writeUint8(255)
+
+        expect(buf.peekN(2)).toEqual(new Uint8Array([0, 255]))
+        expect(buf.peekN(2)).toEqual(new Uint8Array([0, 255]))
+    })
 
     it("test write u8", () => {
         const buf = new Bufferfish()
