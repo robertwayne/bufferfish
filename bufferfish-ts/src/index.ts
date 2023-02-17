@@ -18,7 +18,10 @@ export class Bufferfish {
      * This should only be called by the library.
      */
     private write(buf: Uint8Array): number {
-        if (buf.length > this.capacity || this.inner.length + buf.length > this.capacity) {
+        if (
+            buf.length > this.capacity ||
+            this.inner.length + buf.length > this.capacity
+        ) {
             throw new Error("Bufferfish is full")
         }
 
@@ -199,7 +202,9 @@ export class Bufferfish {
      */
     public writePackedBools = (values: Array<boolean>): void => {
         if (values.length > 4) {
-            throw new Error("Each packed bool can only represent 4 or fewer values")
+            throw new Error(
+                "Each packed bool can only represent 4 or fewer values"
+            )
         }
 
         let packed_value = 0x00
@@ -489,7 +494,9 @@ if (import.meta.vitest) {
         buf.writeInt16(32767)
         buf.writeInt16(-32768)
 
-        expect(buf.view()).toEqual(new Uint8Array([0, 0, 48, 57, 127, 255, 128, 0]))
+        expect(buf.view()).toEqual(
+            new Uint8Array([0, 0, 48, 57, 127, 255, 128, 0])
+        )
     })
 
     it("test write i32", () => {
@@ -500,7 +507,9 @@ if (import.meta.vitest) {
         buf.writeInt32(-2147483648)
 
         expect(buf.view()).toEqual(
-            new Uint8Array([0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0])
+            new Uint8Array([
+                0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0,
+            ])
         )
     })
 
@@ -567,7 +576,9 @@ if (import.meta.vitest) {
         buf.writeString("Bufferfish")
 
         expect(buf.view()).toEqual(
-            new Uint8Array([0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104])
+            new Uint8Array([
+                0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104,
+            ])
         )
     })
 
@@ -577,23 +588,8 @@ if (import.meta.vitest) {
 
         expect(buf.view()).toEqual(
             new Uint8Array([
-                0,
-                15,
-                236,
-                149,
-                136,
-                235,
-                133,
-                149,
-                237,
-                149,
-                152,
-                236,
-                132,
-                184,
-                236,
-                154,
-                148,
+                0, 15, 236, 149, 136, 235, 133, 149, 237, 149, 152, 236, 132,
+                184, 236, 154, 148,
             ])
         )
     })
@@ -605,35 +601,9 @@ if (import.meta.vitest) {
 
         expect(buf.view()).toEqual(
             new Uint8Array([
-                0,
-                10,
-                66,
-                117,
-                102,
-                102,
-                101,
-                114,
-                102,
-                105,
-                115,
-                104,
-                0,
-                15,
-                236,
-                149,
-                136,
-                235,
-                133,
-                149,
-                237,
-                149,
-                152,
-                236,
-                132,
-                184,
-                236,
-                154,
-                148,
+                0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104, 0, 15,
+                236, 149, 136, 235, 133, 149, 237, 149, 152, 236, 132, 184, 236,
+                154, 148,
             ])
         )
     })
