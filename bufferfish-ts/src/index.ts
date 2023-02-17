@@ -18,10 +18,7 @@ export class Bufferfish {
      * This should only be called by the library.
      */
     private write(buf: Uint8Array): number {
-        if (
-            buf.length > this.capacity ||
-            this.inner.length + buf.length > this.capacity
-        ) {
+        if (buf.length > this.capacity || this.inner.length + buf.length > this.capacity) {
             throw new Error("Bufferfish is full")
         }
 
@@ -68,6 +65,34 @@ export class Bufferfish {
         }
 
         this.capacity = capacity
+    }
+
+    /**
+     * Returns the next byte in the buffer without advancing the cursor.
+     * Returns undefined if the cursor is at the end of the buffer.
+     */
+    public peek = (): number | undefined => {
+        this.start_reading()
+
+        if (this.pos >= this.inner.length) {
+            return undefined
+        }
+
+        return this.inner[this.pos]
+    }
+
+    /**
+     * Returns the next n bytes in the buffer without advancing the cursor.
+     * Returns undefined if the cursor is at the end of the buffer.
+     */
+    public peekN = (n: number): Uint8Array | undefined => {
+        this.start_reading()
+
+        if (this.pos + n > this.inner.length) {
+            return undefined
+        }
+
+        return this.inner.slice(this.pos, this.pos + n)
     }
 
     /**
@@ -174,9 +199,7 @@ export class Bufferfish {
      */
     public writePackedBools = (values: Array<boolean>): void => {
         if (values.length > 4) {
-            throw new Error(
-                "Each packed bool can only represent 4 or fewer values"
-            )
+            throw new Error("Each packed bool can only represent 4 or fewer values")
         }
 
         let packed_value = 0x00
@@ -373,6 +396,24 @@ export class Bufferfish {
 if (import.meta.vitest) {
     const { it, expect } = import.meta.vitest
 
+    it("should peek one byte", () => {
+        const buf = new Bufferfish()
+        buf.writeUint8(0)
+        buf.writeUint8(255)
+
+        expect(buf.peek()).toEqual(0)
+        expect(buf.peek()).toEqual(0)
+    })
+
+    it("should peek two bytes", () => {
+        const buf = new Bufferfish()
+        buf.writeUint8(0)
+        buf.writeUint8(255)
+
+        expect(buf.peekN(2)).toEqual(new Uint8Array([0, 255]))
+        expect(buf.peekN(2)).toEqual(new Uint8Array([0, 255]))
+    })
+
     it("test write u8", () => {
         const buf = new Bufferfish()
         buf.writeUint8(0)
@@ -448,9 +489,7 @@ if (import.meta.vitest) {
         buf.writeInt16(32767)
         buf.writeInt16(-32768)
 
-        expect(buf.view()).toEqual(
-            new Uint8Array([0, 0, 48, 57, 127, 255, 128, 0])
-        )
+        expect(buf.view()).toEqual(new Uint8Array([0, 0, 48, 57, 127, 255, 128, 0]))
     })
 
     it("test write i32", () => {
@@ -461,9 +500,7 @@ if (import.meta.vitest) {
         buf.writeInt32(-2147483648)
 
         expect(buf.view()).toEqual(
-            new Uint8Array([
-                0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0,
-            ])
+            new Uint8Array([0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0])
         )
     })
 
@@ -530,9 +567,7 @@ if (import.meta.vitest) {
         buf.writeString("Bufferfish")
 
         expect(buf.view()).toEqual(
-            new Uint8Array([
-                0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104,
-            ])
+            new Uint8Array([0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104])
         )
     })
 
@@ -542,8 +577,23 @@ if (import.meta.vitest) {
 
         expect(buf.view()).toEqual(
             new Uint8Array([
-                0, 15, 236, 149, 136, 235, 133, 149, 237, 149, 152, 236, 132,
-                184, 236, 154, 148,
+                0,
+                15,
+                236,
+                149,
+                136,
+                235,
+                133,
+                149,
+                237,
+                149,
+                152,
+                236,
+                132,
+                184,
+                236,
+                154,
+                148,
             ])
         )
     })
@@ -555,9 +605,35 @@ if (import.meta.vitest) {
 
         expect(buf.view()).toEqual(
             new Uint8Array([
-                0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104, 0, 15,
-                236, 149, 136, 235, 133, 149, 237, 149, 152, 236, 132, 184, 236,
-                154, 148,
+                0,
+                10,
+                66,
+                117,
+                102,
+                102,
+                101,
+                114,
+                102,
+                105,
+                115,
+                104,
+                0,
+                15,
+                236,
+                149,
+                136,
+                235,
+                133,
+                149,
+                237,
+                149,
+                152,
+                236,
+                132,
+                184,
+                236,
+                154,
+                148,
             ])
         )
     })
