@@ -9,7 +9,11 @@ pub struct Bufferfish {
 
 impl Bufferfish {
     pub fn new() -> Self {
-        Self { inner: Cursor::new(Vec::with_capacity(12)), reading: false, capacity: 1024 }
+        Self { inner: Cursor::new(Vec::new()), reading: false, capacity: 1024 }
+    }
+
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self { inner: Cursor::new(Vec::with_capacity(capacity)), reading: false, capacity }
     }
 }
 
@@ -58,13 +62,14 @@ impl PartialEq for Bufferfish {
 
 impl From<&[u8]> for Bufferfish {
     fn from(slice: &[u8]) -> Self {
-        Self { inner: Cursor::new(slice.to_vec()), reading: false, capacity: 1024 }
+        Self { inner: Cursor::new(slice.to_vec()), reading: false, capacity: slice.len() }
     }
 }
 
 impl From<Vec<u8>> for Bufferfish {
     fn from(vec: Vec<u8>) -> Self {
-        Self { inner: Cursor::new(vec), reading: false, capacity: 1024 }
+        let capacity = vec.len();
+        Self { inner: Cursor::new(vec), reading: false, capacity }
     }
 }
 
@@ -77,14 +82,16 @@ impl From<Bufferfish> for Vec<u8> {
 #[cfg(feature = "impl-bytes")]
 impl From<bytes::Bytes> for Bufferfish {
     fn from(bytes: bytes::Bytes) -> Self {
-        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity: 1024 }
+        let capacity = bytes.len();
+        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity }
     }
 }
 
 #[cfg(feature = "impl-bytes")]
 impl From<bytes::BytesMut> for Bufferfish {
     fn from(bytes: bytes::BytesMut) -> Self {
-        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity: 1024 }
+        let capacity = bytes.len();
+        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity }
     }
 }
 
