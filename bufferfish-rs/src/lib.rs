@@ -1,5 +1,9 @@
 use std::io::{Cursor, Read, Seek, Write};
 
+pub trait BufferfishWrite {
+    fn to_bufferfish(&self) -> Bufferfish;
+}
+
 #[derive(Debug, Default)]
 pub struct Bufferfish {
     inner: Cursor<Vec<u8>>,
@@ -14,91 +18,6 @@ impl Bufferfish {
 
     pub fn with_capacity(capacity: usize) -> Self {
         Self { inner: Cursor::new(Vec::with_capacity(capacity)), reading: false, capacity }
-    }
-}
-
-impl std::fmt::Display for Bufferfish {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let inner = self.inner.get_ref();
-        write!(f, " Byte: ")?;
-
-        for val in inner {
-            write!(f, " {} ", val)?;
-        }
-
-        write!(f, "\nIndex: ")?;
-        #[allow(unused_variables)]
-        for (i, c) in inner.iter().enumerate() {
-            #[cfg(feature = "pretty-print")]
-            let width = unicode_width::UnicodeWidthStr::width(c.to_string().as_str());
-
-            #[cfg(not(feature = "pretty-print"))]
-            let width = 1;
-
-            write!(f, " {:width$} ", i, width = width)?;
-        }
-
-        Ok(())
-    }
-}
-
-impl AsRef<[u8]> for Bufferfish {
-    fn as_ref(&self) -> &[u8] {
-        self.inner.get_ref()
-    }
-}
-
-impl AsMut<[u8]> for Bufferfish {
-    fn as_mut(&mut self) -> &mut [u8] {
-        self.inner.get_mut()
-    }
-}
-
-impl PartialEq for Bufferfish {
-    fn eq(&self, other: &Self) -> bool {
-        self.inner.get_ref() == other.inner.get_ref()
-    }
-}
-
-impl From<&[u8]> for Bufferfish {
-    fn from(slice: &[u8]) -> Self {
-        Self { inner: Cursor::new(slice.to_vec()), reading: false, capacity: slice.len() }
-    }
-}
-
-impl From<Vec<u8>> for Bufferfish {
-    fn from(vec: Vec<u8>) -> Self {
-        let capacity = vec.len();
-        Self { inner: Cursor::new(vec), reading: false, capacity }
-    }
-}
-
-impl From<Bufferfish> for Vec<u8> {
-    fn from(buffer: Bufferfish) -> Self {
-        buffer.inner.into_inner()
-    }
-}
-
-#[cfg(feature = "impl-bytes")]
-impl From<bytes::Bytes> for Bufferfish {
-    fn from(bytes: bytes::Bytes) -> Self {
-        let capacity = bytes.len();
-        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity }
-    }
-}
-
-#[cfg(feature = "impl-bytes")]
-impl From<bytes::BytesMut> for Bufferfish {
-    fn from(bytes: bytes::BytesMut) -> Self {
-        let capacity = bytes.len();
-        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity }
-    }
-}
-
-#[cfg(feature = "impl-bytes")]
-impl From<Bufferfish> for bytes::Bytes {
-    fn from(buffer: Bufferfish) -> Self {
-        bytes::Bytes::from(buffer.inner.into_inner())
     }
 }
 
@@ -144,10 +63,10 @@ impl Bufferfish {
     /// Set the max capacity (in bytes) for the internal buffer.
     pub fn set_max_capacity(&mut self, capacity: usize) {
         if capacity < 1 {
-            panic!("Max capacity must be at least 1 byte");
+            self.capacity = 1;
+        } else {
+            self.capacity = capacity;
         }
-
-        self.capacity = capacity;
     }
 
     /// Writes a u8 to the buffer as one byte.
@@ -363,6 +282,91 @@ impl Bufferfish {
             Ok(s) => Ok(s),
             Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())),
         }
+    }
+}
+
+impl std::fmt::Display for Bufferfish {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let inner = self.inner.get_ref();
+        write!(f, " Byte: ")?;
+
+        for val in inner {
+            write!(f, " {} ", val)?;
+        }
+
+        write!(f, "\nIndex: ")?;
+        #[allow(unused_variables)]
+        for (i, c) in inner.iter().enumerate() {
+            #[cfg(feature = "pretty-print")]
+            let width = unicode_width::UnicodeWidthStr::width(c.to_string().as_str());
+
+            #[cfg(not(feature = "pretty-print"))]
+            let width = 1;
+
+            write!(f, " {:width$} ", i, width = width)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl AsRef<[u8]> for Bufferfish {
+    fn as_ref(&self) -> &[u8] {
+        self.inner.get_ref()
+    }
+}
+
+impl AsMut<[u8]> for Bufferfish {
+    fn as_mut(&mut self) -> &mut [u8] {
+        self.inner.get_mut()
+    }
+}
+
+impl PartialEq for Bufferfish {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner.get_ref() == other.inner.get_ref()
+    }
+}
+
+impl From<&[u8]> for Bufferfish {
+    fn from(slice: &[u8]) -> Self {
+        Self { inner: Cursor::new(slice.to_vec()), reading: false, capacity: slice.len() }
+    }
+}
+
+impl From<Vec<u8>> for Bufferfish {
+    fn from(vec: Vec<u8>) -> Self {
+        let capacity = vec.len();
+        Self { inner: Cursor::new(vec), reading: false, capacity }
+    }
+}
+
+impl From<Bufferfish> for Vec<u8> {
+    fn from(buffer: Bufferfish) -> Self {
+        buffer.inner.into_inner()
+    }
+}
+
+#[cfg(feature = "impl-bytes")]
+impl From<bytes::Bytes> for Bufferfish {
+    fn from(bytes: bytes::Bytes) -> Self {
+        let capacity = bytes.len();
+        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity }
+    }
+}
+
+#[cfg(feature = "impl-bytes")]
+impl From<bytes::BytesMut> for Bufferfish {
+    fn from(bytes: bytes::BytesMut) -> Self {
+        let capacity = bytes.len();
+        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity }
+    }
+}
+
+#[cfg(feature = "impl-bytes")]
+impl From<Bufferfish> for bytes::Bytes {
+    fn from(buffer: Bufferfish) -> Self {
+        bytes::Bytes::from(buffer.inner.into_inner())
     }
 }
 

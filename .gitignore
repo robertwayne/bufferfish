@@ -1,20 +1,14 @@
 # Directories
+dist
 build
 target
 node_modules
 
-# Yarn v2 (Zero Installs)
-.yarn/*
-!.yarn/cache
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-
 # Files
 Cargo.lock
+.log
 .env
+pnpm-lock.yaml
 
 # User Settings
 .vscode

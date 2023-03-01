@@ -1,6 +1,6 @@
 echo "Updating TypeScript dependencies..."
 cd bufferfish-ts
-npm upgrade &> /dev/null
+pnpm upgrade &> /dev/null
 
 echo "Updating Rust dependencies..."
 cd ../bufferfish-rs
