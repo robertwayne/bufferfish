@@ -23,8 +23,15 @@ impl Bufferfish {
 
 impl Write for Bufferfish {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        if buf.len() > self.capacity || self.as_ref().len() + buf.len() > self.capacity {
-            return Err(std::io::Error::new(std::io::ErrorKind::Other, "Bufferfish is full"));
+        if buf.len() >= self.capacity || self.as_ref().len() + buf.len() > self.capacity {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!(
+                    "Write of {} bytes exceeds the max capacity of {} bytes on this Bufferfish.",
+                    buf.len(),
+                    self.capacity
+                ),
+            ));
         }
 
         self.reading = false;
