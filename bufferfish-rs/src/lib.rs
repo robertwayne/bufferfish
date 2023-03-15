@@ -4,7 +4,7 @@ pub trait BufferfishWrite {
     fn to_bufferfish(&self) -> Bufferfish;
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Bufferfish {
     inner: Cursor<Vec<u8>>,
     reading: bool,

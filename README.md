@@ -170,10 +170,6 @@ based on what you're expecting.
 _**TODO:** Serializer/deserializer implementations will need to be more
 context-aware of expected buffer formats._
 
-## Spec
-
-See [here](/SPECIFICATION.md).
-
 ## Contributing
 
 Bufferfish welcomes any and all contributions; please open an issue before you
