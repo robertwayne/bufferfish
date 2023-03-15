@@ -1,21 +1,23 @@
 # Directories
+.cargo
+.turbo
+assets
 build
-target
+data
+dist
 node_modules
-
-# Yarn v2 (Zero Installs)
-.yarn/*
-!.yarn/cache
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
+public
+target
 
 # Files
-Cargo.lock
 .env
+.env.development
+.env.production
+.log
+Cargo.lock
+pnpm-lock.yaml
 
 # User Settings
-.vscode
+
 .idea
+.vscode

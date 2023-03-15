@@ -9,24 +9,24 @@
     "types": "dist/index.d.ts",
     "private": true,
     "scripts": {
-        "build": "vite build && tsc",
+        "build": "vite build",
         "fmt": "prettier --write --plugin-search-dir=. \"**/*.{ts,html,css,cjs,json,tsx}\"",
         "lint": "eslint \"src/**/*.{ts,tsx}\"",
         "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,tsx}\"",
         "tsc": "tsc --noEmit",
         "tsc:watch": "tsc --noEmit --watch",
-        "test": "vitest run",
-        "test:watch": "vitest",
-        "check": "npm run tsc && npm run lint:fix && npm run test && npm run fmt"
+        "test": "vitest run --no-watch",
+        "test:watch": "vitest"
     },
     "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^5.53.0",
-        "@typescript-eslint/parser": "^5.53.0",
-        "eslint": "^8.34.0",
+        "@typescript-eslint/eslint-plugin": "^5.55.0",
+        "@typescript-eslint/parser": "^5.55.0",
+        "eslint": "^8.36.0",
+        "eslint-config-turbo": "^0.0.9",
         "happy-dom": "^8.9.0",
         "prettier": "^2.8.4",
         "typescript": "^4.9.5",
         "vite": "^4.1.4",
-        "vitest": "^0.29.1"
+        "vitest": "^0.29.2"
     }
 }
