@@ -4,7 +4,6 @@
 assets
 build
 data
-dist
 node_modules
 public
 target

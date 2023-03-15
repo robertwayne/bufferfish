@@ -13,7 +13,7 @@
         "fmt": "prettier --write --plugin-search-dir=. \"**/*.{ts,html,css,cjs,json,tsx}\"",
         "lint": "eslint \"src/**/*.{ts,tsx}\"",
         "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,tsx}\"",
-        "tsc": "tsc --noEmit",
+        "tsc": "tsc",
         "tsc:watch": "tsc --noEmit --watch",
         "test": "vitest run --no-watch",
         "test:watch": "vitest"
