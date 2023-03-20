@@ -13,11 +13,19 @@ pub struct Bufferfish {
 
 impl Bufferfish {
     pub fn new() -> Self {
-        Self { inner: Cursor::new(Vec::new()), reading: false, capacity: 1024 }
+        Self {
+            inner: Cursor::new(Vec::new()),
+            reading: false,
+            capacity: 1024,
+        }
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
-        Self { inner: Cursor::new(Vec::with_capacity(capacity)), reading: false, capacity }
+        Self {
+            inner: Cursor::new(Vec::with_capacity(capacity)),
+            reading: false,
+            capacity,
+        }
     }
 }
 
@@ -243,7 +251,10 @@ impl Bufferfish {
 
         match string {
             Ok(s) => Ok(s),
-            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())),
+            Err(e) => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                e.to_string(),
+            )),
         }
     }
 
@@ -263,7 +274,10 @@ impl Bufferfish {
 
         match string {
             Ok(s) => Ok(s),
-            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())),
+            Err(e) => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                e.to_string(),
+            )),
         }
     }
 
@@ -287,7 +301,10 @@ impl Bufferfish {
 
         match string {
             Ok(s) => Ok(s),
-            Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())),
+            Err(e) => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                e.to_string(),
+            )),
         }
     }
 }
@@ -337,14 +354,22 @@ impl PartialEq for Bufferfish {
 
 impl From<&[u8]> for Bufferfish {
     fn from(slice: &[u8]) -> Self {
-        Self { inner: Cursor::new(slice.to_vec()), reading: false, capacity: slice.len() }
+        Self {
+            inner: Cursor::new(slice.to_vec()),
+            reading: false,
+            capacity: slice.len(),
+        }
     }
 }
 
 impl From<Vec<u8>> for Bufferfish {
     fn from(vec: Vec<u8>) -> Self {
         let capacity = vec.len();
-        Self { inner: Cursor::new(vec), reading: false, capacity }
+        Self {
+            inner: Cursor::new(vec),
+            reading: false,
+            capacity,
+        }
     }
 }
 
@@ -358,7 +383,11 @@ impl From<Bufferfish> for Vec<u8> {
 impl From<bytes::Bytes> for Bufferfish {
     fn from(bytes: bytes::Bytes) -> Self {
         let capacity = bytes.len();
-        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity }
+        Self {
+            inner: Cursor::new(bytes.to_vec()),
+            reading: false,
+            capacity,
+        }
     }
 }
 
@@ -366,7 +395,11 @@ impl From<bytes::Bytes> for Bufferfish {
 impl From<bytes::BytesMut> for Bufferfish {
     fn from(bytes: bytes::BytesMut) -> Self {
         let capacity = bytes.len();
-        Self { inner: Cursor::new(bytes.to_vec()), reading: false, capacity }
+        Self {
+            inner: Cursor::new(bytes.to_vec()),
+            reading: false,
+            capacity,
+        }
     }
 }
 
@@ -407,7 +440,10 @@ mod tests {
         buf.write_u32(1234567890).unwrap();
         buf.write_u32(u32::max_value()).unwrap();
 
-        assert_eq!(buf.as_ref(), &[0, 0, 0, 0, 73, 150, 2, 210, 255, 255, 255, 255]);
+        assert_eq!(
+            buf.as_ref(),
+            &[0, 0, 0, 0, 73, 150, 2, 210, 255, 255, 255, 255]
+        );
     }
 
     #[test]
@@ -473,7 +509,10 @@ mod tests {
         buf.write_i32(2147483647).unwrap();
         buf.write_i32(-2147483648).unwrap();
 
-        assert_eq!(buf.as_ref(), &[0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0]);
+        assert_eq!(
+            buf.as_ref(),
+            &[0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0]
+        );
     }
 
     #[test]
@@ -546,7 +585,10 @@ mod tests {
         let mut buf = Bufferfish::new();
         buf.write_string("Bufferfish").unwrap();
 
-        assert_eq!(buf.as_ref(), &[0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104]);
+        assert_eq!(
+            buf.as_ref(),
+            &[0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104]
+        );
     }
 
     #[test]
@@ -580,7 +622,10 @@ mod tests {
         let mut buf = Bufferfish::new();
         buf.write_sized_string("Bufferfish").unwrap();
 
-        assert_eq!(buf.as_ref(), &[66, 117, 102, 102, 101, 114, 102, 105, 115, 104]);
+        assert_eq!(
+            buf.as_ref(),
+            &[66, 117, 102, 102, 101, 114, 102, 105, 115, 104]
+        );
     }
 
     #[test]
@@ -612,7 +657,8 @@ mod tests {
     fn test_write_packed_bools() {
         let mut buf = Bufferfish::new();
         buf.write_packed_bools(&[true, false, true, true]).unwrap();
-        buf.write_packed_bools(&[false, false, true, false]).unwrap();
+        buf.write_packed_bools(&[false, false, true, false])
+            .unwrap();
 
         assert_eq!(buf.as_ref(), &[11, 2]);
     }
