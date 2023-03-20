@@ -71,8 +71,8 @@ export class Bufferfish {
     }
 
     /**
-     * Returns the next byte in the buffer without advancing the cursor.
-     * Returns undefined if the cursor is at the end of the buffer.
+     * Returns the next byte in the buffer without advancing the cursor. Returns
+     * undefined if the cursor is at the end of the buffer.
      */
     public peek = (): number | undefined => {
         this.startReading()
@@ -219,8 +219,9 @@ export class Bufferfish {
     }
 
     /**
-     * Writes a variable length string to the buffer. It will be prefixed with
-     * its length in bytes as a u16 (two bytes).
+     * Writes a unicode string literal to the buffer. It will be prefixed with
+     * its length in bytes as a u16 (two bytes), and each character will be 1 to
+     * 4-bytes, whichever is the smallest it can fit into.
      */
     public writeString = (value: string): void => {
         const slice: Uint8Array = new TextEncoder().encode(value)
@@ -230,7 +231,9 @@ export class Bufferfish {
     }
 
     /**
-     * Writes a string to the buffer without a length prefix.
+     * Writes a unicode string literal to the buffer without a length prefix.
+     * Each character will be 1 to 4-bytes, whichever is the smallest it can fit
+     * into.
      */
     public writeSizedString = (value: string): void => {
         const slice: Uint8Array = new TextEncoder().encode(value)
