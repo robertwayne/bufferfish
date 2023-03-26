@@ -18,9 +18,10 @@ export class Bufferfish {
      * This should only be called by the library.
      */
     private write(buf: Uint8Array): number {
-        if (this.capacity > 0
-            && (buf.length > this.capacity
-            || this.inner.length + buf.length > this.capacity)
+        if (
+            this.capacity > 0 &&
+            (buf.length > this.capacity ||
+                this.inner.length + buf.length > this.capacity)
         ) {
             throw new Error("Bufferfish is full")
         }
@@ -99,7 +100,9 @@ export class Bufferfish {
      * Appends another Bufferfish, Uint8Array, ArrayBuffer, or Array<number> to
      * the buffer. This modifies the Bufferfish in-place.
      */
-    public push = (arr: Bufferfish | Uint8Array | ArrayBuffer | Array<number>): void => {
+    public push = (
+        arr: Bufferfish | Uint8Array | ArrayBuffer | Array<number>
+    ): void => {
         if (arr instanceof Bufferfish) {
             this.write(arr.view())
         } else if (arr instanceof Uint8Array) {
@@ -439,7 +442,7 @@ if (import.meta.vitest) {
 
     it("should peek one byte over", () => {
         const buf = new Bufferfish()
-        
+
         const result = buf.peek()
 
         expect(result).toEqual(null)
