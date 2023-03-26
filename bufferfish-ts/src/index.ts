@@ -71,25 +71,25 @@ export class Bufferfish {
      * Returns the next byte in the buffer without advancing the cursor. Returns
      * undefined if the cursor is at the end of the buffer.
      */
-    public peek = (): number | undefined => {
+    public peek = (): number | null => {
         this.startReading()
 
         if (this.pos >= this.inner.length) {
-            return undefined
+            return null
         }
 
-        return this.inner[this.pos]
+        return this.inner.slice(this.pos, this.pos + 1)[0] ?? null
     }
 
     /**
      * Returns the next n bytes in the buffer without advancing the cursor.
      * Returns undefined if the cursor is at the end of the buffer.
      */
-    public peekN = (n: number): Uint8Array | undefined => {
+    public peekN = (n: number): Uint8Array | null => {
         this.startReading()
 
         if (this.pos + n > this.inner.length) {
-            return undefined
+            return null
         }
 
         return this.inner.slice(this.pos, this.pos + n)
@@ -435,6 +435,24 @@ if (import.meta.vitest) {
 
         expect(buf.peekN(2)).toEqual(new Uint8Array([0, 255]))
         expect(buf.peekN(2)).toEqual(new Uint8Array([0, 255]))
+    })
+
+    it("should peek one byte over", () => {
+        const buf = new Bufferfish()
+        
+        const result = buf.peek()
+
+        expect(result).toEqual(null)
+    })
+
+    it("should fail to peek too many bytes", () => {
+        const buf = new Bufferfish()
+        buf.writeUint8(0)
+        buf.writeUint8(1)
+
+        const result = buf.peekN(3)
+
+        expect(result).toEqual(null)
     })
 
     it("should push another bufferfish", () => {

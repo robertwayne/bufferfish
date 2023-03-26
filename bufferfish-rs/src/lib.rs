@@ -98,6 +98,53 @@ impl Bufferfish {
         Ok(())
     }
 
+    /// Returns the next byte in the buffer without advancing the cursor.
+    /// Returns a Result if the cursor is at the end of the buffer.
+    pub fn peek(&mut self) -> std::io::Result<u8> {
+        self.start_reading();
+        let pos = self.inner.position();
+
+        let Some(byte) = self.inner.get_ref().get(pos as usize) else {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!(
+                    "Peek of 1 byte exceeds the max capacity of {} bytes on this Bufferfish.",
+                    self.capacity
+                ),
+            ));
+        };
+
+        let byte = *byte;
+
+        self.inner.set_position(pos);
+
+        Ok(byte)
+    }
+
+    /// Returns the next n-bytes in the buffer without advancing the cursor.
+    /// Returns a Result if the cursor is at the end of the buffer.
+    pub fn peek_n(&mut self, n: usize) -> std::io::Result<Vec<u8>> {
+        self.start_reading();
+        let pos = self.inner.position();
+
+        let Some(bytes) = self.inner.get_ref().get(pos as usize..pos as usize + n) else {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!(
+                    "Peek of {} bytes exceeds the max capacity of {} bytes on this Bufferfish.",
+                    n,
+                    self.capacity
+                ),
+            ));
+        };
+
+        let bytes = bytes.to_vec();
+
+        self.inner.set_position(pos);
+
+        Ok(bytes)
+    }
+
     /// Writes a u8 to the buffer as one byte.
     pub fn write_u8(&mut self, value: u8) -> std::io::Result<()> {
         self.write_all(&[value])?;
@@ -427,6 +474,45 @@ impl From<Bufferfish> for bytes::Bytes {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_peek_one() {
+        let mut buf = Bufferfish::new();
+        buf.write_u8(0).unwrap();
+
+        assert_eq!(buf.peek().unwrap(), 0);
+        assert_eq!(buf.peek().unwrap(), 0);
+    }
+
+    #[test]
+    fn peek_n() {
+        let mut buf = Bufferfish::new();
+        buf.write_u8(0).unwrap();
+        buf.write_u8(1).unwrap();
+        buf.write_u8(2).unwrap();
+
+        assert_eq!(buf.peek_n(2).unwrap(), &[0, 1]);
+        assert_eq!(buf.peek_n(2).unwrap(), &[0, 1]);
+    }
+
+    #[test]
+    fn peek_one_past_capacity() {
+        let mut buf = Bufferfish::new();
+
+        let result = buf.peek();
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn peek_n_past_capacity() {
+        let mut buf = Bufferfish::new();
+        buf.write_u8(0).unwrap();
+
+        let result = buf.peek_n(2);
+
+        assert!(result.is_err());
+    }
 
     #[test]
     fn test_extends_bufferfish() {
