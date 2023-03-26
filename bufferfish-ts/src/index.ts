@@ -96,6 +96,24 @@ export class Bufferfish {
     }
 
     /**
+     * Appends another Bufferfish, Uint8Array, ArrayBuffer, or Array<number> to
+     * the buffer. This modifies the Bufferfish in-place.
+     */
+    public push = (arr: Bufferfish | Uint8Array | ArrayBuffer | Array<number>): void => {
+        if (arr instanceof Bufferfish) {
+            this.write(arr.view())
+        } else if (arr instanceof Uint8Array) {
+            this.write(arr)
+        } else if (arr instanceof ArrayBuffer) {
+            this.write(new Uint8Array(arr))
+        } else if (arr instanceof Array) {
+            this.write(new Uint8Array(arr))
+        } else {
+            throw new Error("Invalid type")
+        }
+    }
+
+    /**
      * Writes a single u8 to the buffer as one byte.
      */
     public writeUint8 = (value: number): void => {
@@ -417,6 +435,28 @@ if (import.meta.vitest) {
 
         expect(buf.peekN(2)).toEqual(new Uint8Array([0, 255]))
         expect(buf.peekN(2)).toEqual(new Uint8Array([0, 255]))
+    })
+
+    it("should push another bufferfish", () => {
+        const buf = new Bufferfish()
+        buf.writeUint8(0)
+
+        const buf2 = new Bufferfish()
+        buf2.writeUint8(1)
+
+        buf.push(buf2)
+
+        expect(buf.view()).toEqual(new Uint8Array([0, 1]))
+    })
+
+    it("should push array-likes", () => {
+        const buf = new Bufferfish()
+        buf.writeUint8(0)
+
+        buf.push([1])
+        buf.push(new Uint8Array([2]))
+
+        expect(buf.view()).toEqual(new Uint8Array([0, 1, 2]))
     })
 
     it("should write u8", () => {

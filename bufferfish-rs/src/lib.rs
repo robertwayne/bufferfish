@@ -83,6 +83,21 @@ impl Bufferfish {
         self.capacity = capacity;
     }
 
+    /// Adds a Bufferfish or Vec<u8> to the end of the buffer.
+    /// See `try_extends` for a version that returns a Result.
+    pub fn extend<T: Into<Bufferfish>>(&mut self, other: T) {
+        self.try_extend(other).unwrap();
+    }
+
+    /// Adds a Bufferfish or Vec<u8> to the end of the buffer.
+    /// Returns a Result if the buffer is at max capacity.
+    pub fn try_extend<T: Into<Bufferfish>>(&mut self, other: T) -> std::io::Result<()> {
+        let other = other.into();
+        self.write_all(other.as_ref())?;
+
+        Ok(())
+    }
+
     /// Writes a u8 to the buffer as one byte.
     pub fn write_u8(&mut self, value: u8) -> std::io::Result<()> {
         self.write_all(&[value])?;
@@ -412,6 +427,33 @@ impl From<Bufferfish> for bytes::Bytes {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_extends_bufferfish() {
+        let mut buf = Bufferfish::new();
+        buf.write_u8(0).unwrap();
+
+        let mut buf2 = Bufferfish::new();
+        buf2.write_u8(1).unwrap();
+
+        buf.extend(buf2);
+
+        assert_eq!(buf.as_ref(), &[0, 1]);
+    }
+
+    #[test]
+    fn test_extends_impls() {
+        let mut buf = Bufferfish::new();
+        buf.write_u8(0).unwrap();
+
+        let slice: &[u8] = &[1];
+        let vec = Vec::from([2]);
+
+        buf.extend(slice);
+        buf.extend(vec);
+
+        assert_eq!(buf.as_ref(), &[0, 1, 2]);
+    }
 
     #[test]
     fn test_write_u8() {
