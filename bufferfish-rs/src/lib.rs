@@ -31,7 +31,9 @@ impl Bufferfish {
 
 impl Write for Bufferfish {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        if buf.len() >= self.capacity || self.as_ref().len() + buf.len() > self.capacity {
+        if self.capacity > 0
+            && (buf.len() >= self.capacity || self.as_ref().len() + buf.len() > self.capacity)
+        {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 format!(
@@ -76,12 +78,9 @@ impl Bufferfish {
     }
 
     /// Set the max capacity (in bytes) for the internal buffer.
+    /// A value of 0 will allow the buffer to grow indefinitely.
     pub fn set_max_capacity(&mut self, capacity: usize) {
-        if capacity < 1 {
-            self.capacity = 1;
-        } else {
-            self.capacity = capacity;
-        }
+        self.capacity = capacity;
     }
 
     /// Writes a u8 to the buffer as one byte.

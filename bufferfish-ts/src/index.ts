@@ -18,9 +18,9 @@ export class Bufferfish {
      * This should only be called by the library.
      */
     private write(buf: Uint8Array): number {
-        if (
-            buf.length > this.capacity ||
-            this.inner.length + buf.length > this.capacity
+        if (this.capacity > 0
+            && (buf.length > this.capacity
+            || this.inner.length + buf.length > this.capacity)
         ) {
             throw new Error("Bufferfish is full")
         }
@@ -61,12 +61,9 @@ export class Bufferfish {
 
     /**
      * Sets the max capacity (in bytes) for the internal buffer.
+     * A value of 0 will allow the buffer to grow indefinitely.
      */
     public setMaxCapacity(capacity: number): void {
-        if (capacity < 1) {
-            throw new Error("Max capacity must be at least 1 byte")
-        }
-
         this.capacity = capacity
     }
 
