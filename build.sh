@@ -1,9 +1,9 @@
 cd bufferfish-ts
 rm -rf dist
-npm run fmt
-npm run build
+turbo lint tsc fmt test build
 
 cd ../bufferfish-rs
 cargo fmt
+cargo clippy
 cargo clean
 cargo build --release
