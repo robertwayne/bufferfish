@@ -1,7 +1,7 @@
-var n = Object.defineProperty;
-var a = (s, t, e) => t in s ? n(s, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : s[t] = e;
-var i = (s, t, e) => (a(s, typeof t != "symbol" ? t + "" : t, e), e);
-class h {
+var a = Object.defineProperty;
+var o = (s, t, e) => t in s ? a(s, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : s[t] = e;
+var i = (s, t, e) => (o(s, typeof t != "symbol" ? t + "" : t, e), e);
+class r {
   constructor(t = new ArrayBuffer(0)) {
     i(this, "inner");
     i(this, "pos");
@@ -12,20 +12,30 @@ class h {
      */
     i(this, "view", () => this.inner.slice());
     /**
-     * Returns the next byte in the buffer without advancing the cursor.
-     * Returns undefined if the cursor is at the end of the buffer.
+     * Returns the next byte in the buffer without advancing the cursor. Returns
+     * undefined if the cursor is at the end of the buffer.
      */
-    i(this, "peek", () => {
-      if (this.startReading(), !(this.pos >= this.inner.length))
-        return this.inner[this.pos];
-    });
+    i(this, "peek", () => (this.startReading(), this.pos >= this.inner.length ? null : this.inner.slice(this.pos, this.pos + 1)[0] ?? null));
     /**
      * Returns the next n bytes in the buffer without advancing the cursor.
      * Returns undefined if the cursor is at the end of the buffer.
      */
-    i(this, "peekN", (t) => {
-      if (this.startReading(), !(this.pos + t > this.inner.length))
-        return this.inner.slice(this.pos, this.pos + t);
+    i(this, "peekN", (t) => (this.startReading(), this.pos + t > this.inner.length ? null : this.inner.slice(this.pos, this.pos + t)));
+    /**
+     * Appends another Bufferfish, Uint8Array, ArrayBuffer, or Array<number> to
+     * the buffer. This modifies the Bufferfish in-place.
+     */
+    i(this, "push", (t) => {
+      if (t instanceof r)
+        this.write(t.view());
+      else if (t instanceof Uint8Array)
+        this.write(t);
+      else if (t instanceof ArrayBuffer)
+        this.write(new Uint8Array(t));
+      else if (t instanceof Array)
+        this.write(new Uint8Array(t));
+      else
+        throw new Error("Invalid type");
     });
     /**
      * Writes a single u8 to the buffer as one byte.
@@ -98,20 +108,23 @@ class h {
           "Each packed bool can only represent 4 or fewer values"
         );
       let e = 0;
-      for (const r of t)
-        e <<= 1, r && (e |= 1);
+      for (const n of t)
+        e <<= 1, n && (e |= 1);
       this.writeUint8(e);
     });
     /**
-     * Writes a variable length string to the buffer. It will be prefixed with
-     * its length in bytes as a u16 (two bytes).
+     * Writes a unicode string literal to the buffer. It will be prefixed with
+     * its length in bytes as a u16 (two bytes), and each character will be 1 to
+     * 4-bytes, whichever is the smallest it can fit into.
      */
     i(this, "writeString", (t) => {
       const e = new TextEncoder().encode(t);
       this.writeUint16(e.length), this.write(e);
     });
     /**
-     * Writes a string to the buffer without a length prefix.
+     * Writes a unicode string literal to the buffer without a length prefix.
+     * Each character will be 1 to 4-bytes, whichever is the smallest it can fit
+     * into.
      */
     i(this, "writeSizedString", (t) => {
       const e = new TextEncoder().encode(t);
@@ -189,8 +202,8 @@ class h {
      */
     i(this, "readString", () => {
       this.startReading();
-      const t = this.readUint16(), e = this.inner.subarray(this.pos, this.pos + t), r = new TextDecoder("utf-8").decode(e);
-      return this.pos += t, r;
+      const t = this.readUint16(), e = this.inner.subarray(this.pos, this.pos + t), n = new TextDecoder("utf-8").decode(e);
+      return this.pos += t, n;
     });
     /**
      * Reads a sized string from the buffer. You must pass the length of the
@@ -198,8 +211,8 @@ class h {
      */
     i(this, "readSizedString", (t) => {
       this.startReading();
-      const e = this.inner.subarray(this.pos, this.pos + t), r = new TextDecoder("utf-8").decode(e);
-      return this.pos += t, r;
+      const e = this.inner.subarray(this.pos, this.pos + t), n = new TextDecoder("utf-8").decode(e);
+      return this.pos += t, n;
     });
     /**
      * Reads a sized string from the buffer. This will read from the buffers
@@ -222,13 +235,13 @@ class h {
    * This should only be called by the library.
    */
   write(t) {
-    if (t.length > this.capacity || this.inner.length + t.length > this.capacity)
+    if (this.capacity > 0 && (t.length > this.capacity || this.inner.length + t.length > this.capacity))
       throw new Error("Bufferfish is full");
     this.reading = !1;
     const e = new Uint8Array(this.inner.length + t.length);
     e.set(this.inner, 0), e.set(t, this.inner.length), this.inner = e;
-    const r = t.length;
-    return this.pos += r, r;
+    const n = t.length;
+    return this.pos += n, n;
   }
   /**
    * Resets the buffer cursor to the start postion when reading after a write.
@@ -240,10 +253,9 @@ class h {
   }
   /**
    * Sets the max capacity (in bytes) for the internal buffer.
+   * A value of 0 will allow the buffer to grow indefinitely.
    */
   setMaxCapacity(t) {
-    if (t < 1)
-      throw new Error("Max capacity must be at least 1 byte");
     this.capacity = t;
   }
   // public serialize = (obj: object) => {}
@@ -252,5 +264,5 @@ class h {
   // public serializeBoolean = (bool: boolean) => {}
 }
 export {
-  h as Bufferfish
+  r as Bufferfish
 };
