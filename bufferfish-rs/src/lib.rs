@@ -567,9 +567,13 @@ mod tests {
     #[test]
     fn test_bufferfish_overflow() {
         let mut buf = Bufferfish::new();
-        buf.write_all(&[0u8; 1024]).unwrap();
+        buf.write_all(&[0u8; 1023]).unwrap();
 
-        assert!(buf.write_u8(0).is_err());
+        let result = buf.write_u8(0);
+        assert!(result.is_ok());
+
+        let result = buf.write_u8(0);
+        assert!(result.is_err());
     }
 
     #[test]
@@ -577,6 +581,13 @@ mod tests {
         let mut buf = Bufferfish::new();
 
         assert!(buf.write(&[0u8; 1025]).is_err());
+    }
+
+    #[test]
+    fn test_unbounded_capacity() {
+        let mut buf = Bufferfish::with_capacity(0);
+
+        assert!(buf.write(&[0u8; 2000]).is_ok());
     }
 
     #[test]

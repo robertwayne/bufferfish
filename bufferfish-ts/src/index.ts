@@ -561,7 +561,7 @@ if (import.meta.vitest) {
         expect(buf.readUint8()).toEqual(0)
     })
 
-    it("test bufferfish overflow", () => {
+    it("should overflow", () => {
         const buf = new Bufferfish()
 
         expect(() => {
@@ -569,6 +569,17 @@ if (import.meta.vitest) {
                 buf.writeUint8(0)
             }
         }).toThrowError("Bufferfish is full")
+    })
+
+    it("should be unbounded", () => {
+        const buf = new Bufferfish()
+        buf.setMaxCapacity(0)
+
+        expect(() => {
+            for (let i = 0; i < 2000; i++) {
+                buf.writeUint8(0)
+            }
+        }).not.toThrowError("Bufferfish is full")
     })
 
     it("should write string", () => {
