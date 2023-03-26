@@ -42,10 +42,11 @@ protobufs, msgpack, flatbuffers, etc.**
 <details>
   <summary>TypeScript / JavaScript</summary>
 
-NPM doesn't support pointing to sub-directories in git repositories, so you have
-to download either `dist/bufferfish.es.js` or `dist/bufferfish.umd.js` directly
-and include it locally. Make sure to include the `index.d.ts` file in your
-project as well.
+NPM doesn't support pointing to sub-directories in git repositories, so the
+simplest way to use Bufferfish would be to clone the repository and run `pnpm
+link <path>`. You should end up with something like this in your `package.json`:
+`"bufferfish": "link:../bufferfish/bufferfish-ts"` - based on wherever your
+cloned repo is located.
 
 </details>
 
@@ -69,6 +70,7 @@ fn main() {
     Ok(())
 }
 ```
+
 Output:
 
      Byte:  0  13  72  101  108  108  111  44  32  119  111  114  108  100  33
@@ -179,7 +181,7 @@ are plenty of other full-featured options for that.
 
 ## Self Notes
 
-- Run tests with `cargo test -- --show-output` and `npm run test` from their
+- Run tests with `cargo test -- --show-output` and `turbo test` from their
   respective directories.
 - Run `./build.sh` to build both the Rust and TypeScript libraries.
 
