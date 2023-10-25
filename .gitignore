@@ -9,6 +9,7 @@ public
 target
 
 # Files
+bun.lockb
 .env
 .env.development
 .env.production
