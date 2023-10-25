@@ -132,8 +132,7 @@ impl Bufferfish {
                 std::io::ErrorKind::Other,
                 format!(
                     "Peek of {} bytes exceeds the max capacity of {} bytes on this Bufferfish.",
-                    n,
-                    self.capacity
+                    n, self.capacity
                 ),
             ));
         };
@@ -305,7 +304,10 @@ impl Bufferfish {
         self.inner.set_position((pos + len) as u64);
 
         let Some(slice) = &mut self.inner.get_mut().get(pos..pos + len) else {
-            return Err(std::io::Error::new(std::io::ErrorKind::UnexpectedEof, "Unexpected EOF"));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                "Unexpected EOF",
+            ));
         };
 
         let string = String::from_utf8(slice.to_vec());
@@ -328,7 +330,10 @@ impl Bufferfish {
         self.inner.set_position((pos + size) as u64);
 
         let Some(slice) = &mut self.inner.get_mut().get(pos..pos + size) else {
-            return Err(std::io::Error::new(std::io::ErrorKind::UnexpectedEof, "Unexpected EOF"));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                "Unexpected EOF",
+            ));
         };
 
         let string = String::from_utf8(slice.to_vec());
@@ -355,7 +360,10 @@ impl Bufferfish {
         self.inner.set_position(self.inner.get_ref().len() as u64);
 
         let Some(slice) = &mut self.inner.get_mut().get(pos..) else {
-            return Err(std::io::Error::new(std::io::ErrorKind::UnexpectedEof, "Unexpected EOF"));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::UnexpectedEof,
+                "Unexpected EOF",
+            ));
         };
 
         let string = String::from_utf8(slice.to_vec());
