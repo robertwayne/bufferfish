@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 
-import { Bufferfish } from "./index.js"
+import { Bufferfish } from "./bufferfish.js"
 
 test("should peek one byte", () => {
     const buf = new Bufferfish()

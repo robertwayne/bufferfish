@@ -1,4 +1,4 @@
-declare module "index" {
+declare module "bufferfish" {
     export class Bufferfish {
         private inner;
         private pos;

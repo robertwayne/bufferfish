@@ -5,8 +5,8 @@
     "repository": "https://github.com/robertwayne/bufferfish",
     "author": "Rob Wagner <rob@sombia.com>",
     "license": "(MIT OR Apache-2.0)",
-    "main": "src/index.ts",
-    "types": "dist/index.d.ts",
+    "main": "./src/bufferfish.ts",
+    "types": "./dist/index.d.ts",
     "type": "module",
     "private": true,
     "scripts": {

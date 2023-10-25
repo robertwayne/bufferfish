@@ -4,7 +4,7 @@ bun lint
 bun test
 bun fmt
 bun run bundle.js
-bun tsc src/index.ts --declaration --emitDeclarationOnly --outfile dist/index.d.ts
+bun tsc src/bufferfish.ts --declaration --emitDeclarationOnly --outfile dist/index.d.ts
 
 cd ../bufferfish-rs
 cargo fmt
