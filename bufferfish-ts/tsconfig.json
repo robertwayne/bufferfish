@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "esnext",
-        "module": "esnext",
+        "module": "nodenext",
         "moduleResolution": "nodenext",
         "lib": ["ESNext", "DOM", "Dom.Iterable"],
         "rootDir": "src",
@@ -27,8 +27,8 @@
         "resolveJsonModule": true,
         "skipLibCheck": true,
         "pretty": true,
-        "types": ["vitest/importMeta", "vite/client"]
+        "types": ["bun-types"]
     },
-    "include": ["src/**/*", "*.d.ts", "tests"],
+    "include": ["src/**/*", "*.d.ts", "tests", "build.js"],
     "exclude": ["node_modules"]
 }
