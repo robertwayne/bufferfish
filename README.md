@@ -31,10 +31,10 @@ protobufs, msgpack, flatbuffers, etc.**
 ### Feature Flags
 
 <!-- markdownlint-disable -->
-| Flag          | Default  | Description                                                                                    | Dependencies          |
-|---------------|----------|------------------------------------------------------------------------------------------------|-----------------------|
-| `pretty-print`| Disabled  | Enables pretty-printing for the Display impl.                                                 | `unicode-width`       |
-| `impl-bytes`  | Disabled | Adds `From<Bytes>`, `From<BytesMut>`, and `From<Bufferfish>` impls for the `bytes` crate.      | `bytes`               |
+| Flag           | Default  | Description                                                                               | Dependencies    |
+|----------------|----------|-------------------------------------------------------------------------------------------|-----------------|
+| `pretty-print` | Disabled | Enables pretty-printing for the Display impl.                                             | `unicode-width` |
+| `impl-bytes`   | Disabled | Adds `From<Bytes>`, `From<BytesMut>`, and `From<Bufferfish>` impls for the `bytes` crate. | `bytes`         |
 <!-- markdownlint-enable -->
 
 </details>
@@ -178,12 +178,6 @@ Bufferfish welcomes any and all contributions; please open an issue before you
 work on any new features, though. Just note that the scope of this project is
 fairly tight, and I am not looking to cover a wider 'general' use-case; there
 are plenty of other full-featured options for that.
-
-## Self Notes
-
-- Run tests with `cargo test -- --show-output` and `turbo test` from their
-  respective directories.
-- Run `./build.sh` to build both the Rust and TypeScript libraries.
 
 ## License
 
