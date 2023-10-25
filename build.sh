@@ -1,6 +1,10 @@
 cd bufferfish-ts
 rm -rf dist
-turbo lint tsc fmt test build
+bun lint
+bun test
+bun fmt
+bun run bundle.js
+bun tsc src/index.ts --declaration --emitDeclarationOnly --outfile dist/index.d.ts
 
 cd ../bufferfish-rs
 cargo fmt
