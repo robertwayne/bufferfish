@@ -7,7 +7,6 @@
     "license": "(MIT OR Apache-2.0)",
     "main": "./src/bufferfish.ts",
     "types": "./dist/index.d.ts",
-    "type": "module",
     "private": true,
     "scripts": {
         "fmt": "prettier --write  \"**/*.{ts,html,css,cjs,json,tsx}\"",
@@ -17,7 +16,9 @@
         "tsc:watch": "tsc --noEmit --watch"
     },
     "devDependencies": {
-        "bun-types": "^1.0.7",
+        "@typescript-eslint/eslint-plugin": "^6.10.0",
+        "@typescript-eslint/parser": "^6.10.0",
+        "bun-types": "^1.0.11",
         "typescript": "^5.2.2"
     }
 }
