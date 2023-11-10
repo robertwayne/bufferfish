@@ -30,7 +30,9 @@ module.exports = {
             },
         },
     ],
-    rules: {},
+    rules: {
+        "no-constant-binary-expression": "error",
+    },
     settings: {},
     extends: []
 }
