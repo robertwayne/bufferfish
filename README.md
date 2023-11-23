@@ -2,7 +2,7 @@
 
 Bufferfish is a schemaless binary protocol designed for game networking.
 Specifically, this library focuses on communication between TypeScript /
-JavaScript clients and Rust servers via WebSockets.
+JavaScript clients and Rust servers.
 
 It makes some compromises in order to accomodate this use-case, for example,
 discarding any versioning / backwards compatability overhead. It does prefer to
@@ -59,12 +59,12 @@ cloned repo is located.
 // src/main.rs
 use bufferfish::Bufferfish;
 
-fn main() {
-    let mut buf = Bufferfish::new();
-    buf.write_string("Hello, world!")?;
-    println!("{}", buf);
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut bf = Bufferfish::new();
+    bf.write_string("Hello, world!")?;
+    println!("{}", bf);
 
-    let s = buf.read_string()?;
+    let s = bf.read_string()?;
     println!("{}", s);
 
     Ok(())
@@ -85,14 +85,12 @@ Output:
 
   ```ts
   import { Bufferfish } from "bufferfish"
-  // ...or...
-  const bufferfish = require("bufferfish")
 
-  const buf = new Bufferfish()
-  buf.writeUint16(65535)
-  console.table(buf.view())
+  const bf = new Bufferfish()
+  bf.writeUint16(65535)
+  console.table(bf.view())
 
-  const n = buf.readUint16()
+  const n = bf.readUint16()
   console.log(n)
   ```
 
