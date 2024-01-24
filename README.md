@@ -31,9 +31,10 @@ protobufs, msgpack, flatbuffers, etc.**
 ### Feature Flags
 
 <!-- markdownlint-disable -->
-| Flag           | Default  | Description                                                                               | Dependencies    |
-|----------------|----------|-------------------------------------------------------------------------------------------|-----------------|
-| `pretty-print` | Disabled | Enables pretty-printing for the Display impl.                                             | `unicode-width` |
+| Flag           | Default  | Description                                   | Dependencies        |
+|----------------|----------|-----------------------------------------------|---------------------|
+| `pretty-print` | Disabled | Enables pretty-printing for the Display impl. | `unicode-width`     |
+| `derive`       | Disabled | Enables the `#derive(Serialize) macro.`       | `bufferfish_derive` |
 <!-- markdownlint-enable -->
 
 </details>
