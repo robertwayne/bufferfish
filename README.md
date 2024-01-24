@@ -7,19 +7,19 @@ on communication between Rust and TypeScript / JavaScript.
 
 There are two seperate libraries in this repo: one for Rust and one for
 TypeScript / JavaScript. Neither of the libraries have any required
-dependencies. The Rust version uses the `unicode-width` crate _(enabled by
-default with the "pretty-print" feature)_ for formatting buffer output.
+dependencies. The Rust version optionally uses the `unicode-width` crate for
+formatting buffer output when `pretty-print` is enabled. Additionally, the Rust
+version has a `derive` feature that enables a `#[derive(Serialize)]` macro.
 
 The Rust crate is broken into three seperate crates: `bufferfish` is a re-export
 of the other crates. This is what users will interact with directly.
-`bufferfish_derive` is a proc-macro crate that provides a `#[derive(Serialize)]`
-macro, and `bufferfish_internal` is the core library implementation and trait /
-type definitions.
+`bufferfish_derive` is where the proc macro code for the `#[derive(Serialize)]`
+lives, and `bufferfish_internal` is the core library implementation _(trait /
+type definitions, logic, errors)_.
 
-_This is currently a work-in-progress. Please don't use this._
-
-**I strongly recommend you use a popular binary protocol instead, like
-protobufs, msgpack, flatbuffers, etc.**
+_This is currently a work-in-progress with a wildly unstable API. **Please don't
+use this**. I strongly recommend a popular binary protocol instead, like
+protobufs, msgpack, flatbuffers, etc._
 
 ## Basic Example
 ```rust
