@@ -1,5 +1,4 @@
-use bufferfish_derive::Serialize;
-use bufferfish_internal::{Bufferfish, BufferfishWrite};
+use bufferfish::{Bufferfish, BufferfishWrite, Serialize};
 
 #[test]
 fn bf_derive_serialize() {

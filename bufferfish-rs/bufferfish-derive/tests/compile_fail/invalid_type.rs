@@ -1,4 +1,4 @@
-use bufferfish_derive::Serialize;
+use bufferfish::Serialize;
 
 #[derive(Serialize, Debug)]
 struct Foo {

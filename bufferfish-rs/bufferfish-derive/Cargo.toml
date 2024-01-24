@@ -16,3 +16,4 @@ proc-macro-error = "1"
 
 [dev-dependencies]
 trybuild = "1"
+bufferfish = { path = "../bufferfish", features = ["derive"] }

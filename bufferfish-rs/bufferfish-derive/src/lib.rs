@@ -74,9 +74,9 @@ pub fn bufferfish_serializer(input: TokenStream) -> TokenStream {
     };
 
     let gen = quote! {
-        impl bufferfish_internal::BufferfishWrite for #name {
-            fn write(&self) -> Result<bufferfish_internal::Bufferfish, bufferfish_internal::BufferfishError> {
-                let mut bf = bufferfish_internal::Bufferfish::new();
+        impl bufferfish::BufferfishWrite for #name {
+            fn write(&self) -> Result<bufferfish::Bufferfish, bufferfish::BufferfishError> {
+                let mut bf = bufferfish::Bufferfish::new();
                 #(#serialize_snippets)*
 
                 Ok(bf)
