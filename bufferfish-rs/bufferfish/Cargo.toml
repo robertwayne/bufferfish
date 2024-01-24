@@ -1,0 +1,16 @@
+[package]
+name = "bufferfish"
+description = "Schemaless binary protocol for game networking."
+authors = ["Rob Wagner <rob@sombia.com>"]
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+bufferfish-internal = { path = "../bufferfish-internal" }
+bufferfish-derive = { path = "../bufferfish-derive", optional = true }
+
+[features]
+default = []
+pretty-print = ["bufferfish-internal/unicode-width"]
+derive = ["bufferfish-derive"]

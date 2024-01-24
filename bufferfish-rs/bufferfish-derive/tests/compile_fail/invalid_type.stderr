@@ -1,0 +1,5 @@
+error: type can not be serialized into a bufferfish
+ --> tests/compile_fail/invalid_type.rs:5:10
+  |
+5 |     bar: Vec<u8>,
+  |          ^^^^^^^

@@ -1,32 +1,46 @@
-use std::io::{Cursor, Read, Seek, Write};
+use std::{
+    convert::TryInto,
+    io::{Cursor, Read, Seek, Write},
+    sync::Arc,
+};
 
-pub trait BufferfishWrite {
-    fn to_bufferfish(&self) -> Bufferfish;
+#[cfg(feature = "macros")]
+pub use bufferfish_derive::Serialize;
+
+#[derive(Debug)]
+pub enum BufferfishError {
+    FailedWrite(std::io::Error),
 }
 
-#[derive(Debug, Default, Clone)]
+impl std::fmt::Display for BufferfishError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            BufferfishError::FailedWrite(e) => write!(f, "Failed to write to buffer: {}", e),
+        }
+    }
+}
+
+impl From<std::io::Error> for BufferfishError {
+    fn from(e: std::io::Error) -> Self {
+        BufferfishError::FailedWrite(e)
+    }
+}
+
+impl std::error::Error for BufferfishError {}
+
+pub trait BufferfishWrite {
+    fn write(&self) -> Result<Bufferfish, BufferfishError>;
+}
+
+pub trait BufferfishRead {
+    fn read(buf: Vec<u8>) -> Bufferfish;
+}
+
+#[derive(Debug, Default)]
 pub struct Bufferfish {
     inner: Cursor<Vec<u8>>,
     reading: bool,
     capacity: usize,
-}
-
-impl Bufferfish {
-    pub fn new() -> Self {
-        Self {
-            inner: Cursor::new(Vec::new()),
-            reading: false,
-            capacity: 1024,
-        }
-    }
-
-    pub fn with_capacity(capacity: usize) -> Self {
-        Self {
-            inner: Cursor::new(Vec::with_capacity(capacity)),
-            reading: false,
-            capacity,
-        }
-    }
 }
 
 impl Write for Bufferfish {
@@ -60,6 +74,26 @@ impl Seek for Bufferfish {
 }
 
 impl Bufferfish {
+    pub fn new() -> Self {
+        Self {
+            inner: Cursor::new(Vec::new()),
+            reading: false,
+            capacity: 1024,
+        }
+    }
+
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            inner: Cursor::new(Vec::with_capacity(capacity)),
+            reading: false,
+            capacity,
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.inner.get_ref().len()
+    }
+
     /// #[doc(hidden)]
     /// Resets the buffer cursor to the start position when reading after a
     /// write.
@@ -75,6 +109,15 @@ impl Bufferfish {
     /// Returns a Vec<u8> of the internal byte buffer.
     pub fn to_vec(&self) -> Vec<u8> {
         self.inner.get_ref().to_vec()
+    }
+
+    /// Returns a reference to the internal byte buffer.
+    pub fn as_ref(&self) -> &[u8] {
+        self.inner.get_ref()
+    }
+
+    pub fn as_bytes(&self) -> Arc<[u8]> {
+        self.inner.get_ref().clone().into()
     }
 
     /// Set the max capacity (in bytes) for the internal buffer.
@@ -445,37 +488,6 @@ impl From<Vec<u8>> for Bufferfish {
 impl From<Bufferfish> for Vec<u8> {
     fn from(buffer: Bufferfish) -> Self {
         buffer.inner.into_inner()
-    }
-}
-
-#[cfg(feature = "impl-bytes")]
-impl From<bytes::Bytes> for Bufferfish {
-    fn from(bytes: bytes::Bytes) -> Self {
-        let capacity = bytes.len();
-        Self {
-            inner: Cursor::new(bytes.to_vec()),
-            reading: false,
-            capacity,
-        }
-    }
-}
-
-#[cfg(feature = "impl-bytes")]
-impl From<bytes::BytesMut> for Bufferfish {
-    fn from(bytes: bytes::BytesMut) -> Self {
-        let capacity = bytes.len();
-        Self {
-            inner: Cursor::new(bytes.to_vec()),
-            reading: false,
-            capacity,
-        }
-    }
-}
-
-#[cfg(feature = "impl-bytes")]
-impl From<Bufferfish> for bytes::Bytes {
-    fn from(buffer: Bufferfish) -> Self {
-        bytes::Bytes::from(buffer.inner.into_inner())
     }
 }
 
