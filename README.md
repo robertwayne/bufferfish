@@ -60,12 +60,24 @@ cloned repo is located.
 use bufferfish::Bufferfish;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Manually writing to a Bufferfish 
     let mut bf = Bufferfish::new();
     bf.write_string("Hello, world!")?;
     println!("{}", bf);
 
     let s = bf.read_string()?;
     println!("{}", s);
+
+    // We can also use the serializ macro (with the "derive" feature enabled).
+    #[derive(Serialize)]
+    struct Foo {
+        bar: u8,
+    }
+
+    let foo = Foo { bar: 42 };
+    let bf: Bufferfish = foo.write()?;
+
+    println!("{}", bf);
 
     Ok(())
 }
