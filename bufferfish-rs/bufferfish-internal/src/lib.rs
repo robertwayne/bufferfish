@@ -111,11 +111,6 @@ impl Bufferfish {
         self.inner.get_ref().to_vec()
     }
 
-    /// Returns a reference to the internal byte buffer.
-    pub fn as_ref(&self) -> &[u8] {
-        self.inner.get_ref()
-    }
-
     pub fn as_bytes(&self) -> Arc<[u8]> {
         self.inner.get_ref().clone().into()
     }
