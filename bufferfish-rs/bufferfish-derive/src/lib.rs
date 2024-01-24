@@ -17,11 +17,9 @@ pub fn bufferfish_serializer(input: TokenStream) -> TokenStream {
         Data::Struct(data) => match &data.fields {
             Fields::Named(fields) => {
                 for field in &fields.named {
-                    let ident = field.ident.as_ref();
-
-                    if ident.is_none() {
+                    let Some(ident) = field.ident.as_ref() else {
                         abort!(field.span(), "only named fields are supported");
-                    }
+                    };
 
                     let ty = &field.ty;
 
