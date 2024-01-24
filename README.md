@@ -60,7 +60,7 @@ const ws = new WebSocket("ws://127.0.0.1:3000")
 
 ws.onmessage = (event) => {
   const bf = new Bufferfish(event.data)
-  const message = bf.read_string()
+  const message = bf.readString()
 
   console.log(message) // "Hello World!"
 }
