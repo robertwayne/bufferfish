@@ -1,4 +1,4 @@
-use bufferfish::{Bufferfish, BufferfishWrite, Serialize};
+use bufferfish::{Bufferfish, Serialize, ToBufferfish};
 
 #[test]
 fn serialize_struct() {
@@ -8,7 +8,7 @@ fn serialize_struct() {
     }
 
     let foo = Foo { bar: 42 };
-    let bf: Bufferfish = foo.write().unwrap();
+    let bf: Bufferfish = foo.to_bufferfish().unwrap();
 
     assert_eq!(bf.len(), 1);
 }

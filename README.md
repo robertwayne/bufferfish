@@ -23,7 +23,7 @@ protobufs, msgpack, flatbuffers, etc._
 
 ## Basic Example
 ```rust
-use bufferfish::{BufferfishWrite, Serialize};
+use bufferfish::{ToBufferfish, Serialize};
 use futures_util::SinkExt;
 use tokio::net::{TcpListener, TcpStream};
 
@@ -47,7 +47,7 @@ async fn process(steam: TcpStream) {
     let foo = Foo {
         bar: "Hello World!".to_string(),
     };
-    let bf = foo.write().unwrap();
+    let bf = foo.to_bufferfish().unwrap();
 
     ws.send(tokio_tungstenite::tungstenite::Message::Binary(bf.into()))
         .await

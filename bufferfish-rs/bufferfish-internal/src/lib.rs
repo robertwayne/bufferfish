@@ -28,12 +28,8 @@ impl From<std::io::Error> for BufferfishError {
 
 impl std::error::Error for BufferfishError {}
 
-pub trait BufferfishWrite {
-    fn write(&self) -> Result<Bufferfish, BufferfishError>;
-}
-
-pub trait BufferfishRead {
-    fn read(buf: Vec<u8>) -> Bufferfish;
+pub trait ToBufferfish {
+    fn to_bufferfish(&self) -> Result<Bufferfish, BufferfishError>;
 }
 
 #[derive(Debug, Default)]
