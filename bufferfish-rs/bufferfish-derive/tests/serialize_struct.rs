@@ -1,7 +1,7 @@
 use bufferfish::{Bufferfish, BufferfishWrite, Serialize};
 
 #[test]
-fn bf_derive_serialize() {
+fn serialize_struct() {
     #[derive(Serialize, Debug)]
     struct Foo {
         bar: u8,
