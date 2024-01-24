@@ -22,7 +22,6 @@ pub fn bufferfish_serializer(input: TokenStream) -> TokenStream {
                     let ident = field.ident.as_ref().unwrap();
                     let ty = &field.ty;
 
-                    // Example of handling different types
                     match ty {
                         Type::Path(TypePath { path, .. }) if path.is_ident("u8") => {
                             serialize_snippets.push(quote! {

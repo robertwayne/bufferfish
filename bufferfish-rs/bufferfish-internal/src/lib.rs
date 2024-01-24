@@ -74,6 +74,7 @@ impl Seek for Bufferfish {
 }
 
 impl Bufferfish {
+    /// Creates a new Bufferfish with a default max capacity (1024 bytes).
     pub fn new() -> Self {
         Self {
             inner: Cursor::new(Vec::new()),
@@ -82,6 +83,7 @@ impl Bufferfish {
         }
     }
 
+    /// Creates a new Bufferfish with a max capacity (in bytes).
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             inner: Cursor::new(Vec::with_capacity(capacity)),
@@ -90,8 +92,14 @@ impl Bufferfish {
         }
     }
 
+    /// Returns the current length (bytes) of the buffer.
     pub fn len(&self) -> usize {
         self.inner.get_ref().len()
+    }
+
+    /// Returns true if the buffer is empty.
+    pub fn is_empty(&self) -> bool {
+        self.inner.get_ref().is_empty()
     }
 
     /// #[doc(hidden)]
