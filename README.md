@@ -1,25 +1,72 @@
 # Bufferfish
 
-Bufferfish is a schemaless binary protocol designed for game networking.
-Specifically, this library focuses on communication between TypeScript /
-JavaScript clients and Rust servers.
+Bufferfish is a schemaless binary protocol designed for game networking focusing
+on communication between Rust and TypeScript / JavaScript.
 
-It makes some compromises in order to accomodate this use-case, for example,
-discarding any versioning / backwards compatability overhead. It does prefer to
-sacrifice pure compactness in order to remain usable as partially read,
-in-memory byte arrays - another primary goal.
+## Repository Overview
 
 There are two seperate libraries in this repo: one for Rust and one for
 TypeScript / JavaScript. Neither of the libraries have any required
 dependencies. The Rust version uses the `unicode-width` crate _(enabled by
 default with the "pretty-print" feature)_ for formatting buffer output.
 
+The Rust crate is broken into three seperate crates: `bufferfish` is a re-export
+of the other crates. This is what users will interact with directly.
+`bufferfish_derive` is a proc-macro crate that provides a `#[derive(Serialize)]`
+macro, and `bufferfish_internal` is the core library implementation and trait /
+type definitions.
+
 _This is currently a work-in-progress. Please don't use this._
 
 **I strongly recommend you use a popular binary protocol instead, like
 protobufs, msgpack, flatbuffers, etc.**
 
-## Install
+## Basic Example
+```rust
+use bufferfish::{BufferfishWrite, Serialize};
+use futures_util::SinkExt;
+use tokio::net::{TcpListener, TcpStream};
+
+#[derive(Serialize)]
+struct Foo {
+    bar: String,
+}
+
+#[tokio::main]
+async fn main() {
+    let listener = TcpListener::bind("127.0.0.1:3000").await.unwrap();
+
+    while let Ok((stream, _)) = listener.accept().await {
+        tokio::spawn(process(stream));
+    }
+}
+
+async fn process(steam: TcpStream) {
+    let mut ws = tokio_tungstenite::accept_async(steam).await.unwrap();
+
+    let foo = Foo {
+        bar: "Hello World!".to_string(),
+    };
+    let bf = foo.write().unwrap();
+
+    ws.send(tokio_tungstenite::tungstenite::Message::Binary(bf.into()))
+        .await
+        .unwrap()
+}
+```
+
+```js
+const ws = new WebSocket("ws://127.0.0.1:3000")
+
+ws.onmessage = (event) => {
+  const bf = new Bufferfish(event.data)
+  const message = bf.read_string()
+
+  console.log(message) // "Hello World!"
+}
+```
+
+## Installation
 
 <!-- markdownlint-disable -->
 
@@ -31,10 +78,10 @@ protobufs, msgpack, flatbuffers, etc.**
 ### Feature Flags
 
 <!-- markdownlint-disable -->
-| Flag           | Default  | Description                                   | Dependencies        |
-|----------------|----------|-----------------------------------------------|---------------------|
-| `pretty-print` | Disabled | Enables pretty-printing for the Display impl. | `unicode-width`     |
-| `derive`       | Disabled | Enables the `#derive(Serialize) macro.`       | `bufferfish_derive` |
+| Flag           | Default  | Description                                   | Dependencies    |
+|----------------|----------|-----------------------------------------------|-----------------|
+| `pretty-print` | Disabled | Enables pretty-printing for the Display impl. | `unicode-width` |
+| `derive`       | Disabled | Enables the `#derive(Serialize)` macro.`       | `bufferfish_derive` |
 <!-- markdownlint-enable -->
 
 </details>
@@ -42,7 +89,7 @@ protobufs, msgpack, flatbuffers, etc.**
 <details>
   <summary>TypeScript / JavaScript</summary>
 
-NPM doesn't support pointing to sub-directories in git repositories, so the
+Node doesn't support pointing to sub-directories in git repositories, so the
 simplest way to use Bufferfish would be to clone the repository and run `pnpm
 link <path>`. You should end up with something like this in your `package.json`:
 `"bufferfish": "link:../bufferfish/bufferfish-ts"` - based on wherever your
@@ -54,6 +101,8 @@ cloned repo is located.
 
 <details>
 <summary>Rust</summary>
+
+### Manually Writing a Bufferfish
 
 ```rust
 // src/main.rs
@@ -68,7 +117,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let s = bf.read_string()?;
     println!("{}", s);
 
-    // We can also use the serializ macro (with the "derive" feature enabled).
+    Ok(())
+}
+```
+
+### Deriving `Serialize`
+
+```rust
+// src/main.rs
+use bufferfish::Bufferfish;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[derive(Serialize)]
     struct Foo {
         bar: u8,
@@ -122,17 +181,18 @@ Output:
 
 ## Why?
 
-There's obviously a million binary protocols out there, most of them probably
+There's a million binary protocols out there, most of them probably
 better-designed than anything I could ever hope to create. That said, I wasn't
 happy with the output of many of the language-agnostic, schemaless protocols.
 They often included too much information _(of the ones I tried)_, and of the
 language-specific ones I tried, I would have had to write a library to cover the
-other language I needed regardless.
+other language I needed.
 
 Some of my goals:
 
 - Working with in-memory buffers should be easy; no need to deserialize an
-  entire byte array before operating on its data.
+  entire byte array before operating on its data. Peeking without advancing a
+  cursor should be possible.
 - Defining specific values as fixed-length or variable-length is important.
 - Writing to buffers should be painless; whether serializing an entire object or
   manually constructing a buffer.
@@ -140,19 +200,11 @@ Some of my goals:
   reads without a schema.
 - Remove backward compatability / versioning overhead.
 
-## Current Restrictions
-
-- Verbose. You have to manually construct and read your own buffers using the
-  write_\* and read_\* functions.
-- Selective bitpacking. By default, all fields are packed with a fixed-length.
-  You can use the write_packed_\* and read_packed_\* functions to squish your
-  packets down, but it is fairly limited.
-
 ## Todo
 
 - Implement serializers/deserializers for both libraries.
 - Implement variable-length integer encoding functions.
-- Implement 64-bit numbers.
+- Implement 64-bit numbers. Maybe? JS makes this weird.
 - Implement a simple bitpacker; make it seamless & automatic.
 - How to solve a desire for fixed-length mixed with bitpacked values?
 - Can we use VL encoding on packet IDs? _(7 bit + 8 bit)_ with the first bit as
@@ -178,9 +230,6 @@ likely be an unexpected value.
 
 This kind of problem should be protected against before operating on the buffer,
 based on what you're expecting.
-
-_**TODO:** Serializer/deserializer implementations will need to be more
-context-aware of expected buffer formats._
 
 ## Contributing
 
