@@ -5,11 +5,29 @@ use proc_macro_error::{abort, proc_macro_error};
 use quote::quote;
 use syn::{parse_macro_input, spanned::Spanned, Data, DeriveInput, Fields, Type, TypePath};
 
-#[proc_macro_derive(Serialize)]
+#[proc_macro_derive(Serialize, attributes(bufferfish))]
 #[proc_macro_error]
 pub fn bufferfish_serializer(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
     let name = &ast.ident;
+
+    let mut packet_id = None;
+
+    for attr in &ast.attrs {
+        if attr.path().is_ident("bufferfish") {
+            if let Ok(expr) = attr.parse_args::<syn::Expr>() {
+                packet_id = Some(expr);
+            } else {
+                abort!(attr.span(), "expected a single expression");
+            }
+        }
+    }
+
+    let packet_id_serialization = if let Some(packet_id) = packet_id {
+        quote! { bf.write_u8(#packet_id.into())?; }
+    } else {
+        quote! {}
+    };
 
     let mut serialize_snippets = Vec::new();
 
@@ -77,6 +95,7 @@ pub fn bufferfish_serializer(input: TokenStream) -> TokenStream {
         impl bufferfish::ToBufferfish for #name {
             fn to_bufferfish(&self) -> Result<bufferfish::Bufferfish, bufferfish::BufferfishError> {
                 let mut bf = bufferfish::Bufferfish::new();
+                #packet_id_serialization
                 #(#serialize_snippets)*
 
                 Ok(bf)
