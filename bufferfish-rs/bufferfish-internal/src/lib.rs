@@ -492,6 +492,22 @@ impl From<Bufferfish> for Vec<u8> {
     }
 }
 
+impl From<bytes::Bytes> for Bufferfish {
+    fn from(bytes: bytes::Bytes) -> Self {
+        Self {
+            inner: Cursor::new(bytes.to_vec()),
+            reading: false,
+            capacity: bytes.len(),
+        }
+    }
+}
+
+impl From<Bufferfish> for bytes::Bytes {
+    fn from(buffer: Bufferfish) -> Self {
+        buffer.inner.into_inner().into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
