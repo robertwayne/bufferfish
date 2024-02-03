@@ -23,9 +23,9 @@ test("should peek two bytes", () => {
 test("should peek one byte over", () => {
     const buf = new Bufferfish()
 
-    const result = buf.peek()
-
-    expect(result).toEqual(null)
+    expect(() => buf.peek()).toThrow(
+        "Peek of 1 byte exceeds the max capacity of 1024 bytes on this Bufferfish."
+    )
 })
 
 test("should fail to peek too many bytes", () => {
@@ -33,9 +33,11 @@ test("should fail to peek too many bytes", () => {
     buf.writeUint8(0)
     buf.writeUint8(1)
 
-    const result = buf.peekN(3)
-
-    expect(result).toEqual(null)
+    expect(() => buf.peekN(3)).toThrow(
+        Error(
+            "Peek of 3 bytes exceeds the max capacity of 1024 bytes on this Bufferfish."
+        )
+    )
 })
 
 test("should push another bufferfish", () => {
@@ -84,7 +86,7 @@ test("should write u32", () => {
     buf.writeUint32(4294967295)
 
     expect(buf.view()).toEqual(
-        new Uint8Array([0, 0, 0, 0, 73, 150, 2, 210, 255, 255, 255, 255]),
+        new Uint8Array([0, 0, 0, 0, 73, 150, 2, 210, 255, 255, 255, 255])
     )
 })
 
@@ -96,6 +98,8 @@ test("should read u8", () => {
     expect(buf.readUint8()).toEqual(0)
     expect(buf.readUint8()).toEqual(255)
 })
+
+
 
 test("should read u16", () => {
     const buf = new Bufferfish()
@@ -148,7 +152,7 @@ test("should write i32", () => {
     expect(buf.view()).toEqual(
         new Uint8Array([
             0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0,
-        ]),
+        ])
     )
 })
 
@@ -226,9 +230,7 @@ test("should write string", () => {
     buf.writeString("Bufferfish")
 
     expect(buf.view()).toEqual(
-        new Uint8Array([
-            0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104,
-        ]),
+        new Uint8Array([0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104])
     )
 })
 
@@ -240,7 +242,7 @@ test("should write string big chars", () => {
         new Uint8Array([
             0, 15, 236, 149, 136, 235, 133, 149, 237, 149, 152, 236, 132, 184,
             236, 154, 148,
-        ]),
+        ])
     )
 })
 
@@ -254,7 +256,7 @@ test("should write multiple strings", () => {
             0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104, 0, 15, 236,
             149, 136, 235, 133, 149, 237, 149, 152, 236, 132, 184, 236, 154,
             148,
-        ]),
+        ])
     )
 })
 
@@ -263,7 +265,7 @@ test("should write fixed string", () => {
     buf.writeSizedString("Bufferfish")
 
     expect(buf.view()).toEqual(
-        new Uint8Array([66, 117, 102, 102, 101, 114, 102, 105, 115, 104]),
+        new Uint8Array([66, 117, 102, 102, 101, 114, 102, 105, 115, 104])
     )
 })
 

@@ -69,31 +69,40 @@ export class Bufferfish {
     }
 
     /**
-     * Returns the next byte in the buffer without advancing the cursor. Returns
-     * undefined if the cursor is at the end of the buffer.
+     * Returns the next byte in the buffer without advancing the cursor.
+     *
+     * Throws if the cursor is at the end of the buffer.
      */
-    public peek = (): number | null => {
+    public peek = (): number | Error => {
         this.startReading()
 
-        if (this.pos >= this.inner.length) {
-            return null
+        const val = this.inner.slice(this.pos, this.pos + 1)[0]
+
+        if (this.pos >= this.inner.length || val === undefined) {
+            throw new Error(
+                `Peek of 1 byte exceeds the max capacity of ${this.capacity} bytes on this Bufferfish.`
+            )
         }
 
-        return this.inner.slice(this.pos, this.pos + 1)[0] ?? null
+        return val
     }
 
     /**
      * Returns the next n bytes in the buffer without advancing the cursor.
      * Returns undefined if the cursor is at the end of the buffer.
      */
-    public peekN = (n: number): Uint8Array | null => {
+    public peekN = (n: number): Uint8Array | Error => {
         this.startReading()
 
+        const val = this.inner.slice(this.pos, this.pos + n)
+
         if (this.pos + n > this.inner.length) {
-            return null
+            throw new Error(
+                `Peek of ${n} bytes exceeds the max capacity of ${this.capacity} bytes on this Bufferfish.`
+            )
         }
 
-        return this.inner.slice(this.pos, this.pos + n)
+        return val
     }
 
     /**
@@ -101,7 +110,7 @@ export class Bufferfish {
      * the buffer. This modifies the Bufferfish in-place.
      */
     public push = (
-        arr: Bufferfish | Uint8Array | ArrayBuffer | Array<number>,
+        arr: Bufferfish | Uint8Array | ArrayBuffer | Array<number>
     ): void => {
         if (arr instanceof Bufferfish) {
             this.write(arr.view())
@@ -221,7 +230,7 @@ export class Bufferfish {
     public writePackedBools = (values: Array<boolean>): void => {
         if (values.length > 4) {
             throw new Error(
-                "Each packed bool can only represent 4 or fewer values",
+                "Each packed bool can only represent 4 or fewer values"
             )
         }
 
@@ -270,11 +279,17 @@ export class Bufferfish {
     /**
      * Reads a u8 from the buffer.
      */
-    public readUint8 = (): number => {
+    public readUint8 = (): number | Error => {
         this.startReading()
 
         const buf = new Uint8Array(1)
-        buf.set(this.inner.subarray(this.pos, this.pos + 1))
+        const arr = this.inner.subarray(this.pos, this.pos + 1)
+
+        if (arr.length > 1) {
+            throw new Error(`Attempted to read past the end of the Bufferfish.`)
+        }
+
+        buf.set(arr)
         this.pos += 1
 
         return new DataView(buf.buffer).getUint8(0)
@@ -283,11 +298,17 @@ export class Bufferfish {
     /**
      * Reads a u16 from the buffer.
      */
-    public readUint16 = (): number => {
+    public readUint16 = (): number | Error => {
         this.startReading()
 
         const buf = new Uint8Array(2)
-        buf.set(this.inner.subarray(this.pos, this.pos + 2))
+        const arr = this.inner.subarray(this.pos, this.pos + 2)
+
+        if (arr.length > 2) {
+            throw new Error(`Attempted to read past the end of the Bufferfish.`)
+        }
+
+        buf.set(arr)
         this.pos += 2
 
         return new DataView(buf.buffer).getUint16(0)
@@ -296,11 +317,17 @@ export class Bufferfish {
     /**
      * Reads a u32 from the buffer.
      */
-    public readUint32 = (): number => {
+    public readUint32 = (): number | Error => {
         this.startReading()
 
         const buf = new Uint8Array(4)
-        buf.set(this.inner.subarray(this.pos, this.pos + 4))
+        const arr = this.inner.subarray(this.pos, this.pos + 4)
+
+        if (arr.length > 4) {
+            throw new Error(`Attempted to read past the end of the Bufferfish.`)
+        }
+
+        buf.set(arr)
         this.pos += 4
 
         return new DataView(buf.buffer).getUint32(0)
@@ -309,11 +336,17 @@ export class Bufferfish {
     /**
      * Reads an i8 from the buffer.
      */
-    public readInt8 = (): number => {
+    public readInt8 = (): number | Error => {
         this.startReading()
 
         const buf = new Uint8Array(1)
-        buf.set(this.inner.subarray(this.pos, this.pos + 1))
+        const arr = this.inner.subarray(this.pos, this.pos + 1)
+
+        if (arr.length > 1) {
+            throw new Error(`Attempted to read past the end of the Bufferfish.`)
+        }
+
+        buf.set(arr)
         this.pos += 1
 
         return new DataView(buf.buffer).getInt8(0)
@@ -322,11 +355,17 @@ export class Bufferfish {
     /**
      * Reads an i16 from the buffer.
      */
-    public readInt16 = (): number => {
+    public readInt16 = (): number | Error => {
         this.startReading()
 
         const buf = new Uint8Array(2)
-        buf.set(this.inner.subarray(this.pos, this.pos + 2))
+        const arr = this.inner.subarray(this.pos, this.pos + 2)
+
+        if (arr.length > 2) {
+            throw new Error(`Attempted to read past the end of the Bufferfish.`)
+        }
+
+        buf.set(arr)
         this.pos += 2
 
         return new DataView(buf.buffer).getInt16(0)
@@ -335,11 +374,17 @@ export class Bufferfish {
     /**
      * Reads an i32 from the buffer.
      */
-    public readInt32 = (): number => {
+    public readInt32 = (): number | Error => {
         this.startReading()
 
         const buf = new Uint8Array(4)
-        buf.set(this.inner.subarray(this.pos, this.pos + 4))
+        const arr = this.inner.subarray(this.pos, this.pos + 4)
+
+        if (arr.length > 4) {
+            throw new Error(`Attempted to read past the end of the Bufferfish.`)
+        }
+
+        buf.set(arr)
         this.pos += 4
 
         return new DataView(buf.buffer).getInt32(0)
@@ -348,11 +393,17 @@ export class Bufferfish {
     /**
      * Reads a bool from the buffer.
      */
-    public readBool = (): boolean => {
+    public readBool = (): boolean | Error => {
         this.startReading()
 
         const buf = new Uint8Array(1)
-        buf.set(this.inner.subarray(this.pos, this.pos + 1))
+        const arr = this.inner.subarray(this.pos, this.pos + 1)
+
+        if (arr.length > 1) {
+            throw new Error(`Attempted to read past the end of the Bufferfish.`)
+        }
+
+        buf.set(arr)
         this.pos += 1
 
         return buf[0] === 1
@@ -368,13 +419,23 @@ export class Bufferfish {
     /**
      * Reads a variable length string from the buffer.
      */
-    public readString = (): string => {
+    public readString = (): string | Error => {
         this.startReading()
 
-        const len = this.readUint16()
-        const slice = this.inner.subarray(this.pos, this.pos + len)
+        const val = this.readUint16()
+
+        if (val instanceof Error) {
+            throw val
+        }
+
+        const slice = this.inner.subarray(this.pos, this.pos + val)
+
+        if (slice.length > val) {
+            throw new Error(`Attempted to read past the end of the Bufferfish.`)
+        }
+
         const str = new TextDecoder("utf-8").decode(slice)
-        this.pos += len
+        this.pos += val
 
         return str
     }
@@ -383,10 +444,15 @@ export class Bufferfish {
      * Reads a sized string from the buffer. You must pass the length of the
      * string in bytes.
      */
-    public readSizedString = (size: number): string => {
+    public readSizedString = (size: number): string | Error => {
         this.startReading()
 
         const slice = this.inner.subarray(this.pos, this.pos + size)
+
+        if (slice.length > size) {
+            throw new Error(`Attempted to read past the end of the Bufferfish.`)
+        }
+
         const str = new TextDecoder("utf-8").decode(slice)
         this.pos += size
 
