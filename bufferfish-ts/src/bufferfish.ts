@@ -80,7 +80,7 @@ export class Bufferfish {
 
         if (this.pos >= this.inner.length || val === undefined) {
             throw new Error(
-                `Peek of 1 byte exceeds the max capacity of ${this.capacity} bytes on this Bufferfish.`
+                `Peek of 1 byte exceeds the max capacity of ${this.capacity} bytes on this Bufferfish.`,
             )
         }
 
@@ -98,7 +98,7 @@ export class Bufferfish {
 
         if (this.pos + n > this.inner.length) {
             throw new Error(
-                `Peek of ${n} bytes exceeds the max capacity of ${this.capacity} bytes on this Bufferfish.`
+                `Peek of ${n} bytes exceeds the max capacity of ${this.capacity} bytes on this Bufferfish.`,
             )
         }
 
@@ -110,7 +110,7 @@ export class Bufferfish {
      * the buffer. This modifies the Bufferfish in-place.
      */
     public push = (
-        arr: Bufferfish | Uint8Array | ArrayBuffer | Array<number>
+        arr: Bufferfish | Uint8Array | ArrayBuffer | Array<number>,
     ): void => {
         if (arr instanceof Bufferfish) {
             this.write(arr.view())
@@ -230,7 +230,7 @@ export class Bufferfish {
     public writePackedBools = (values: Array<boolean>): void => {
         if (values.length > 4) {
             throw new Error(
-                "Each packed bool can only represent 4 or fewer values"
+                "Each packed bool can only represent 4 or fewer values",
             )
         }
 
