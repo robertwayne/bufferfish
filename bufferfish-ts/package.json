@@ -9,16 +9,17 @@
     "types": "./dist/index.d.ts",
     "private": true,
     "scripts": {
-        "fmt": "prettier --write  \"**/*.{ts,html,css,cjs,json,tsx}\"",
+        "fmt": "prettier --config .prettierrc --write  \"src/*.{ts,html,css,cjs,json,tsx}\"",
         "lint": "eslint \"src/**/*.{ts,tsx}\"",
         "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,tsx}\"",
         "tsc": "tsc",
         "tsc:watch": "tsc --noEmit --watch"
     },
     "devDependencies": {
+        "@types/bun": "^1.0.4",
         "@typescript-eslint/eslint-plugin": "^6.20.0",
         "@typescript-eslint/parser": "^6.20.0",
-        "@types/bun": "^1.0.4",
+        "prettier": "^3.2.4",
         "typescript": "^5.3.3"
     }
 }
