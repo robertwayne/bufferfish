@@ -2,10 +2,11 @@ error[E0277]: the trait bound `u8: From<&str>` is not satisfied
  --> tests/compile_fail/invalid_header.rs:3:10
   |
 3 | #[derive(Serialize, Debug)]
-  |          ^^^^^^^^^ the trait `From<&str>` is not implemented for `u8`
+  |          ^^^^^^^^^ the trait `From<&str>` is not implemented for `u8`, which is required by `&str: Into<_>`
   |
   = help: the following other types implement trait `From<T>`:
             <u8 as From<bool>>
-            <u8 as From<NonZeroU8>>
+            <u8 as From<NonZero<u8>>>
+            <u8 as From<Char>>
   = note: required for `&str` to implement `Into<u8>`
   = note: this error originates in the derive macro `Serialize` (in Nightly builds, run with -Z macro-backtrace for more info)
