@@ -1,13 +1,13 @@
 extern crate proc_macro;
 
-use proc_macro::TokenStream;
+use proc_macro2::TokenStream;
 use proc_macro_error::{abort, proc_macro_error};
 use quote::quote;
-use syn::{parse_macro_input, spanned::Spanned, Data, DeriveInput, Fields, Type, TypePath};
+use syn::{parse_macro_input, spanned::Spanned, Data, DeriveInput, Fields, Index, Type, TypePath};
 
 #[proc_macro_derive(Serialize, attributes(bufferfish))]
 #[proc_macro_error]
-pub fn bufferfish_serializer(input: TokenStream) -> TokenStream {
+pub fn bufferfish_serializer(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
     let name = &ast.ident;
 
@@ -29,64 +29,26 @@ pub fn bufferfish_serializer(input: TokenStream) -> TokenStream {
         quote! {}
     };
 
-    let mut serialize_snippets = Vec::new();
+    let mut serialized_snippets = Vec::new();
 
     match &ast.data {
         Data::Struct(data) => match &data.fields {
             Fields::Named(fields) => {
                 for field in &fields.named {
                     let Some(ident) = field.ident.as_ref() else {
-                        abort!(field.span(), "only named fields are supported");
+                        abort!(field.span(), "named fields are required");
                     };
 
-                    let ty = &field.ty;
-
-                    match ty {
-                        Type::Path(TypePath { path, .. }) if path.is_ident("u8") => {
-                            serialize_snippets.push(quote! {
-                                bf.write_u8(self.#ident)?;
-                            });
-                        }
-                        Type::Path(TypePath { path, .. }) if path.is_ident("u16") => {
-                            serialize_snippets.push(quote! {
-                                bf.write_u16(self.#ident)?;
-                            });
-                        }
-                        Type::Path(TypePath { path, .. }) if path.is_ident("u32") => {
-                            serialize_snippets.push(quote! {
-                                bf.write_u32(self.#ident)?;
-                            });
-                        }
-                        Type::Path(TypePath { path, .. }) if path.is_ident("i8") => {
-                            serialize_snippets.push(quote! {
-                                bf.write_i8(self.#ident)?;
-                            });
-                        }
-                        Type::Path(TypePath { path, .. }) if path.is_ident("i16") => {
-                            serialize_snippets.push(quote! {
-                                bf.write_i16(self.#ident)?;
-                            });
-                        }
-                        Type::Path(TypePath { path, .. }) if path.is_ident("i32") => {
-                            serialize_snippets.push(quote! {
-                                bf.write_i32(self.#ident)?;
-                            });
-                        }
-                        Type::Path(TypePath { path, .. }) if path.is_ident("bool") => {
-                            serialize_snippets.push(quote! {
-                                bf.write_bool(self.#ident)?;
-                            });
-                        }
-                        Type::Path(TypePath { path, .. }) if path.is_ident("String") => {
-                            serialize_snippets.push(quote! {
-                                bf.write_string(&self.#ident)?;
-                            });
-                        }
-                        _ => abort!(ty.span(), "type can not be serialized into a bufferfish"),
-                    }
+                    serialize_type(quote! { #ident }, &field.ty, &mut serialized_snippets)
                 }
             }
-            _ => abort!(data.fields.span(), "only named fields are supported"),
+            Fields::Unnamed(fields) => {
+                for (i, field) in fields.unnamed.iter().enumerate() {
+                    let index = Index::from(i);
+                    serialize_type(quote! { #index }, &field.ty, &mut serialized_snippets)
+                }
+            }
+            Fields::Unit => {}
         },
         _ => abort!(ast.span(), "only structs are supported"),
     };
@@ -96,7 +58,7 @@ pub fn bufferfish_serializer(input: TokenStream) -> TokenStream {
             fn to_bufferfish(&self) -> Result<bufferfish::Bufferfish, bufferfish::BufferfishError> {
                 let mut bf = bufferfish::Bufferfish::new();
                 #packet_id_serialization
-                #(#serialize_snippets)*
+                #(#serialized_snippets)*
 
                 Ok(bf)
             }
@@ -104,4 +66,50 @@ pub fn bufferfish_serializer(input: TokenStream) -> TokenStream {
     };
 
     gen.into()
+}
+
+fn serialize_type(accessor: TokenStream, ty: &Type, dest: &mut Vec<TokenStream>) {
+    match ty {
+        Type::Path(TypePath { path, .. }) if path.is_ident("u8") => {
+            dest.push(quote! {
+                bf.write_u8(self.#accessor)?;
+            });
+        }
+        Type::Path(TypePath { path, .. }) if path.is_ident("u16") => {
+            dest.push(quote! {
+                bf.write_u16(self.#accessor)?;
+            });
+        }
+        Type::Path(TypePath { path, .. }) if path.is_ident("u32") => {
+            dest.push(quote! {
+                bf.write_u32(self.#accessor)?;
+            });
+        }
+        Type::Path(TypePath { path, .. }) if path.is_ident("i8") => {
+            dest.push(quote! {
+                bf.write_i8(self.#accessor)?;
+            });
+        }
+        Type::Path(TypePath { path, .. }) if path.is_ident("i16") => {
+            dest.push(quote! {
+                bf.write_i16(self.#accessor)?;
+            });
+        }
+        Type::Path(TypePath { path, .. }) if path.is_ident("i32") => {
+            dest.push(quote! {
+                bf.write_i32(self.#accessor)?;
+            });
+        }
+        Type::Path(TypePath { path, .. }) if path.is_ident("bool") => {
+            dest.push(quote! {
+                bf.write_bool(self.#accessor)?;
+            });
+        }
+        Type::Path(TypePath { path, .. }) if path.is_ident("String") => {
+            dest.push(quote! {
+                bf.write_string(&self.#accessor)?;
+            });
+        }
+        _ => abort!(ty.span(), "type can not be serialized into a bufferfish"),
+    }
 }
