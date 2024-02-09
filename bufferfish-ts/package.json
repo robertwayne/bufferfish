@@ -12,14 +12,14 @@
         "fmt": "prettier --config .prettierrc --write  \"src/*.{ts,html,css,cjs,json,tsx}\"",
         "lint": "eslint \"src/**/*.{ts,tsx}\"",
         "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,tsx}\"",
-        "tsc": "tsc",
+        "tsc": "tsc --noEmit",
         "tsc:watch": "tsc --noEmit --watch"
     },
     "devDependencies": {
-        "@types/bun": "^1.0.4",
-        "@typescript-eslint/eslint-plugin": "^6.20.0",
-        "@typescript-eslint/parser": "^6.20.0",
-        "prettier": "^3.2.4",
+        "@types/bun": "^1.0.5",
+        "@typescript-eslint/eslint-plugin": "^6.21.0",
+        "@typescript-eslint/parser": "^6.21.0",
+        "prettier": "^3.2.5",
         "typescript": "^5.3.3"
     }
 }
