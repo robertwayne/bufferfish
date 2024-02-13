@@ -9,7 +9,7 @@
     "types": "./dist/index.d.ts",
     "private": true,
     "scripts": {
-        "fmt": "prettier --config .prettierrc --write  \"src/*.{ts,html,css,cjs,json,tsx}\"",
+        "fmt": "prettier --config .prettierrc --write  \"*.{ts,html,css,cjs,json,tsx}\"",
         "lint": "eslint \"src/**/*.{ts,tsx}\"",
         "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,tsx}\"",
         "tsc": "tsc --noEmit",
@@ -17,8 +17,8 @@
     },
     "devDependencies": {
         "@types/bun": "^1.0.5",
-        "@typescript-eslint/eslint-plugin": "^6.21.0",
-        "@typescript-eslint/parser": "^6.21.0",
+        "@typescript-eslint/eslint-plugin": "^7.0.1",
+        "@typescript-eslint/parser": "^7.0.1",
         "prettier": "^3.2.5",
         "typescript": "^5.3.3"
     }

@@ -27,8 +27,8 @@
         "resolveJsonModule": true,
         "skipLibCheck": true,
         "pretty": true,
-        "types": ["@types/bun"],
+        "types": ["@types/bun"]
     },
     "include": ["src/**/*", "*.d.ts", "tests", "build.js"],
-    "exclude": ["node_modules"],
+    "exclude": ["node_modules"]
 }
