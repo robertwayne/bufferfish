@@ -59,7 +59,7 @@ impl From<PacketId> for u8 {
     }
 }
 
-// We annotate our packet with the Serialize struct to enable automatic
+// We annotate our packet with the #[Serialize] macro to enable automatic
 // serialization to a Bufferfish.
 //
 // Additionally, we use the #[bufferfish] attribute to specify the packet ID.
