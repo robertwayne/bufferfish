@@ -143,6 +143,29 @@ likely be an unexpected value.
 This kind of problem should be protected against before operating on the buffer,
 based on what you're expecting.
 
+## PacketID Transpilation
+
+Bufferfish provides a `transpile` function that can be used in `build.rs` to
+generate TypeScript definitions from your Rust packet ID type. This is useful
+because it allows you to define your packet IDs in one place, and have them
+inlined by your TypeScript bundler for minimal codegen.
+
+```rust
+// build.rs
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("cargo:rerun-if-changed=build.rs");
+
+    bufferfish::transpile_packets("src/packet_id.rs", "../client/src/PacketId.ts")?;
+
+    Ok(())
+}
+```
+
+If you prefer to manually generate the TypeScript definitions, you can use the
+Python script in the `scripts` directory.
+
+`python transpile.py -i src/packet_id.rs -o ../client/src/PacketId.ts`
+
 ## Contributing
 
 Bufferfish welcomes any and all contributions; please open an issue before you
