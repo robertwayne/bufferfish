@@ -1,7 +1,7 @@
 # Bufferfish
 
-Bufferfish is utility library for working with binary network messaging between
-Rust and TypeScript projects, such as over WebSockets.
+Bufferfish is utility library for working with binary network messages between
+Rust and TypeScript, such as over WebSockets.
 
 ## Repository Overview
 
