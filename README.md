@@ -155,7 +155,7 @@ inlined by your TypeScript bundler for minimal codegen.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-changed=build.rs");
 
-    bufferfish::transpile_packets("src/packet_id.rs", "../client/src/PacketId.ts")?;
+    bufferfish::transpile("src/packet_id.rs", "../client/src/PacketId.ts")?;
 
     Ok(())
 }
