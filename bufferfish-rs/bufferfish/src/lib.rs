@@ -7,7 +7,7 @@ use std::{
 pub use bufferfish_derive::*;
 pub use bufferfish_internal::*;
 
-fn transpile(lines: &[String]) -> Result<String, std::io::Error> {
+fn build_typescript_definitions(lines: &[String]) -> Result<String, std::io::Error> {
     let mut current_value = 0;
     let mut variant_lines = Vec::new();
     let mut inside_enum = false;
@@ -80,9 +80,9 @@ fn read_input_file(src: &str) -> Result<Vec<String>, std::io::Error> {
     Ok(contents)
 }
 
-pub fn transpile_packets(src: &str, dest: &str) -> Result<(), std::io::Error> {
+pub fn transpile(src: &str, dest: &str) -> Result<(), std::io::Error> {
     let lines = read_input_file(src)?;
-    let contents = transpile(&lines)?;
+    let contents = build_typescript_definitions(&lines)?;
 
     write_typescript_file(dest, &contents)?;
 
@@ -110,7 +110,7 @@ mod tests {
             .map(|s| s.to_string())
             .collect::<Vec<String>>();
 
-        let result = transpile(&lines).unwrap();
+        let result = build_typescript_definitions(&lines).unwrap();
 
         assert_eq!(result, expected);
     }
