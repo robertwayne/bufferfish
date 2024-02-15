@@ -4,9 +4,9 @@ enum PacketId {
     Ping,
 }
 
-impl Into<u8> for PacketId {
-    fn into(self) -> u8 {
-        match self {
+impl From<PacketId> for u8 {
+    fn from(packet_id: PacketId) -> u8 {
+        match packet_id {
             PacketId::Ping => 0,
         }
     }
