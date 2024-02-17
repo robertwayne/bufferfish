@@ -36,7 +36,7 @@ fn build_typescript_definitions(lines: &[String]) -> Result<String, std::io::Err
             None => current_value.to_string(),
         };
 
-        variant_lines.push(format!("\t{} = {}", parts[0], value));
+        variant_lines.push(format!("    {} = {}", parts[0], value));
         current_value += 1;
     }
 

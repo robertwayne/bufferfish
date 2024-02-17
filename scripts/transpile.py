@@ -27,7 +27,7 @@ def main(args):
             explicit_value = line[1].strip() if len(line) > 1 else None
 
             variant_lines.append(
-                f"\t{variant} = {explicit_value if explicit_value else current_value}"
+                f"    {variant} = {explicit_value if explicit_value else current_value}"
             )
 
             current_value += 1
