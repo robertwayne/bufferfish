@@ -24,7 +24,7 @@ fn build_typescript_definitions(lines: &[String]) -> Result<String, std::io::Err
             continue;
         }
 
-        if !inside_enum {
+        if !inside_enum || line.starts_with('#') {
             continue;
         }
 

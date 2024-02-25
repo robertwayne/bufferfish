@@ -19,7 +19,7 @@ def main(args):
                 inside_enum = True
                 continue
 
-            if not inside_enum:
+            if not inside_enum or line.startswith("#"):
                 continue
 
             line = line.replace(",", "").split("=")
