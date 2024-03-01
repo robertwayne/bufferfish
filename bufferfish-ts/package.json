@@ -16,9 +16,9 @@
         "tsc:watch": "tsc --noEmit --watch"
     },
     "devDependencies": {
-        "@types/bun": "^1.0.5",
-        "@typescript-eslint/eslint-plugin": "^7.0.1",
-        "@typescript-eslint/parser": "^7.0.1",
+        "@types/bun": "^1.0.8",
+        "@typescript-eslint/eslint-plugin": "^7.1.0",
+        "@typescript-eslint/parser": "^7.1.0",
         "prettier": "^3.2.5",
         "typescript": "^5.3.3"
     }
