@@ -4,9 +4,6 @@ use std::{
     sync::Arc,
 };
 
-#[cfg(feature = "macros")]
-pub use bufferfish_derive::Serialize;
-
 #[derive(Debug)]
 pub enum BufferfishError {
     FailedWrite(std::io::Error),
