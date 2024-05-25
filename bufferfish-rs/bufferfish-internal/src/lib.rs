@@ -194,64 +194,71 @@ impl Bufferfish {
     /// Writes a u8 to the buffer as one byte.
     pub fn write_u8(&mut self, value: u8) -> std::io::Result<()> {
         self.write_all(&[value])?;
+
         Ok(())
     }
 
     /// Writes a u16 to the buffer as two bytes.
     pub fn write_u16(&mut self, value: u16) -> std::io::Result<()> {
         self.write_all(&value.to_be_bytes())?;
+
         Ok(())
     }
 
     /// Writes a u32 to the buffer as four bytes.
     pub fn write_u32(&mut self, value: u32) -> std::io::Result<()> {
         self.write_all(&value.to_be_bytes())?;
+
         Ok(())
     }
 
     /// Writes an i8 to the buffer as one byte.
     pub fn write_i8(&mut self, value: i8) -> std::io::Result<()> {
         self.write_all(&[value as u8])?;
+
         Ok(())
     }
 
     /// Writes an i16 to the buffer as two bytes.
     pub fn write_i16(&mut self, value: i16) -> std::io::Result<()> {
         self.write_all(&value.to_be_bytes())?;
+
         Ok(())
     }
 
     /// Writes an i32 to the buffer as four bytes.
     pub fn write_i32(&mut self, value: i32) -> std::io::Result<()> {
         self.write_all(&value.to_be_bytes())?;
+
         Ok(())
     }
 
     /// Writes a bool to the buffer as one byte.
     pub fn write_bool(&mut self, value: bool) -> std::io::Result<()> {
         self.write_u8(if value { 1 } else { 0 })?;
+
         Ok(())
     }
 
-    /// Writes a series of bools to the buffer as one byte. This allows up to 4
-    /// bools to be represented as a single byte. The first 4 bits are used as a
-    /// mask to determine which of the last 4 bits are set.
+    /// Writes a packed array of booleans to the buffer as a single byte.
+    /// Can pack up to 8 booleans into a single byte.
     pub fn write_packed_bools(&mut self, values: &[bool]) -> std::io::Result<()> {
-        if values.len() > 4 {
+        if values.len() > 8 {
             return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "Each packed bool can only represent 4 or fewer values",
+                std::io::ErrorKind::InvalidInput,
+                "cannot pack more than 8 booleans into a single byte",
             ));
         }
 
-        let mut packed_value = 0x00;
-        for value in values {
-            packed_value <<= 1;
+        let mut packed = 0u8;
+
+        for (i, value) in values.iter().enumerate() {
             if *value {
-                packed_value |= 1;
+                packed |= 1 << (7 - i); // Pack from most significant bit to least significant bit
             }
         }
-        self.write_u8(packed_value)?;
+
+        self.write_u8(packed)?;
 
         Ok(())
     }
@@ -342,9 +349,24 @@ impl Bufferfish {
         Ok(value != 0)
     }
 
-    /// Reads a series of bools from the buffer as a vector of bytes.
-    pub fn read_packed_bools(&mut self) -> std::io::Result<Vec<bool>> {
-        todo!()
+    /// Attempts to read a packed array of booleans from the buffer.
+    /// You must specify the number of booleans to read.
+    pub fn read_packed_bools(&mut self, count: u8) -> std::io::Result<Vec<bool>> {
+        if count > 8 {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "Cannot pack more than 8 booleans into a single byte.",
+            ));
+        }
+
+        let packed = self.read_u8()?;
+        let mut bools = Vec::with_capacity(count as usize);
+
+        for i in 0..count {
+            bools.push(packed & (1 << (7 - i)) != 0);
+        }
+
+        Ok(bools)
     }
 
     /// Reads a variable length string from the buffer.
@@ -356,62 +378,6 @@ impl Bufferfish {
         self.inner.set_position((pos + len) as u64);
 
         let Some(slice) = &mut self.inner.get_mut().get(pos..pos + len) else {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::UnexpectedEof,
-                "Unexpected EOF",
-            ));
-        };
-
-        let string = String::from_utf8(slice.to_vec());
-
-        match string {
-            Ok(s) => Ok(s),
-            Err(e) => Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                e.to_string(),
-            )),
-        }
-    }
-
-    /// Reads a sized string from the buffer. You must pass the length of the
-    /// string in bytes.
-    pub fn read_sized_string(&mut self, size: usize) -> std::io::Result<String> {
-        self.start_reading();
-
-        let pos = self.inner.position() as usize;
-        self.inner.set_position((pos + size) as u64);
-
-        let Some(slice) = &mut self.inner.get_mut().get(pos..pos + size) else {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::UnexpectedEof,
-                "Unexpected EOF",
-            ));
-        };
-
-        let string = String::from_utf8(slice.to_vec());
-
-        match string {
-            Ok(s) => Ok(s),
-            Err(e) => Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                e.to_string(),
-            )),
-        }
-    }
-
-    /// Reads a sized string from the buffer. This will read from the buffers
-    /// current position until the end of the buffer, so this function should
-    /// not be used unless you know that the string is the last value in the
-    /// buffer. This removes the overhead of a length prefix; it is recommended
-    /// to plan your packets out such that they end with a sized string where
-    /// possible.
-    pub fn read_string_remaining(&mut self) -> std::io::Result<String> {
-        self.start_reading();
-
-        let pos = self.inner.position() as usize;
-        self.inner.set_position(self.inner.get_ref().len() as u64);
-
-        let Some(slice) = &mut self.inner.get_mut().get(pos..) else {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::UnexpectedEof,
                 "Unexpected EOF",
@@ -818,16 +784,6 @@ mod tests {
     }
 
     #[test]
-    fn test_write_packed_bools() {
-        let mut buf = Bufferfish::new();
-        buf.write_packed_bools(&[true, false, true, true]).unwrap();
-        buf.write_packed_bools(&[false, false, true, false])
-            .unwrap();
-
-        assert_eq!(buf.as_ref(), &[11, 2]);
-    }
-
-    #[test]
     fn test_read_bool() {
         let mut buf = Bufferfish::new();
         buf.write_bool(true).unwrap();
@@ -836,9 +792,6 @@ mod tests {
         assert!(buf.read_bool().unwrap());
         assert!(!buf.read_bool().unwrap());
     }
-
-    #[test]
-    fn test_read_packed_bools() {}
 
     #[test]
     // This is just a visual test for ensuring pretty-formatting on output.
@@ -866,5 +819,27 @@ mod tests {
 
         assert!(buf.read_string().unwrap() == "Bufferfish");
         assert!(buf.read_string().unwrap() == "안녕하세요");
+    }
+
+    #[test]
+    fn test_write_packed_bools() {
+        let mut buf = Bufferfish::new();
+        buf.write_packed_bools(&[true, false, true, false, true, false, true, false])
+            .unwrap();
+
+        assert_eq!(buf.as_ref(), &[0b10101010]);
+    }
+
+    #[test]
+    fn test_read_packed_bools() {
+        let mut buf = Bufferfish::new();
+        buf.write_u8(0b10101010).unwrap();
+
+        let bools = buf.read_packed_bools(8).unwrap();
+
+        assert_eq!(
+            bools,
+            vec![true, false, true, false, true, false, true, false]
+        );
     }
 }
