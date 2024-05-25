@@ -23,7 +23,13 @@ impl From<std::io::Error> for BufferfishError {
     }
 }
 
-impl std::error::Error for BufferfishError {}
+impl std::error::Error for BufferfishError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            BufferfishError::FailedWrite(e) => Some(e),
+        }
+    }
+}
 
 pub trait ToBufferfish {
     fn to_bufferfish(&self) -> Result<Bufferfish, BufferfishError>;
