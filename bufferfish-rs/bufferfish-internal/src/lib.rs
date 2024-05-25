@@ -264,9 +264,14 @@ impl Bufferfish {
         Ok(())
     }
 
-    /// Writes a string to the buffer without a length prefix.
-    pub fn write_sized_string(&mut self, value: &str) -> std::io::Result<()> {
-        self.write_all(value.as_bytes())?;
+    /// Writes a variable length array to the buffer. It will be prefixed with
+    /// its length in bytes as a u16 (two bytes).
+    pub fn write_vec<T: Into<Bufferfish>>(&mut self, vec: Vec<T>) -> std::io::Result<()> {
+        self.write_u16(vec.len().try_into().unwrap())?;
+        for item in vec {
+            self.extend(item);
+        }
+
         Ok(())
     }
 
@@ -796,30 +801,11 @@ mod tests {
     }
 
     #[test]
-    fn test_write_fixed_string() {
-        let mut buf = Bufferfish::new();
-        buf.write_sized_string("Bufferfish").unwrap();
-
-        assert_eq!(
-            buf.as_ref(),
-            &[66, 117, 102, 102, 101, 114, 102, 105, 115, 104]
-        );
-    }
-
-    #[test]
     fn test_read_string() {
         let mut buf = Bufferfish::new();
         buf.write_string("Bufferfish").unwrap();
 
         assert_eq!(buf.read_string().unwrap(), "Bufferfish");
-    }
-
-    #[test]
-    fn test_read_sized_string() {
-        let mut buf = Bufferfish::new();
-        buf.write_sized_string("Bufferfish").unwrap();
-
-        assert_eq!(buf.read_sized_string(10).unwrap(), "Bufferfish");
     }
 
     #[test]
