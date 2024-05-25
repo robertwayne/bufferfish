@@ -7,22 +7,16 @@ module.exports = {
     plugins: ["@typescript-eslint"],
     overrides: [
         {
-            files: ["*.ts", "*.tsx"],
-            extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+            files: ["*.ts"],
+            extends: [
+                "eslint:recommended",
+                "plugin:@typescript-eslint/recommended",
+            ],
             rules: {
                 "@typescript-eslint/array-type": [
                     "error",
                     {
                         default: "generic",
-                    },
-                ],
-                "no-undef": "off",
-                "no-unused-vars": "off",
-                "@typescript-eslint/no-unused-vars": [
-                    "error",
-                    {
-                        argsIgnorePattern: "^_",
-                        varsIgnorePattern: "^_",
                     },
                 ],
                 "@typescript-eslint/no-empty-function": "warn",
@@ -32,7 +26,12 @@ module.exports = {
     ],
     rules: {
         "no-constant-binary-expression": "error",
+        "no-unused-expressions": "error",
+        "@typescript-eslint/no-unused-vars": [
+            "error",
+            { vars: "all", args: "after-used", ignoreRestSiblings: false },
+        ],
     },
     settings: {},
-    extends: []
+    extends: [],
 }

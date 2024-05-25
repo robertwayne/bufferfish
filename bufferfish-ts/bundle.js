@@ -1,18 +1,18 @@
 await Bun.build({
-    entrypoints: ['src/bufferfish.ts',],
-    outdir: 'dist',
+    entrypoints: ["src/bufferfish.ts"],
+    outdir: "dist",
     minify: true,
     naming: {
-        entry: 'bufferfish.min.js',
+        entry: "bufferfish.min.js",
     },
-    sourcemap: "external"
+    sourcemap: "external",
 })
 
 await Bun.build({
-    entrypoints: ['src/bufferfish.ts',],
-    outdir: 'dist',
+    entrypoints: ["src/bufferfish.ts"],
+    outdir: "dist",
     minify: false,
     naming: {
-        entry: 'bufferfish.js',
-    }
+        entry: "bufferfish.js",
+    },
 })

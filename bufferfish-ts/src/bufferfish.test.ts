@@ -1,153 +1,152 @@
 import { expect, test } from "bun:test"
-
 import { Bufferfish } from "./bufferfish.js"
 
 test("should peek one byte", () => {
-    const buf = new Bufferfish()
-    buf.writeUint8(0)
-    buf.writeUint8(255)
+    const bf = new Bufferfish()
+    bf.writeUint8(0)
+    bf.writeUint8(255)
 
-    expect(buf.peek()).toEqual(0)
-    expect(buf.peek()).toEqual(0)
+    expect(bf.peek()).toEqual(0)
+    expect(bf.peek()).toEqual(0)
 })
 
 test("should peek two bytes", () => {
-    const buf = new Bufferfish()
-    buf.writeUint8(0)
-    buf.writeUint8(255)
+    const bf = new Bufferfish()
+    bf.writeUint8(0)
+    bf.writeUint8(255)
 
-    expect(buf.peekN(2)).toEqual(new Uint8Array([0, 255]))
-    expect(buf.peekN(2)).toEqual(new Uint8Array([0, 255]))
+    expect(bf.peekN(2)).toEqual(new Uint8Array([0, 255]))
+    expect(bf.peekN(2)).toEqual(new Uint8Array([0, 255]))
 })
 
 test("should peek one byte over", () => {
-    const buf = new Bufferfish()
+    const bf = new Bufferfish()
 
-    expect(() => buf.peek()).toThrow(
-        "Peek of 1 byte exceeds the max capacity of 1024 bytes on this Bufferfish.",
+    expect(() => bf.peek()).toThrow(
+        "peek of 1 byte exceeds the max capacity of 1024 bytes on this Bufferfish",
     )
 })
 
 test("should fail to peek too many bytes", () => {
-    const buf = new Bufferfish()
-    buf.writeUint8(0)
-    buf.writeUint8(1)
+    const bf = new Bufferfish()
+    bf.writeUint8(0)
+    bf.writeUint8(1)
 
-    expect(() => buf.peekN(3)).toThrow(
+    expect(() => bf.peekN(3)).toThrow(
         Error(
-            "Peek of 3 bytes exceeds the max capacity of 1024 bytes on this Bufferfish.",
+            "peek of 3 bytes exceeds the max capacity of 1024 bytes on this Bufferfish",
         ),
     )
 })
 
 test("should push another bufferfish", () => {
-    const buf = new Bufferfish()
-    buf.writeUint8(0)
+    const bf = new Bufferfish()
+    bf.writeUint8(0)
 
     const buf2 = new Bufferfish()
     buf2.writeUint8(1)
 
-    buf.push(buf2)
+    bf.push(buf2)
 
-    expect(buf.view()).toEqual(new Uint8Array([0, 1]))
+    expect(bf.view()).toEqual(new Uint8Array([0, 1]))
 })
 
 test("should push array-likes", () => {
-    const buf = new Bufferfish()
-    buf.writeUint8(0)
+    const bf = new Bufferfish()
+    bf.writeUint8(0)
 
-    buf.push([1])
-    buf.push(new Uint8Array([2]))
+    bf.push([1])
+    bf.push(new Uint8Array([2]))
 
-    expect(buf.view()).toEqual(new Uint8Array([0, 1, 2]))
+    expect(bf.view()).toEqual(new Uint8Array([0, 1, 2]))
 })
 
 test("should write u8", () => {
-    const buf = new Bufferfish()
-    buf.writeUint8(0)
-    buf.writeUint8(255)
+    const bf = new Bufferfish()
+    bf.writeUint8(0)
+    bf.writeUint8(255)
 
-    expect(buf.view()).toEqual(new Uint8Array([0, 255]))
+    expect(bf.view()).toEqual(new Uint8Array([0, 255]))
 })
 
 test("should write u16", () => {
-    const buf = new Bufferfish()
-    buf.writeUint16(0)
-    buf.writeUint16(12345)
-    buf.writeUint16(65535)
+    const bf = new Bufferfish()
+    bf.writeUint16(0)
+    bf.writeUint16(12345)
+    bf.writeUint16(65535)
 
-    expect(buf.view()).toEqual(new Uint8Array([0, 0, 48, 57, 255, 255]))
+    expect(bf.view()).toEqual(new Uint8Array([0, 0, 48, 57, 255, 255]))
 })
 
 test("should write u32", () => {
-    const buf = new Bufferfish()
-    buf.writeUint32(0)
-    buf.writeUint32(1234567890)
-    buf.writeUint32(4294967295)
+    const bf = new Bufferfish()
+    bf.writeUint32(0)
+    bf.writeUint32(1234567890)
+    bf.writeUint32(4294967295)
 
-    expect(buf.view()).toEqual(
+    expect(bf.view()).toEqual(
         new Uint8Array([0, 0, 0, 0, 73, 150, 2, 210, 255, 255, 255, 255]),
     )
 })
 
 test("should read u8", () => {
-    const buf = new Bufferfish()
-    buf.writeUint8(0)
-    buf.writeUint8(255)
+    const bf = new Bufferfish()
+    bf.writeUint8(0)
+    bf.writeUint8(255)
 
-    expect(buf.readUint8()).toEqual(0)
-    expect(buf.readUint8()).toEqual(255)
+    expect(bf.readUint8()).toEqual(0)
+    expect(bf.readUint8()).toEqual(255)
 })
 
 test("should read u16", () => {
-    const buf = new Bufferfish()
-    buf.writeUint16(0)
-    buf.writeUint16(12345)
-    buf.writeUint16(65535)
+    const bf = new Bufferfish()
+    bf.writeUint16(0)
+    bf.writeUint16(12345)
+    bf.writeUint16(65535)
 
-    expect(buf.readUint16()).toEqual(0)
-    expect(buf.readUint16()).toEqual(12345)
-    expect(buf.readUint16()).toEqual(65535)
+    expect(bf.readUint16()).toEqual(0)
+    expect(bf.readUint16()).toEqual(12345)
+    expect(bf.readUint16()).toEqual(65535)
 })
 
 test("should read u32", () => {
-    const buf = new Bufferfish()
-    buf.writeUint32(0)
-    buf.writeUint32(1234567890)
-    buf.writeUint32(4294967295)
+    const bf = new Bufferfish()
+    bf.writeUint32(0)
+    bf.writeUint32(1234567890)
+    bf.writeUint32(4294967295)
 
-    expect(buf.readUint32()).toEqual(0)
-    expect(buf.readUint32()).toEqual(1234567890)
-    expect(buf.readUint32()).toEqual(4294967295)
+    expect(bf.readUint32()).toEqual(0)
+    expect(bf.readUint32()).toEqual(1234567890)
+    expect(bf.readUint32()).toEqual(4294967295)
 })
 
 test("should write i8", () => {
-    const buf = new Bufferfish()
-    buf.writeInt8(0)
-    buf.writeInt8(127)
-    buf.writeInt8(-128)
+    const bf = new Bufferfish()
+    bf.writeInt8(0)
+    bf.writeInt8(127)
+    bf.writeInt8(-128)
 
-    expect(buf.view()).toEqual(new Uint8Array([0, 127, 128]))
+    expect(bf.view()).toEqual(new Uint8Array([0, 127, 128]))
 })
 
 test("should write i16", () => {
-    const buf = new Bufferfish()
-    buf.writeInt16(0)
-    buf.writeInt16(12345)
-    buf.writeInt16(32767)
-    buf.writeInt16(-32768)
+    const bf = new Bufferfish()
+    bf.writeInt16(0)
+    bf.writeInt16(12345)
+    bf.writeInt16(32767)
+    bf.writeInt16(-32768)
 
-    expect(buf.view()).toEqual(new Uint8Array([0, 0, 48, 57, 127, 255, 128, 0]))
+    expect(bf.view()).toEqual(new Uint8Array([0, 0, 48, 57, 127, 255, 128, 0]))
 })
 
 test("should write i32", () => {
-    const buf = new Bufferfish()
-    buf.writeInt32(0)
-    buf.writeInt32(1234567890)
-    buf.writeInt32(2147483647)
-    buf.writeInt32(-2147483648)
+    const bf = new Bufferfish()
+    bf.writeInt32(0)
+    bf.writeInt32(1234567890)
+    bf.writeInt32(2147483647)
+    bf.writeInt32(-2147483648)
 
-    expect(buf.view()).toEqual(
+    expect(bf.view()).toEqual(
         new Uint8Array([
             0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0,
         ]),
@@ -155,79 +154,80 @@ test("should write i32", () => {
 })
 
 test("should read i8", () => {
-    const buf = new Bufferfish()
-    buf.writeInt8(0)
-    buf.writeInt8(127)
-    buf.writeInt8(-128)
+    const bf = new Bufferfish()
+    bf.writeInt8(0)
+    bf.writeInt8(127)
+    bf.writeInt8(-128)
 
-    expect(buf.readInt8()).toEqual(0)
-    expect(buf.readInt8()).toEqual(127)
-    expect(buf.readInt8()).toEqual(-128)
+    expect(bf.readInt8()).toEqual(0)
+    expect(bf.readInt8()).toEqual(127)
+    expect(bf.readInt8()).toEqual(-128)
 })
 
 test("should read i16", () => {
-    const buf = new Bufferfish()
-    buf.writeInt16(0)
-    buf.writeInt16(12345)
-    buf.writeInt16(32767)
-    buf.writeInt16(-32768)
+    const bf = new Bufferfish()
+    bf.writeInt16(0)
+    bf.writeInt16(12345)
+    bf.writeInt16(32767)
+    bf.writeInt16(-32768)
 
-    expect(buf.readInt16()).toEqual(0)
-    expect(buf.readInt16()).toEqual(12345)
-    expect(buf.readInt16()).toEqual(32767)
-    expect(buf.readInt16()).toEqual(-32768)
+    expect(bf.readInt16()).toEqual(0)
+    expect(bf.readInt16()).toEqual(12345)
+    expect(bf.readInt16()).toEqual(32767)
+    expect(bf.readInt16()).toEqual(-32768)
 })
 
 test("should read i32", () => {
-    const buf = new Bufferfish()
-    buf.writeInt32(0)
-    buf.writeInt32(1234567890)
-    buf.writeInt32(2147483647)
-    buf.writeInt32(-2147483648)
-    buf.writeInt32(-1)
+    const bf = new Bufferfish()
+    bf.writeInt32(0)
+    bf.writeInt32(1234567890)
+    bf.writeInt32(2147483647)
+    bf.writeInt32(-2147483648)
+    bf.writeInt32(-1)
 
-    expect(buf.readInt32()).toEqual(0)
-    expect(buf.readInt32()).toEqual(1234567890)
-    expect(buf.readInt32()).toEqual(2147483647)
-    expect(buf.readInt32()).toEqual(-2147483648)
-    expect(buf.readInt32()).toEqual(-1)
+    expect(bf.readInt32()).toEqual(0)
+    expect(bf.readInt32()).toEqual(1234567890)
+    expect(bf.readInt32()).toEqual(2147483647)
+    expect(bf.readInt32()).toEqual(-2147483648)
+    expect(bf.readInt32()).toEqual(-1)
 })
 
-test("should read reset", () => {
-    const buf = new Bufferfish()
-    buf.writeUint8(0)
-    buf.readUint8()
-    buf.writeUint8(255)
+test("should read from reset position", () => {
+    const bf = new Bufferfish()
+    bf.writeUint8(0)
+    bf.readUint8()
+    bf.writeUint8(255)
 
-    expect(buf.readUint8()).toEqual(0)
+    expect(bf.readUint8()).toEqual(0)
 })
 
-test("should overflow", () => {
-    const buf = new Bufferfish()
+test("should return overflow error", () => {
+    const bf = new Bufferfish()
 
-    expect(() => {
-        for (let i = 0; i < 1025; i++) {
-            buf.writeUint8(0)
-        }
-    }).toThrow("Bufferfish is full")
+    for (let i = 0; i < 1024; i++) {
+        bf.writeUint8(0)
+    }
+
+    const err = bf.writeUint32(0)
+    expect(err).toEqual(Error(`Bufferfish capacity exceeded (1024 bytes)`))
 })
 
 test("should be unbounded", () => {
-    const buf = new Bufferfish()
-    buf.setMaxCapacity(0)
+    const bf = new Bufferfish()
+    bf.setMaxCapacity(0)
 
     expect(() => {
         for (let i = 0; i < 2000; i++) {
-            buf.writeUint8(0)
+            bf.writeUint8(0)
         }
     }).not.toThrow("Bufferfish is full")
 })
 
 test("should write string", () => {
-    const buf = new Bufferfish()
-    buf.writeString("Bufferfish")
+    const bf = new Bufferfish()
+    bf.writeString("Bufferfish")
 
-    expect(buf.view()).toEqual(
+    expect(bf.view()).toEqual(
         new Uint8Array([
             0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104,
         ]),
@@ -235,10 +235,10 @@ test("should write string", () => {
 })
 
 test("should write string big chars", () => {
-    const buf = new Bufferfish()
-    buf.writeString("안녕하세요")
+    const bf = new Bufferfish()
+    bf.writeString("안녕하세요")
 
-    expect(buf.view()).toEqual(
+    expect(bf.view()).toEqual(
         new Uint8Array([
             0, 15, 236, 149, 136, 235, 133, 149, 237, 149, 152, 236, 132, 184,
             236, 154, 148,
@@ -247,11 +247,11 @@ test("should write string big chars", () => {
 })
 
 test("should write multiple strings", () => {
-    const buf = new Bufferfish()
-    buf.writeString("Bufferfish")
-    buf.writeString("안녕하세요")
+    const bf = new Bufferfish()
+    bf.writeString("Bufferfish")
+    bf.writeString("안녕하세요")
 
-    expect(buf.view()).toEqual(
+    expect(bf.view()).toEqual(
         new Uint8Array([
             0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104, 0, 15, 236,
             149, 136, 235, 133, 149, 237, 149, 152, 236, 132, 184, 236, 154,
@@ -260,63 +260,136 @@ test("should write multiple strings", () => {
     )
 })
 
-test("should write fixed string", () => {
-    const buf = new Bufferfish()
-    buf.writeSizedString("Bufferfish")
-
-    expect(buf.view()).toEqual(
-        new Uint8Array([66, 117, 102, 102, 101, 114, 102, 105, 115, 104]),
-    )
-})
-
 test("should read string", () => {
-    const buf = new Bufferfish()
-    buf.writeString("Bufferfish")
+    const bf = new Bufferfish()
+    bf.writeString("Bufferfish")
 
-    expect(buf.readString()).toEqual("Bufferfish")
-})
-
-test("should read sized string", () => {
-    const buf = new Bufferfish()
-    buf.writeSizedString("Bufferfish")
-
-    expect(buf.readSizedString(10)).toEqual("Bufferfish")
+    expect(bf.readString()).toEqual("Bufferfish")
 })
 
 test("should write bool", () => {
-    const buf = new Bufferfish()
-    buf.writeBool(true)
-    buf.writeBool(false)
+    const bf = new Bufferfish()
+    bf.writeBool(true)
+    bf.writeBool(false)
 
-    expect(buf.view()).toEqual(new Uint8Array([1, 0]))
+    expect(bf.view()).toEqual(new Uint8Array([1, 0]))
 })
 
-test("should write packed bools", () => {
-    const buf = new Bufferfish()
-    buf.writePackedBools([true, false, true, true])
-    buf.writePackedBools([false, false, true, false])
+test("should write full packed bools", () => {
+    const bf = new Bufferfish()
+    bf.writePackedBools([true, false, true, true, false, false, true, false])
 
-    expect(buf.view()).toEqual(new Uint8Array([11, 2]))
+    expect(bf.view()).toEqual(new Uint8Array([0b10110010]))
+})
+
+test("should write partial packed bools", () => {
+    const bf = new Bufferfish()
+    bf.writePackedBools([true, false])
+
+    expect(bf.view()).toEqual(new Uint8Array([0b10000000]))
 })
 
 test("should read bool", () => {
-    const buf = new Bufferfish()
-    buf.writeBool(true)
-    buf.writeBool(false)
+    const bf = new Bufferfish()
+    bf.writeBool(true)
+    bf.writeBool(false)
 
-    expect(buf.readBool()).toEqual(true)
-    expect(buf.readBool()).toEqual(false)
+    expect(bf.readBool()).toEqual(true)
+    expect(bf.readBool()).toEqual(false)
+})
+
+test("should read full packed bools", () => {
+    const bf = new Bufferfish()
+    bf.writePackedBools([true, false, true, true, false, false, true, false])
+
+    expect(bf.readPackedBools()).toEqual([
+        true,
+        false,
+        true,
+        true,
+        false,
+        false,
+        true,
+        false,
+    ])
+})
+
+test("should read partial packed bools", () => {
+    const bf = new Bufferfish()
+    bf.writePackedBools([true, false])
+
+    expect(bf.readPackedBools(2)).toEqual([true, false])
 })
 
 test("should write raw bytes", () => {
-    const buf = new Bufferfish()
-    buf.writeString("Bufferfish")
+    const bf = new Bufferfish()
+    bf.writeString("Bufferfish")
 
     const buf2 = new Bufferfish()
     buf2.writeString("안녕하세요")
 
-    buf.writeRawBytes(buf2.view())
+    bf.writeRawBytes(buf2.view())
 
-    expect(buf.readString()).toEqual("Bufferfish")
-    expect(buf.readString()).toEqual("안녕하세요")
+    expect(bf.readString()).toEqual("Bufferfish")
+    expect(bf.readString()).toEqual("안녕하세요")
+})
+
+test("should return error on out-of-bounds read", () => {
+    const bf = new Bufferfish()
+
+    const err1 = bf.readUint8()
+    const err2 = bf.readUint16()
+    const err3 = bf.readUint32()
+    const err4 = bf.readInt8()
+    const err5 = bf.readInt16()
+    const err6 = bf.readInt32()
+    const err7 = bf.readBool()
+    const err8 = bf.readPackedBools()
+    const err9 = bf.readString()
+
+    for (const err of [err1, err2, err3, err4, err5, err6, err7, err8, err9]) {
+        expect(err).toEqual(
+            Error("attempted to read past the end of the Bufferfish"),
+        )
+    }
+})
+
+test("should return error on out-of-range write", () => {
+    const bf = new Bufferfish()
+    const err1 = bf.writeUint8(256)
+    const err2 = bf.writeUint16(65536)
+    const err3 = bf.writeUint32(4294967296)
+    const err4 = bf.writeInt8(128)
+    const err5 = bf.writeInt16(32768)
+    const err6 = bf.writeInt32(2147483648)
+
+    expect(err1).toEqual(Error(`value 256 must be between 0 and 255`))
+    expect(err2).toEqual(Error(`value 65536 must be between 0 and 65535`))
+    expect(err3).toEqual(
+        Error(`value 4294967296 must be between 0 and 4294967295`),
+    )
+    expect(err4).toEqual(Error(`value 128 must be between -128 and 127`))
+    expect(err5).toEqual(Error(`value 32768 must be between -32768 and 32767`))
+    expect(err6).toEqual(
+        Error(`value 2147483648 must be between -2147483648 and 2147483647`),
+    )
+})
+
+test("should return error on more than 8 packed bools", () => {
+    const bf = new Bufferfish()
+    const err = bf.writePackedBools([
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+    ])
+
+    expect(err).toEqual(
+        Error("cannot pack more than 8 bools into a single byte"),
+    )
 })

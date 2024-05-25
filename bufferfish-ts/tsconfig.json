@@ -29,6 +29,6 @@
         "pretty": true,
         "types": ["@types/bun"]
     },
-    "include": ["src/**/*", "*.d.ts", "tests", "build.js"],
+    "include": ["src/**/*.ts", "tests/**/*.ts", "build.js"],
     "exclude": ["node_modules"]
 }

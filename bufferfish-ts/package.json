@@ -9,12 +9,13 @@
     "types": "./dist/index.d.ts",
     "private": true,
     "scripts": {
-        "fmt": "prettier --config .prettierrc --write  \"*.{ts,html,css,cjs,json,tsx}\"",
-        "fmt:check": "prettier --config .prettierrc --check  \"*.{ts,html,css,cjs,json,tsx}\"",
-        "lint": "eslint \"src/**/*.{ts,tsx}\"",
-        "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,tsx}\"",
+        "fmt": "prettier --config .prettierrc --write  \"**/*.{ts,js}\"",
+        "fmt:check": "prettier --config .prettierrc --check  \"**/*.{ts,js}\"",
+        "lint": "eslint \"src/**/*.{ts,js}\"",
+        "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,js}\"",
         "tsc": "tsc --noEmit",
-        "tsc:watch": "tsc --noEmit --watch"
+        "tsc:watch": "tsc --noEmit --watch",
+        "build-types": "tsc src/bufferfish.ts --declaration --emitDeclarationOnly --outfile dist/index.d.ts"
     },
     "devDependencies": {
         "@types/bun": "^1.1.3",
