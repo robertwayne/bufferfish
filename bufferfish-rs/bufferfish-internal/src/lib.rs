@@ -599,7 +599,7 @@ mod tests {
         let mut buf = Bufferfish::new();
         buf.write_u32(0).unwrap();
         buf.write_u32(1234567890).unwrap();
-        buf.write_u32(u32::max_value()).unwrap();
+        buf.write_u32(u32::MAX).unwrap();
 
         assert_eq!(
             buf.as_ref(),
@@ -634,11 +634,11 @@ mod tests {
         let mut buf = Bufferfish::new();
         buf.write_u32(0).unwrap();
         buf.write_u32(1234567890).unwrap();
-        buf.write_u32(u32::max_value()).unwrap();
+        buf.write_u32(u32::MAX).unwrap();
 
         assert_eq!(buf.read_u32().unwrap(), 0);
         assert_eq!(buf.read_u32().unwrap(), 1234567890);
-        assert_eq!(buf.read_u32().unwrap(), u32::max_value());
+        assert_eq!(buf.read_u32().unwrap(), u32::MAX);
     }
 
     #[test]

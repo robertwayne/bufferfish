@@ -158,7 +158,7 @@ fn build_typescript_deserializer(lines: &[String]) -> Result<String, std::io::Er
 
     for interface in interfaces {
         contents.push_str(&interface);
-        contents.push_str("\n");
+        contents.push('\n');
     }
 
     for line in fn_lines {
