@@ -10,15 +10,16 @@
     "private": true,
     "scripts": {
         "fmt": "prettier --config .prettierrc --write  \"*.{ts,html,css,cjs,json,tsx}\"",
+        "fmt:check": "prettier --config .prettierrc --check  \"*.{ts,html,css,cjs,json,tsx}\"",
         "lint": "eslint \"src/**/*.{ts,tsx}\"",
         "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,tsx}\"",
         "tsc": "tsc --noEmit",
         "tsc:watch": "tsc --noEmit --watch"
     },
     "devDependencies": {
-        "@types/bun": "^1.1.1",
-        "@typescript-eslint/eslint-plugin": "^7.8.0",
-        "@typescript-eslint/parser": "^7.8.0",
+        "@types/bun": "^1.1.3",
+        "@typescript-eslint/eslint-plugin": "^7.10.0",
+        "@typescript-eslint/parser": "^7.10.0",
         "prettier": "^3.2.5",
         "typescript": "^5.4.5"
     }
