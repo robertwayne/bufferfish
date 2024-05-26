@@ -1,8 +1,12 @@
+pub mod encodable;
+
 use std::{
     convert::TryInto,
     io::{Cursor, Read, Seek, Write},
     sync::Arc,
 };
+
+use encodable::Encodable;
 
 #[derive(Debug)]
 pub enum BufferfishError {
@@ -268,15 +272,17 @@ impl Bufferfish {
     pub fn write_string(&mut self, value: &str) -> std::io::Result<()> {
         self.write_u16(value.len().try_into().unwrap())?;
         self.write_all(value.as_bytes())?;
+
         Ok(())
     }
 
-    /// Writes a variable length array to the buffer. It will be prefixed with
-    /// its length in bytes as a u16 (two bytes).
-    pub fn write_vec<T: Into<Bufferfish>>(&mut self, vec: Vec<T>) -> std::io::Result<()> {
-        self.write_u16(vec.len().try_into().unwrap())?;
+    /// Writes an array to the buffer, where the items implement the Encodable
+    /// trait. The array will be prefixed with its length as a u16 (two bytes).
+    pub fn write_array<T: Encodable>(&mut self, vec: &[T]) -> std::io::Result<()> {
+        self.write_u16(vec.len() as u16)?;
+
         for item in vec {
-            self.extend(item);
+            item.encode(self)?;
         }
 
         Ok(())
@@ -841,5 +847,53 @@ mod tests {
             bools,
             vec![true, false, true, false, true, false, true, false]
         );
+    }
+
+    #[test]
+    fn test_write_simple_array() {
+        let mut buf = Bufferfish::new();
+        buf.write_array(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]).unwrap();
+
+        assert_eq!(buf.as_ref(), &[0, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    }
+
+    #[test]
+    fn test_write_encodable_items_to_array() {
+        struct Object {
+            a: u8,
+            b: u16,
+            c: u32,
+            d: i8,
+            e: i16,
+            f: i32,
+            g: bool,
+            h: String,
+        }
+
+        let arr = vec![
+            Object {
+                a: 0,
+                b: 1,
+                c: 2,
+                d: 3,
+                e: 4,
+                f: 5,
+                g: true,
+                h: "Bufferfish".to_string(),
+            },
+            Object {
+                a: 6,
+                b: 7,
+                c: 8,
+                d: 9,
+                e: 10,
+                f: 11,
+                g: false,
+                h: "안녕하세요".to_string(),
+            },
+        ];
+
+        
+        
     }
 }

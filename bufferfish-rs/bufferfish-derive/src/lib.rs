@@ -5,6 +5,49 @@ use proc_macro_error::{abort, proc_macro_error};
 use quote::quote;
 use syn::{parse_macro_input, spanned::Spanned, Data, DeriveInput, Fields, Index, Type, TypePath};
 
+#[proc_macro_derive(Encode)]
+#[proc_macro_error]
+pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let ast = parse_macro_input!(input as DeriveInput);
+    let name = &ast.ident;
+
+    let mut serialized_snippets = Vec::new();
+
+    match &ast.data {
+        Data::Struct(data) => match &data.fields {
+            Fields::Named(fields) => {
+                for field in &fields.named {
+                    let Some(ident) = field.ident.as_ref() else {
+                        abort!(field.span(), "named fields are required");
+                    };
+
+                    serialize_type(quote! { #ident }, &field.ty, &mut serialized_snippets)
+                }
+            }
+            Fields::Unnamed(fields) => {
+                for (i, field) in fields.unnamed.iter().enumerate() {
+                    let index = Index::from(i);
+                    serialize_type(quote! { #index }, &field.ty, &mut serialized_snippets)
+                }
+            }
+            Fields::Unit => {}
+        },
+        _ => abort!(ast.span(), "only structs are supported"),
+    };
+
+    let gen = quote! {
+        impl bufferfish::encodable::Encodable for #name {
+            fn encode(&self, bf: &mut bufferfish::Bufferfish) -> std::io::Result<()> {
+                #(#serialized_snippets)*
+
+                Ok(())
+            }
+        }
+    };
+
+    gen.into()
+}
+
 #[proc_macro_derive(Serialize, attributes(bufferfish))]
 #[proc_macro_error]
 pub fn bufferfish_serializer(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -109,6 +152,24 @@ fn serialize_type(accessor: TokenStream, ty: &Type, dest: &mut Vec<TokenStream>)
             dest.push(quote! {
                 bf.write_string(&self.#accessor)?;
             });
+        }
+        Type::Path(TypePath { path, .. })
+            if path.segments.len() == 1 && path.segments[0].ident == "Vec" =>
+        {
+            if let syn::PathArguments::AngleBracketed(args) = &path.segments[0].arguments {
+                if let Some(syn::GenericArgument::Type(_)) = args.args.first() {
+                    dest.push(quote! {
+                        bf.write_u16(self.#accessor.len() as u16)?;
+                        for elem in &self.#accessor {
+                            elem.encode(&mut bf)?;
+                        }
+                    });
+                } else {
+                    abort!(ty.span(), "Vec<T> type not supported");
+                }
+            } else {
+                abort!(ty.span(), "Vec<T> type not supported");
+            }
         }
         _ => abort!(ty.span(), "type can not be serialized into a bufferfish"),
     }
