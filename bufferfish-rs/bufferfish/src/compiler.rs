@@ -262,12 +262,14 @@ pub enum PacketId {
     Unknown = 255,
 }
 
+#[derive(Encode)]
 #[bufferfish(PacketId::Join)]
 pub struct JoinPacket {
     pub id: u8,
     pub username: String,
 }
 
+#[derive(Encode)]
 #[bufferfish(PacketId::Leave)]
 pub struct LeavePacket;
         "#;
@@ -288,12 +290,12 @@ export interface JoinPacket {
 }
 
 export const parseJoinPacket = (bf: Bufferfish): JoinPacket => {
-    const id = bf.readUint8();
-    const username = bf.readString();
+    const __id = bf.readUint8();
+    const __username = bf.readString();
 
     return {
-        id,
-        username,
+        id: __id,
+        username: __username,
     };
 };
 "#;
