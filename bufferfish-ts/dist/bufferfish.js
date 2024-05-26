@@ -288,6 +288,22 @@ class Bufferfish {
     this.position += length;
     return value;
   }
+  readArray(readFn) {
+    const lengthOrError = this.readUint16();
+    if (lengthOrError instanceof Error) {
+      return lengthOrError;
+    }
+    const length = lengthOrError;
+    const values = [];
+    for (let i = 0;i < length; i++) {
+      const valueOrError = readFn();
+      if (valueOrError instanceof Error) {
+        return valueOrError;
+      }
+      values.push(valueOrError);
+    }
+    return values;
+  }
 }
 export {
   Bufferfish

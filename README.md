@@ -192,7 +192,22 @@ export const parseJoinPacket = (bf: Bufferfish): JoinPacket => {
 };
 ```
 
-## Tips
+## Encodable Types
+
+Supported Types             | Decodes As
+--------------------------- | -------------------------------
+`u8`                        | `number`
+`u16`                       | `number`
+`u32`                       | `number`
+`i8`                        | `number`
+`i16`                       | `number`
+`i32`                       | `number`
+`bool`                      | `boolean`
+`String`                    | `string`
+`Vec<T> where T: Encodable` | `Array<T>`
+Nested `struct { ... }`     | Individual fields on the object
+
+## Notes
 
 - I strongly recommend the usage of the [num_enum](https://github.com/illicitonion/num_enum) crate for deriving `IntoPrimitive` and `FromPrimitve` on your packet ID enum. This removes a lot of boilerplate
 

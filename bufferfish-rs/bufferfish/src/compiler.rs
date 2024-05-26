@@ -64,7 +64,7 @@ fn build_typescript_decoder(lines: &[String]) -> Result<String, std::io::Error> 
                 if !fields.is_empty() {
                     fn_lines.push("\n    return {\n".to_string());
                     for field in &fields {
-                        fn_lines.push(format!("        {},\n", field.0));
+                        fn_lines.push(format!("        {}: __{},\n", field.0, field.0));
                     }
                     fn_lines.push("    };\n".to_string());
                 } else {
@@ -87,12 +87,17 @@ fn build_typescript_decoder(lines: &[String]) -> Result<String, std::io::Error> 
             continue;
         }
 
-        if line.starts_with("#[bufferfish") {
+        if line.contains("Encode") {
             inside_struct = true;
             continue;
         }
 
-        if !inside_struct || line.starts_with('#') || line.ends_with(';') {
+        if !inside_struct || line.starts_with('#') {
+            continue;
+        }
+
+        if line.ends_with(';') {
+            inside_struct = false;
             continue;
         }
 
@@ -110,42 +115,60 @@ fn build_typescript_decoder(lines: &[String]) -> Result<String, std::io::Error> 
             continue;
         }
         let field_name = parts[0].replace("pub", "").trim().to_string();
+        let field_type = parts[1].to_string();
 
-        match parts[1] {
+        match field_type.as_str() {
             "u8" => {
                 fields.push((field_name.clone(), "number".to_string()));
-                fn_lines.push(format!("    const {} = bf.readUint8();\n", field_name));
+                fn_lines.push(format!("    const __{} = bf.readUint8();\n", field_name));
             }
             "u16" => {
                 fields.push((field_name.clone(), "number".to_string()));
-                fn_lines.push(format!("    const {} = bf.readUint16();\n", field_name));
+                fn_lines.push(format!("    const __{} = bf.readUint16();\n", field_name));
             }
             "u32" => {
                 fields.push((field_name.clone(), "number".to_string()));
-                fn_lines.push(format!("    const {} = bf.readUint32();\n", field_name));
+                fn_lines.push(format!("    const __{} = bf.readUint32();\n", field_name));
             }
             "i8" => {
                 fields.push((field_name.clone(), "number".to_string()));
-                fn_lines.push(format!("    const {} = bf.readInt8();\n", field_name));
+                fn_lines.push(format!("    const __{} = bf.readInt8();\n", field_name));
             }
             "i16" => {
                 fields.push((field_name.clone(), "number".to_string()));
-                fn_lines.push(format!("    const {} = bf.readInt16();\n", field_name));
+                fn_lines.push(format!("    const __{} = bf.readInt16();\n", field_name));
             }
             "i32" => {
                 fields.push((field_name.clone(), "number".to_string()));
-                fn_lines.push(format!("    const {} = bf.readInt32();\n", field_name));
+                fn_lines.push(format!("    const __{} = bf.readInt32();\n", field_name));
             }
             "bool" => {
                 fields.push((field_name.clone(), "boolean".to_string()));
-                fn_lines.push(format!("    const {} = bf.readBool();\n", field_name));
+                fn_lines.push(format!("    const __{} = bf.readBool();\n", field_name));
             }
             "String" => {
                 fields.push((field_name.clone(), "string".to_string()));
-                fn_lines.push(format!("    const {} = bf.readString();\n", field_name));
+                fn_lines.push(format!("    const __{} = bf.readString();\n", field_name));
+            }
+            _ if field_type.starts_with("Vec<") => {
+                let inner_type = &field_type[4..field_type.len() - 1];
+                fields.push((
+                    field_name.clone(),
+                    format!("{}[]", map_to_ts_type(inner_type)),
+                ));
+                fn_lines.push(format!(
+                    "    const __{} = bf.readArray(() => {});\n",
+                    field_name,
+                    generate_ts_decoder_call(inner_type)
+                ));
             }
             _ => {
-                eprintln!("Unsupported type: {:?}", parts[1]);
+                fields.push((field_name.clone(), field_type.clone()));
+                fn_lines.push(format!(
+                    "    const __{} = {};\n",
+                    field_name,
+                    generate_ts_decoder_call(&field_type)
+                ));
             }
         }
     }
@@ -162,6 +185,29 @@ fn build_typescript_decoder(lines: &[String]) -> Result<String, std::io::Error> 
     }
 
     Ok(contents)
+}
+
+fn map_to_ts_type(rust_type: &str) -> &str {
+    match rust_type {
+        "u8" | "u16" | "u32" | "i8" | "i16" | "i32" => "number",
+        "bool" => "boolean",
+        "String" => "string",
+        _ => rust_type,
+    }
+}
+
+fn generate_ts_decoder_call(rust_type: &str) -> String {
+    match rust_type {
+        "u8" => "bf.readUint8()".to_string(),
+        "u16" => "bf.readUint16()".to_string(),
+        "u32" => "bf.readUint32()".to_string(),
+        "i8" => "bf.readInt8()".to_string(),
+        "i16" => "bf.readInt16()".to_string(),
+        "i32" => "bf.readInt32()".to_string(),
+        "bool" => "bf.readBool()".to_string(),
+        "String" => "bf.readString()".to_string(),
+        _ => format!("parse{}(bf)", rust_type),
+    }
 }
 
 fn write_typescript_file(dest: &str, contents: &str) -> Result<(), std::io::Error> {
