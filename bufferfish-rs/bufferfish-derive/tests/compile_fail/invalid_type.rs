@@ -1,6 +1,6 @@
-use bufferfish::Serialize;
+use bufferfish::Encode;
 
-#[derive(Serialize, Debug)]
+#[derive(Encode, Debug)]
 struct Foo {
     bar: Vec<u8>,
 }

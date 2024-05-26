@@ -1,5 +1,6 @@
-use bufferfish::{Bufferfish, Serialize, ToBufferfish};
+use bufferfish::{Bufferfish, Encodable, Encode};
 
+#[allow(dead_code)]
 enum PacketId {
     Ping,
 }
@@ -12,14 +13,14 @@ impl From<PacketId> for u8 {
     }
 }
 
-#[test]
-fn serialize_struct() {
-    #[derive(Serialize, Debug)]
-    #[bufferfish(PacketId::Ping)]
-    struct Foo {
-        bar: u8,
-    }
+#[derive(Encode, Debug)]
+#[bufferfish(PacketId::Ping)]
+struct Foo {
+    bar: u8,
+}
 
+#[test]
+fn encode_struct() {
     let foo = Foo { bar: 42 };
     let bf: Bufferfish = foo.to_bufferfish().unwrap();
 

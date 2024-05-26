@@ -1,5 +1,7 @@
-error: type can not be serialized into a bufferfish
- --> tests/compile_fail/invalid_type.rs:5:10
+error: packet id is required
+ --> tests/compile_fail/invalid_type.rs:4:1
   |
-5 |     bar: Vec<u8>,
-  |          ^^^^^^^
+4 | / struct Foo {
+5 | |     bar: Vec<u8>,
+6 | | }
+  | |_^

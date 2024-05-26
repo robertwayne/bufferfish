@@ -1,6 +1,6 @@
-use bufferfish::Serialize;
+use bufferfish::Encode;
 
-#[derive(Serialize, Debug)]
+#[derive(Encode, Debug)]
 #[bufferfish("Hello, world!")]
 struct Foo {
     bar: u8,

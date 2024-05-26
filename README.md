@@ -1,12 +1,12 @@
 # Bufferfish
 
-Bufferfish is utility library for working with binary network messages between Rust and TypeScript, such as over WebSockets. It provides a simple API for serializing and deserializing data into binary arrays, as well as generating TypeScript definitions and deserialize functions from your Rust packet definitions.
+Bufferfish is utility library for working with binary network messages between Rust and TypeScript, such as over WebSockets. It provides a simple API for encoding and decoding data into binary arrays, as well as generating TypeScript definitions and decoding functions from your Rust packet definitions.
 
 _This library has an unstable API and is missing a variety of functionality. I can't recommend using it in production, although I am using it for my own production project._
 
 ## Repository Overview
 
-There are two seperate libraries in this repo: one for Rust and one for TypeScript. Neither of the libraries have any required dependencies. The Rust version optionally uses the `unicode-width` crate for formatting buffer output when `pretty-print` is enabled. Additionally, the Rust version has a `derive` feature that enables a `#[derive(Serialize)]` macro.
+There are two seperate libraries in this repo: one for Rust and one for TypeScript. Neither of the libraries have any required dependencies. The Rust version optionally uses the `unicode-width` crate for formatting buffer output when `pretty-print` is enabled. Additionally, the Rust version has a `derive` feature that enables a `#[derive(Encode)]` macro.
 
 The Rust crate is broken into three seperate crates:
 
@@ -16,7 +16,7 @@ The Rust crate is broken into three seperate crates:
 
 ### /bufferfish-derive
 
-`bufferfish_derive` is where the proc macro code for the `#[derive(Serialize)]` lives. This annotation implements `ToBufferfish` for the annotated type, allowing it to be serialized to a `Bufferfish` instance automatically.
+`bufferfish_derive` is where the proc macro code for the `#[derive(Encode)]` lives. This annotation implements `ToBufferfish` for the annotated type, allowing it to be encoded to a `Bufferfish` instance automatically.
 
 ### /bufferfish-internal
 
@@ -29,7 +29,7 @@ The Rust crate is broken into three seperate crates:
 ## Example
 
 ```rust
-use bufferfish::{Serialize, ToBufferfish};
+use bufferfish::{Encode};
 use futures_util::SinkExt;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, tungstenite::Message};
@@ -50,11 +50,11 @@ impl From<PacketId> for u8 {
     }
 }
 
-// We annotate our packet with the #[Serialize] macro to enable automatic
-// serialization to a Bufferfish.
+// We annotate our packet with the #[Encode] macro to enable automatic
+// encoding and decoding to or from a Bufferfish.
 //
 // Additionally, we use the #[bufferfish] attribute to specify the packet ID.
-#[derive(Serialize)]
+#[derive(Encode)]
 #[bufferfish(PacketId::Join)]
 struct JoinPacket {
     id: u32
@@ -102,7 +102,7 @@ ws.onmessage = (event) => {
 
     if (packetId === PacketId.Join) {
         const packet = parseJoinPacket(bf)
-    
+
         console.log(packet) // { packetId: 0, id: 1, username: "Rob" }
     }
 }
@@ -129,8 +129,6 @@ ws.onmessage = (event) => {
     }
 }
 ```
-
-
 
 ## Packet Generation
 
@@ -196,7 +194,7 @@ export const parseJoinPacket = (bf: Bufferfish): JoinPacket => {
 
 ## Tips
 
-- I strongly recommend the usage of the [num_enum](https://github.com/illicitonion/num_enum) crate for deriving `IntoPrimitive` and `FromPrimitve` on your packet ID enum. This removes a lot of boilerplate 
+- I strongly recommend the usage of the [num_enum](https://github.com/illicitonion/num_enum) crate for deriving `IntoPrimitive` and `FromPrimitve` on your packet ID enum. This removes a lot of boilerplate
 
 ## Security
 

@@ -1,8 +1,9 @@
-use bufferfish::{Bufferfish, Serialize, ToBufferfish};
+use bufferfish::{Bufferfish, Encodable, Encode};
 
 #[test]
-fn serialize_struct() {
-    #[derive(Serialize, Debug)]
+fn encode_struct() {
+    #[derive(Encode, Debug)]
+    #[bufferfish(0)]
     struct Foo {
         bar: u8,
     }
@@ -14,8 +15,9 @@ fn serialize_struct() {
 }
 
 #[test]
-fn serialize_unit_struct() {
-    #[derive(Serialize, Debug)]
+fn encode_unit_struct() {
+    #[derive(Encode, Debug)]
+    #[bufferfish(0)]
     struct Foo;
 
     let foo = Foo;
@@ -25,8 +27,9 @@ fn serialize_unit_struct() {
 }
 
 #[test]
-fn serialize_tuple_struct() {
-    #[derive(Serialize, Debug)]
+fn encode_tuple_struct() {
+    #[derive(Encode, Debug)]
+    #[bufferfish(0)]
     struct Foo(u8);
 
     let foo = Foo(42);

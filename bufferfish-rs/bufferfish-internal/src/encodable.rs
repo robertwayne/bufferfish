@@ -1,7 +1,13 @@
-use crate::Bufferfish;
+use crate::{Bufferfish, BufferfishError};
 
 pub trait Encodable {
     fn encode(&self, bf: &mut Bufferfish) -> std::io::Result<()>;
+    fn to_bufferfish(&self) -> Result<Bufferfish, BufferfishError> {
+        let mut bf = Bufferfish::new();
+        self.encode(&mut bf)?;
+
+        Ok(bf)
+    }
 }
 
 impl Encodable for u8 {

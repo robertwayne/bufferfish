@@ -1,8 +1,8 @@
-use bufferfish::{Bufferfish, Serialize, ToBufferfish};
+use bufferfish::{Bufferfish, Encodable, Encode};
 
 #[test]
-fn serialize_struct() {
-    #[derive(Serialize, Debug)]
+fn encode_struct() {
+    #[derive(Encode, Debug)]
     #[bufferfish(0)]
     struct Foo {
         bar: u8,
