@@ -1,0 +1,35 @@
+[package]
+name = "bufferfish-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.bufferfish]
+path = "../bufferfish"
+
+[[bin]]
+name = "bounded-bufferfish"
+path = "fuzz_targets/bounded_bufferfish.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "string-writer"
+path = "fuzz_targets/string_writer.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "unbounded-bufferfish"
+path = "fuzz_targets/unbounded_bufferfish.rs"
+test = false
+doc = false
+bench = false
