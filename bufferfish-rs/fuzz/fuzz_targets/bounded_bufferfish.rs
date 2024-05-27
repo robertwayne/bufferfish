@@ -5,11 +5,11 @@ use libfuzzer_sys::fuzz_target;
 fuzz_target!(|data: &[u8]| {
     let mut bf = bufferfish::Bufferfish::new();
 
-    if let Err(_) = bf.write_raw_bytes(data) {
+    if bf.write_raw_bytes(data).is_err() {
         return;
     }
 
-    if let Err(_) = bf.read_u8() {
+    if bf.read_u8().is_err() {
         return;
     }
 });
