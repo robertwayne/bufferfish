@@ -50,7 +50,7 @@ impl Write for Bufferfish {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 format!(
-                    "Write of {} bytes exceeds the max capacity of {} bytes on this Bufferfish.",
+                    "write of {} bytes exceeds the max capacity of {} bytes on this Bufferfish",
                     bf.len(),
                     self.capacity
                 ),
@@ -83,6 +83,7 @@ impl Bufferfish {
     }
 
     /// Creates a new Bufferfish with a max capacity (in bytes).
+    /// A value of 0 will allow the buffer to grow indefinitely.
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             inner: Cursor::new(Vec::with_capacity(capacity)),
@@ -155,7 +156,7 @@ impl Bufferfish {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 format!(
-                    "Peek of 1 byte exceeds the max capacity of {} bytes on this Bufferfish.",
+                    "peek of 1 byte exceeds the max capacity of {} bytes on this Bufferfish",
                     self.capacity
                 ),
             ));
@@ -178,7 +179,7 @@ impl Bufferfish {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 format!(
-                    "Peek of {} bytes exceeds the max capacity of {} bytes on this Bufferfish.",
+                    "peek of {} bytes exceeds the max capacity of {} bytes on this Bufferfish",
                     n, self.capacity
                 ),
             ));
@@ -297,6 +298,7 @@ impl Bufferfish {
 
         let mut bf = [0u8; 1];
         self.inner.read_exact(&mut bf)?;
+
         Ok(bf[0])
     }
 
@@ -306,6 +308,7 @@ impl Bufferfish {
 
         let mut bf = [0u8; 2];
         self.inner.read_exact(&mut bf)?;
+
         Ok(u16::from_be_bytes(bf))
     }
 
@@ -315,6 +318,7 @@ impl Bufferfish {
 
         let mut bf = [0u8; 4];
         self.inner.read_exact(&mut bf)?;
+
         Ok(u32::from_be_bytes(bf))
     }
 
@@ -324,6 +328,7 @@ impl Bufferfish {
 
         let mut bf = [0u8; 1];
         self.inner.read_exact(&mut bf)?;
+
         Ok(i8::from_be_bytes(bf))
     }
 
@@ -333,6 +338,7 @@ impl Bufferfish {
 
         let mut bf = [0u8; 2];
         self.inner.read_exact(&mut bf)?;
+
         Ok(i16::from_be_bytes(bf))
     }
 
@@ -342,12 +348,14 @@ impl Bufferfish {
 
         let mut bf = [0u8; 4];
         self.inner.read_exact(&mut bf)?;
+
         Ok(i32::from_be_bytes(bf))
     }
 
     /// Reads a bool from the buffer.
     pub fn read_bool(&mut self) -> std::io::Result<bool> {
         let value = self.read_u8()?;
+
         Ok(value != 0)
     }
 
