@@ -23,7 +23,7 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
         }
     }
 
-    if let Some(packet_id) = packet_id {
+    let packet_id_snippet = if let Some(packet_id) = packet_id {
         quote! { bf.write_u8(#packet_id.into())?; }
     } else {
         quote! {}
@@ -58,6 +58,14 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
             fn encode(&self, bf: &mut bufferfish::Bufferfish) -> std::io::Result<()> {
                 #(#encoded_snippets)*
                 Ok(())
+            }
+
+            fn to_bufferfish(&self) -> Result<bufferfish::Bufferfish, bufferfish::BufferfishError> {
+                let mut bf = bufferfish::Bufferfish::new();
+                #packet_id_snippet
+                self.encode(&mut bf)?;
+
+                Ok(bf)
             }
         }
     };

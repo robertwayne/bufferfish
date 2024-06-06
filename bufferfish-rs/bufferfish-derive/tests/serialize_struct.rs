@@ -11,7 +11,7 @@ fn encode_struct() {
     let foo = Foo { bar: 42 };
     let bf: Bufferfish = foo.to_bufferfish().unwrap();
 
-    assert_eq!(bf.len(), 1);
+    assert_eq!(bf.len(), 2);
 }
 
 #[test]
@@ -23,7 +23,7 @@ fn encode_unit_struct() {
     let foo = Foo;
     let bf: Bufferfish = foo.to_bufferfish().unwrap();
 
-    assert_eq!(bf.len(), 0);
+    assert_eq!(bf.len(), 1);
 }
 
 #[test]
@@ -35,5 +35,5 @@ fn encode_tuple_struct() {
     let foo = Foo(42);
     let bf: Bufferfish = foo.to_bufferfish().unwrap();
 
-    assert_eq!(bf.len(), 1);
+    assert_eq!(bf.len(), 2);
 }
