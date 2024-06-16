@@ -1,10 +1,10 @@
-# Bufferfish
+# bufferfish
 
-Bufferfish is utility library for working with binary network messages between Rust and TypeScript, such as over WebSockets. It provides a simple API for encoding and decoding data into binary arrays, as well as generating TypeScript definitions and decoding functions from your Rust code.
+`bufferfish` is utility library for working with binary network messages between Rust and TypeScript, such as over WebSockets. It provides a simple API for encoding and decoding data into binary arrays, as well as generating TypeScript definitions and decoding functions from your Rust code.
 
 _This library has an unstable API and is missing a variety of functionality. I can't recommend using it in production, although I am using it for my own production project._
 
-## Example
+## Examples
 
 ```rust
 use bufferfish::{Encode};
@@ -18,7 +18,7 @@ enum PacketId {
 }
 
 // We need to make sure we can convert our enum to a u16, as that is the type
-// Bufferfish uses to identify packets. You can use the `num_enum` crate and
+// `bufferfish` uses to identify packets. You can use the `num_enum` crate and
 // derive `IntoPrimitive` and `FromPrimitive` to remove this step completely.
 impl From<PacketId> for u16 {
     fn from(id: PacketId) -> u16 {
@@ -29,7 +29,7 @@ impl From<PacketId> for u16 {
 }
 
 // We annotate our packet with the #[Encode] macro to enable automatic
-// encoding and decoding to or from a Bufferfish.
+// encoding and decoding to or from a `Bufferfish`.
 //
 // Additionally, we use the #[bufferfish] attribute to specify the packet ID.
 #[derive(Encode)]
@@ -73,10 +73,11 @@ async fn process(steam: TcpStream) -> Result<(), Box<dyn std::error::Error>> {
 
 ```typescript
 const ws = new WebSocket("ws://127.0.0.1:3000")
+ws.binaryType = "arraybuffer"
 
 ws.onmessage = (event) => {
   const bf = new Bufferfish(event.data)
-  const packetId = bf.readUint8()
+  const packetId = bf.readUint16()
 
     if (packetId === PacketId.Join) {
         const packet = parseJoinPacket(bf)
@@ -90,10 +91,11 @@ ws.onmessage = (event) => {
 
 ```typescript
 const ws = new WebSocket("ws://127.0.0.1:3000")
+ws.binaryType = "arraybuffer"
 
 ws.onmessage = (event) => {
     const bf = new Bufferfish(event.data)
-    const packetId = bf.readUint8()
+    const packetId = bf.readUint16()
 
     if (packetId === PacketId.Join) {
         const id = bf.readUint32()
@@ -109,7 +111,7 @@ ws.onmessage = (event) => {
 
 ## TypeScript Code Generation
 
-Bufferfish provides a `generate` function that can be used in `build.rs` _(or used in a CLI script, called by server at launch, etc)_ to generate TypeScript definitions and functions from your Rust code, meaning your Rust server becomes the source of truth for all network messages, and reducing manually interacting with Bufferfish on the client.
+`bufferfish` provides a `generate` function that can be used in `build.rs` _(or used in a CLI script, called by server at launch, etc)_ to generate TypeScript definitions and functions from your Rust code, meaning your Rust server becomes the source of truth for all network messages, and reducing manually interacting with `bufferfish` on the client.
 
 ```rust
 // build.rs
@@ -193,7 +195,7 @@ Nested `struct { ... }`     | Individual fields on the object
 
 ## Security
 
-Bufferfish functions ensure inputs are valid as a "best effort". Internal buffers are constructed with a maximum capacity _(default of 1024 bytes)_, and will fail to construct if an input would cause the internal buffer to cross that threshold.
+`bufferfish` functions ensure inputs are valid as a "best effort". Internal buffers are constructed with a maximum capacity _(default of 1024 bytes)_, and will fail to construct if an input would cause the internal buffer to cross that threshold.
 
 When reading data, you will always get the correct return type - however, you are still subject to corrupted data if the input was incorrect but technically valid. For example, if you call `read_u8` on a buffer that contains a `u16` at the cursor position, you will get a `u8` back, as the buffer has no way to know that it was originally encoded as a `u16`. It is valid data, but will very likely be an unexpected value.
 
@@ -201,11 +203,11 @@ This kind of problem should be dealt with before operating on the buffer.
 
 ## Contributing
 
-Bufferfish is open to contributions, however it should be noted that the library was created for my own game projects, and I am not interested in making it widely general-purpose. If you have a feature request or bug fix that you think would be useful to others, feel free to open an issue or PR either way.
+`bufferfish` is open to contributions, however it should be noted that the library was created for my own game projects, and I am not interested in making it widely general-purpose. If you have a feature request or bug fix that you think would be useful to others, feel free to open an issue or PR either way.
 
 ## License
 
-Bufferfish source code is dual-licensed under either
+`bufferfish` source code is dual-licensed under either
 
 - **[MIT License](LICENSE-MIT)**
 - **[Apache License, Version 2.0](LICENSE-APACHE)**
