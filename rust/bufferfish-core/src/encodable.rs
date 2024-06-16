@@ -1,7 +1,13 @@
+//! Types implementing this trait are able to be encoded to a `Bufferfish`. Implements encoding for primitive types.
+
 use crate::{Bufferfish, BufferfishError};
 
+/// Types implementing this trait are able to be encoded to a `Bufferfish`.
 pub trait Encodable {
+    /// Encode the type into a given `Bufferfish`.
     fn encode(&self, bf: &mut Bufferfish) -> Result<(), BufferfishError>;
+
+    /// Encode the type into a new `Bufferfish`.
     fn to_bufferfish(&self) -> Result<Bufferfish, BufferfishError> {
         let mut bf = Bufferfish::new();
         self.encode(&mut bf)?;

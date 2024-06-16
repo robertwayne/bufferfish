@@ -1,11 +1,11 @@
+//! Base trait for types that can be decoded from a `Bufferfish`. Implements decoding for primitive types.
+
 use crate::{Bufferfish, BufferfishError};
 
+/// Types implementing this trait are able to be decoded from a `Bufferfish`.
 pub trait Decodable: Sized {
+    /// Decode the type from a `Bufferfish`.
     fn decode(bf: &mut Bufferfish) -> Result<Self, BufferfishError>;
-
-    fn from_bufferfish(bf: &mut Bufferfish) -> Result<Self, BufferfishError> {
-        Self::decode(bf)
-    }
 }
 
 impl Decodable for u8 {

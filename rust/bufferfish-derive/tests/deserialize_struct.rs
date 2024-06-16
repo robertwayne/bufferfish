@@ -9,7 +9,7 @@ fn decode_struct() {
     }
 
     let mut bf = Bufferfish::from(vec![0, 0, 42]);
-    let foo = Foo::from_bufferfish(&mut bf).unwrap();
+    let foo = Foo::decode(&mut bf).unwrap();
 
     assert_eq!(foo, Foo { bar: 42 });
 }
@@ -21,7 +21,7 @@ fn decode_unit_struct() {
     struct Foo;
 
     let mut bf = Bufferfish::from(vec![0, 0]);
-    let foo = Foo::from_bufferfish(&mut bf).unwrap();
+    let foo = Foo::decode(&mut bf).unwrap();
 
     assert_eq!(foo, Foo);
 }
@@ -33,7 +33,7 @@ fn decode_tuple_struct() {
     struct Foo(u8);
 
     let mut bf = Bufferfish::from(vec![0, 0, 42]);
-    let foo = Foo::from_bufferfish(&mut bf).unwrap();
+    let foo = Foo::decode(&mut bf).unwrap();
 
     assert_eq!(foo, Foo(42));
 }

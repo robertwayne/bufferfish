@@ -102,9 +102,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
             Fields::Unnamed(fields) => fields
                 .unnamed
                 .iter()
-                .enumerate()
-                .map(|(i, field)| {
-                    let index = Index::from(i);
+                .map(|field| {
                     let ty = &field.ty;
                     quote! {
                         <#ty as bufferfish::Decodable>::decode(bf)?,
@@ -127,10 +125,6 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                                 #(#decoded_snippets)*
                             })
                         }
-
-                        fn from_bufferfish(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            Self::decode(bf)
-                        }
                     }
                 }
             }
@@ -143,10 +137,6 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                                 #(#decoded_snippets)*
                             ))
                         }
-
-                        fn from_bufferfish(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            Self::decode(bf)
-                        }
                     }
                 }
             }
@@ -156,10 +146,6 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                         fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                             #packet_id_snippet
                             Ok(Self)
-                        }
-
-                        fn from_bufferfish(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            Self::decode(bf)
                         }
                     }
                 }
@@ -183,41 +169,6 @@ fn get_packet_id(ast: &DeriveInput) -> Option<Expr> {
     }
 
     None
-}
-
-fn decode_type(accessor: TokenStream, ty: &Type, dest: &mut Vec<TokenStream>) {
-    match ty {
-        // Handle primitive types
-        Type::Path(TypePath { path, .. })
-            if path.is_ident("u8")
-                || path.is_ident("u16")
-                || path.is_ident("u32")
-                || path.is_ident("i8")
-                || path.is_ident("i16")
-                || path.is_ident("i32")
-                || path.is_ident("bool")
-                || path.is_ident("String") =>
-        {
-            dest.push(quote! {
-                *#accessor = bufferfish::Decodable::decode(bf)?;
-            });
-        }
-        // Handle arrays where elements impl Decodable
-        Type::Path(TypePath { path, .. })
-            if path.segments.len() == 1 && path.segments[0].ident == "Vec" =>
-        {
-            dest.push(quote! {
-                *#accessor = bf.read_array()?;
-            });
-        }
-        // Handle nested structs where fields impl Decodable
-        Type::Path(TypePath { .. }) => {
-            dest.push(quote! {
-                bufferfish::Decodable::decode(&mut #accessor, bf)?;
-            });
-        }
-        _ => abort!(ty.span(), "type cannot be decoded from a bufferfish"),
-    }
 }
 
 fn encode_type(accessor: TokenStream, ty: &Type, dest: &mut Vec<TokenStream>) {

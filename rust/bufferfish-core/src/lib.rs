@@ -9,9 +9,12 @@ use std::{
 
 pub use encodable::Encodable;
 
+/// Errors that can occur when encoding or decoding a `Bufferfish`.
 #[derive(Debug)]
 pub enum BufferfishError {
+    /// std::io::Error that occurred during a write operation.
     FailedWrite(std::io::Error),
+    /// Invalid - typically non-u16 - packet ID encountered during a write.
     InvalidPacketId,
 }
 
@@ -39,6 +42,9 @@ impl std::error::Error for BufferfishError {
     }
 }
 
+/// A wrapper around a `Cursor<Vec<u8>>` that provides a simple API for reading
+/// and writing bytes. This is meant to be used with its companion library in
+/// TypeScript to provide consistent encoding and decoding interop.
 #[derive(Debug, Default)]
 pub struct Bufferfish {
     inner: Cursor<Vec<u8>>,

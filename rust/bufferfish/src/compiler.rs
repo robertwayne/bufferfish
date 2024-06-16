@@ -1,3 +1,7 @@
+//! Simple compile for generating TypeScript type definitions, encoders, and
+//! decoders from Rust types annotated with `#[derive(Encode)]` and/or `#[derive
+//! (Decode]`.
+
 use std::{
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, Write},
@@ -266,6 +270,9 @@ fn read_input_file(src: &str) -> Result<Vec<String>, std::io::Error> {
     Ok(contents)
 }
 
+/// Generate a TypeScript file at `dest` from the Rust source file at `src`.
+/// Requires Rust types to be annotated with `#[derive(Encode)]` and/or
+/// `#[derive(Decode]` macros.
 pub fn generate(src: &str, dest: &str) -> Result<(), std::io::Error> {
     let lines = read_input_file(src)?;
     let definitions = build_typescript_definitions(&lines)?;
