@@ -1,14 +1,14 @@
 pub mod compiler;
 
+pub use bufferfish_core::{encodable::Encodable, *};
 #[cfg(feature = "derive")]
 pub use bufferfish_derive::Encode;
-pub use bufferfish_internal::{encodable::Encodable, *};
 pub use compiler::generate;
 
 #[cfg(test)]
 mod tests {
+    use bufferfish_core::Bufferfish;
     use bufferfish_derive::Encode;
-    use bufferfish_internal::Bufferfish;
 
     #[test]
     fn test_peek_one() {
@@ -377,7 +377,7 @@ mod tests {
 
     #[test]
     fn test_write_encodable_items_to_array() {
-        use bufferfish_internal as bufferfish;
+        use bufferfish_core as bufferfish;
 
         #[derive(Encode)]
         #[bufferfish(0_u16)]
@@ -398,8 +398,8 @@ mod tests {
 
     #[test]
     fn test_encode_array() {
-        use bufferfish_internal as bufferfish;
-        use bufferfish_internal::Encodable;
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Encodable;
 
         #[derive(Encode)]
         #[bufferfish(0_u16)]

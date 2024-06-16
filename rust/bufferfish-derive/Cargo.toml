@@ -7,7 +7,7 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-bufferfish-internal = { path = "../bufferfish-internal" }
+bufferfish-core = { path = "../bufferfish-core" }
 
 syn = "2"
 quote = "1"

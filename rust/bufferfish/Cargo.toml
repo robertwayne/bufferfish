@@ -7,10 +7,10 @@ edition = "2021"
 publish = false
 
 [dependencies]
-bufferfish-internal = { path = "../bufferfish-internal" }
+bufferfish-core = { path = "../bufferfish-core" }
 bufferfish-derive = { path = "../bufferfish-derive", optional = true }
 
 [features]
 default = []
-pretty-print = ["bufferfish-internal/unicode-width"]
+pretty-print = ["bufferfish-core/unicode-width"]
 derive = ["bufferfish-derive"]
