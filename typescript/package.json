@@ -1,13 +1,12 @@
 {
     "name": "bufferfish",
     "version": "0.1.0",
-    "description": "Schemaless binary protocol for game networking.",
+    "description": "Binary message utility library for Rust and TypeScript interop.",
     "repository": "https://github.com/robertwayne/bufferfish",
     "author": "Rob Wagner <rob@sombia.com>",
     "license": "(MIT OR Apache-2.0)",
     "main": "./src/bufferfish.ts",
     "types": "./dist/index.d.ts",
-    "private": true,
     "scripts": {
         "fmt": "prettier --config .prettierrc --write  \"**/*.{ts,js}\"",
         "fmt:check": "prettier --config .prettierrc --check  \"**/*.{ts,js}\"",
