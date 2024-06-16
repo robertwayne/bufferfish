@@ -1,5 +1,12 @@
 [package]
 name = "bufferfish-derive"
+authors = ["Rob Wagner <rob@sombia.com>"]
+license = "MIT OR Apache-2.0"
+description = "Macros for bufferfish."
+repository = "https://github.com/robertwayne/bufferfish"
+categories = ["network-programming"]
+keywords = ["binary-protocol", "typescript"]
+readme = "README.md"
 version = "0.1.0"
 edition = "2021"
 

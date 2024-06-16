@@ -1,16 +1,21 @@
 [package]
 name = "bufferfish"
-description = "Schemaless binary protocol for game networking."
 authors = ["Rob Wagner <rob@sombia.com>"]
+license = "MIT OR Apache-2.0"
+description = "Binary message utility library for Rust and TypeScript interop."
+repository = "https://github.com/robertwayne/bufferfish"
+categories = ["network-programming"]
+keywords = ["binary-protocol", "typescript"]
+readme = "README.md"
 version = "0.1.0"
 edition = "2021"
-publish = false
-
-[dependencies]
-bufferfish-core = { path = "../bufferfish-core" }
-bufferfish-derive = { path = "../bufferfish-derive", optional = true }
 
 [features]
 default = []
 pretty-print = ["bufferfish-core/unicode-width"]
 derive = ["bufferfish-derive"]
+
+
+[dependencies]
+bufferfish-core = { path = "../bufferfish-core" }
+bufferfish-derive = { path = "../bufferfish-derive", optional = true }
