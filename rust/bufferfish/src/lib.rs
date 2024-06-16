@@ -1,8 +1,8 @@
 pub mod compiler;
 
-pub use bufferfish_core::{encodable::Encodable, *};
+pub use bufferfish_core::{decodable::Decodable, encodable::Encodable, *};
 #[cfg(feature = "derive")]
-pub use bufferfish_derive::Encode;
+pub use bufferfish_derive::{Decode, Encode};
 pub use compiler::generate;
 
 #[cfg(test)]

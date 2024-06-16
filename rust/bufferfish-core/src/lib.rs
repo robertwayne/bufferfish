@@ -12,12 +12,14 @@ pub use encodable::Encodable;
 #[derive(Debug)]
 pub enum BufferfishError {
     FailedWrite(std::io::Error),
+    InvalidPacketId,
 }
 
 impl std::fmt::Display for BufferfishError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            BufferfishError::FailedWrite(e) => write!(f, "Failed to write to buffer: {}", e),
+            BufferfishError::FailedWrite(e) => write!(f, "failed to write to buffer: {}", e),
+            BufferfishError::InvalidPacketId => write!(f, "invalid packet id"),
         }
     }
 }
@@ -32,6 +34,7 @@ impl std::error::Error for BufferfishError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             BufferfishError::FailedWrite(e) => Some(e),
+            BufferfishError::InvalidPacketId => None,
         }
     }
 }
