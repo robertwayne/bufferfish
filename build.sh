@@ -1,4 +1,4 @@
-cd bufferfish-ts
+cd typescript
 rm -rf dist
 bun lint
 bun test
@@ -6,7 +6,7 @@ bun fmt
 bun run bundle.js
 bun build-types
 
-cd ../bufferfish-rs
+cd ../rust
 cargo fmt
 cargo clippy
 cargo clean

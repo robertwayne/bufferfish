@@ -1,30 +1,30 @@
 # Bufferfish
 
-Bufferfish is utility library for working with binary network messages between Rust and TypeScript, such as over WebSockets. It provides a simple API for encoding and decoding data into binary arrays, as well as generating TypeScript definitions and decoding functions from your Rust packet definitions.
+Bufferfish is utility library for working with binary network messages between Rust and TypeScript, such as over WebSockets. It provides a simple API for encoding and decoding data into binary arrays, as well as generating TypeScript definitions and decoding functions from your Rust code.
 
 _This library has an unstable API and is missing a variety of functionality. I can't recommend using it in production, although I am using it for my own production project._
 
 ## Repository Overview
 
-There are two seperate libraries in this repo: one for Rust and one for TypeScript. Neither of the libraries have any required dependencies. The Rust version optionally uses the `unicode-width` crate for formatting buffer output when `pretty-print` is enabled. Additionally, the Rust version has a `derive` feature that enables a `#[derive(Encode)]` macro.
+There are two seperate libraries in this repo: one for Rust and one for TypeScript. Neither of the libraries have any required dependencies. The Rust version optionally uses the `unicode-width` crate for formatting buffer output when `pretty-print` is enabled.
 
-The Rust crate is broken into three seperate crates:
+Additionally, the Rust version has a `derive` feature that enables a `#[derive(Encode)]` macro.
+
+The Rust library is broken into three seperate crates:
 
 ### /bufferfish
 
-`bufferfish` is a re-export of the other crates, as well as a `generate` function for use in `build.rs` files in order to generate TypeScript definitions from your Rust packet ID type. This is what users will interact with directly.
+`bufferfish` is a re-export of the other crates, as well as a `generate` function for use in `build.rs` files in order to generate TypeScript definitions from your Rust packet ID type. This is what users will interact with directly. General tests also live here.
 
 ### /bufferfish-derive
 
-`bufferfish_derive` is where the proc macro code for the `#[derive(Encode)]` lives. This annotation implements `ToBufferfish` for the annotated type, allowing it to be encoded to a `Bufferfish` instance automatically.
+`bufferfish_derive` is where the proc macro code for the `#[derive(Encode)]` lives. This annotation implements `Encodable` for the annotated type, allowing it to be encoded to a `Bufferfish` instance automatically.
 
 ### /bufferfish-internal
 
-`bufferfish_internal`is the core library implementation _(trait / type definitions, byte and cursor logic, and errors)_.
+`bufferfish_internal`is the core library implementation. Trait / type definitions, byte and cursor logic, and error handling live here.
 
-### /bufferfish-ts
-
-`bufferfish-ts` is the TypeScript library that provides the `Bufferfish` class with a mirrored API to the Rust version.
+TypeScript code lives alone within the `/typescript` directory.
 
 ## Example
 
@@ -39,11 +39,11 @@ enum PacketId {
     Join,
 }
 
-// We need to make sure we can convert our enum to a u8, as that is the type
+// We need to make sure we can convert our enum to a u16, as that is the type
 // Bufferfish uses to identify packets. You can use the `num_enum` crate and
 // derive `IntoPrimitive` and `FromPrimitive` to remove this step completely.
-impl From<PacketId> for u8 {
-    fn from(id: PacketId) -> u8 {
+impl From<PacketId> for u16 {
+    fn from(id: PacketId) -> u16 {
         match id {
             PacketId::Join => 0,
         }
@@ -103,7 +103,7 @@ ws.onmessage = (event) => {
     if (packetId === PacketId.Join) {
         const packet = parseJoinPacket(bf)
 
-        console.log(packet) // { packetId: 0, id: 1, username: "Rob" }
+        console.log(packet) // { id: 1, username: "Rob" }
     }
 }
 ```
@@ -122,24 +122,23 @@ ws.onmessage = (event) => {
         const username = bf.readString()
 
         console.log({
-            packetId,
             id,
             username,
-        }) // { packetId: 0, id: 1, username: "Rob" }
+        }) // { id: 1, username: "Rob" }
     }
 }
 ```
 
-## Packet Generation
+## TypeScript Code Generation
 
-Bufferfish provides a `generate` function that can be used in `build.rs` _(or used in a CLI script, called by server at launch, etc)_ to generate TypeScript definitions and functions from your Rust packets, meaning your Rust server becomes the source of truth for all network messages.
+Bufferfish provides a `generate` function that can be used in `build.rs` _(or used in a CLI script, called by server at launch, etc)_ to generate TypeScript definitions and functions from your Rust code, meaning your Rust server becomes the source of truth for all network messages, and reducing manually interacting with Bufferfish on the client.
 
 ```rust
 // build.rs
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-changed=build.rs");
 
-    bufferfish::generate("src/packet.rs", "../client/src/Packet.ts")?;
+    bufferfish::generate("src/packet.rs", "../client/src/generated/Packet.ts")?;
 
     Ok(())
 }
@@ -148,26 +147,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Example Generation
 
 ```rust
-// This would be your server Rust code.
+use bufferfish::Encode;
+
 pub enum PacketId {
     Join = 0,
     Leave,
     Unknown = 255,
 }
 
+#[derive(Encode)]
 #[bufferfish(PacketId::Join)]
 pub struct JoinPacket {
     pub id: u8,
     pub username: String,
 }
 
+#[derive(Encode)]
 #[bufferfish(PacketId::Leave)]
 pub struct LeavePacket;
 ```
 
 ```typescript
 /* AUTOGENERATED BUFFERFISH FILE, DO NOT EDIT */
-/* Make sure your bundler is configured to inline TypeScript enums in order to avoid bloated codegen from the default TypeScript enum behaviour. */
 import { Bufferfish } from 'bufferfish';
 
 export enum PacketId {
@@ -177,19 +178,19 @@ export enum PacketId {
 }
 
 export interface JoinPacket {
-    id: number;
-    username: string;
+    id: number
+    username: string
 }
 
 export const parseJoinPacket = (bf: Bufferfish): JoinPacket => {
-    const id = bf.readUint8();
-    const username = bf.readString();
+    const id = bf.readUint8() as number
+    const username = bf.readString() as string
 
     return {
         id,
         username,
-    };
-};
+    }
+}
 ```
 
 ## Encodable Types
@@ -209,19 +210,20 @@ Nested `struct { ... }`     | Individual fields on the object
 
 ## Notes
 
-- I strongly recommend the usage of the [num_enum](https://github.com/illicitonion/num_enum) crate for deriving `IntoPrimitive` and `FromPrimitve` on your packet ID enum. This removes a lot of boilerplate
+- I strongly recommend the usage of the [num_enum](https://github.com/illicitonion/num_enum) crate for deriving `IntoPrimitive` and `FromPrimitve` on your packet ID enum. This removes a lot of boilerplate.
+- Enums in TypeScript are often mentioned as a "bad" feature, and this is generally true when considering typical web development use-cases. In the case of a list of "op codes" mapping to dev-friendly names, however, they are actually really useful. Modern bundlers - like `esbuild` - [can actually inline them, meaning we just get integer literals in the final output.](https://sombia.com/posts/typescript-enums).
 
 ## Security
 
-Bufferfish functions ensure inputs are valid as a "best effort". Internal buffers are protected with a maximum capacity _(default of 1024 bytes)_, and will fail to construct if an input would cause the internal buffer to cross that threshold.
+Bufferfish functions ensure inputs are valid as a "best effort". Internal buffers are constructed with a maximum capacity _(default of 1024 bytes)_, and will fail to construct if an input would cause the internal buffer to cross that threshold.
 
 When reading data, you will always get the correct return type - however, you are still subject to corrupted data if the input was incorrect but technically valid. For example, if you call `read_u8` on a buffer that contains a `u16` at the cursor position, you will get a `u8` back, as the buffer has no way to know that it was originally encoded as a `u16`. It is valid data, but will very likely be an unexpected value.
 
-This kind of problem should be protected against before operating on the buffer, based on what you're expecting.
+This kind of problem should be dealt with before operating on the buffer.
 
 ## Contributing
 
-Bufferfish welcomes any and all contributions; please open an issue before you work on any new features, though. Just note that the scope of this project is fairly tight, and I am not looking to cover a wider 'general' use-case; there are plenty of other full-featured options for that.
+Bufferfish is open to contributions, however it should be noted that the library was created for my own game projects, and I am not interested in making it widely general-purpose. If you have a feature request or bug fix that you think would be useful to others, feel free to open an issue or PR either way.
 
 ## License
 
