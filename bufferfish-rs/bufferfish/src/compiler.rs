@@ -235,6 +235,11 @@ fn generate_ts_decoder_call(rust_type: &str) -> String {
 }
 
 fn write_typescript_file(dest: &str, contents: &str) -> Result<(), std::io::Error> {
+    let path = std::path::Path::new(dest);
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
     let mut file = OpenOptions::new()
         .write(true)
         .truncate(true)
