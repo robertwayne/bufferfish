@@ -5,8 +5,8 @@ enum PacketId {
     Ping,
 }
 
-impl From<PacketId> for u8 {
-    fn from(packet_id: PacketId) -> u8 {
+impl From<PacketId> for u16 {
+    fn from(packet_id: PacketId) -> u16 {
         match packet_id {
             PacketId::Ping => 0,
         }
@@ -24,5 +24,5 @@ fn encode_struct() {
     let foo = Foo { bar: 42 };
     let bf: Bufferfish = foo.to_bufferfish().unwrap();
 
-    assert_eq!(bf.len(), 2);
+    assert_eq!(bf.len(), 3);
 }

@@ -380,7 +380,7 @@ mod tests {
         use bufferfish_internal as bufferfish;
 
         #[derive(Encode)]
-        #[bufferfish(0)]
+        #[bufferfish(0_u16)]
         struct Object {
             a: u8,
         }
@@ -402,7 +402,7 @@ mod tests {
         use bufferfish_internal::Encodable;
 
         #[derive(Encode)]
-        #[bufferfish(0)]
+        #[bufferfish(0_u16)]
         struct JoinPacket {
             user: User,
         }
@@ -424,7 +424,7 @@ mod tests {
 
         assert_eq!(
             bf.as_ref(),
-            &[0, 0, 0, 0, 0, 0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104]
+            &[0, 0, 0, 0, 0, 0, 0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104]
         );
     }
 }

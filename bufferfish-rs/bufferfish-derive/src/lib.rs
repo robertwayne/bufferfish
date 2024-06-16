@@ -24,7 +24,7 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
     }
 
     let packet_id_snippet = if let Some(packet_id) = packet_id {
-        quote! { bf.write_u8(#packet_id.into())?; }
+        quote! { bf.write_u16(u16::from(#packet_id))?; }
     } else {
         quote! {}
     };

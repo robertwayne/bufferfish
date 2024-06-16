@@ -3,7 +3,7 @@ use bufferfish::{Bufferfish, Encodable, Encode};
 #[test]
 fn encode_struct() {
     #[derive(Encode, Debug)]
-    #[bufferfish(0)]
+    #[bufferfish(0_u16)]
     struct Foo {
         bar: u8,
     }
@@ -11,5 +11,5 @@ fn encode_struct() {
     let foo = Foo { bar: 42 };
     let bf: Bufferfish = foo.to_bufferfish().unwrap();
 
-    assert_eq!(bf.len(), 2);
+    assert_eq!(bf.len(), 3);
 }

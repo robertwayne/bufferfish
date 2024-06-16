@@ -1,11 +1,11 @@
-error[E0277]: the trait bound `u8: From<&str>` is not satisfied
+error[E0277]: the trait bound `u16: From<&str>` is not satisfied
  --> tests/compile_fail/invalid_header.rs:3:10
   |
 3 | #[derive(Encode, Debug)]
-  |          ^^^^^^ the trait `From<&str>` is not implemented for `u8`, which is required by `&str: Into<_>`
+  |          ^^^^^^ the trait `From<&str>` is not implemented for `u16`
   |
   = help: the following other types implement trait `From<T>`:
-            <u8 as From<Char>>
-            <u8 as From<bool>>
-  = note: required for `&str` to implement `Into<u8>`
+            <u16 as From<Char>>
+            <u16 as From<bool>>
+            <u16 as From<u8>>
   = note: this error originates in the derive macro `Encode` (in Nightly builds, run with -Z macro-backtrace for more info)
