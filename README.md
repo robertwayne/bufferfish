@@ -8,8 +8,6 @@ _This library has an unstable API and is missing a variety of functionality. I c
 
 There are two seperate libraries in this repo: one for Rust and one for TypeScript. Neither of the libraries have any required dependencies. The Rust version optionally uses the `unicode-width` crate for formatting buffer output when `pretty-print` is enabled.
 
-Additionally, the Rust version has a `derive` feature that enables a `#[derive(Encode)]` macro.
-
 The Rust library is broken into three seperate crates:
 
 ### /bufferfish
@@ -18,7 +16,7 @@ The Rust library is broken into three seperate crates:
 
 ### /bufferfish-derive
 
-`bufferfish_derive` is where the proc macro code for the `#[derive(Encode)]` lives. This annotation implements `Encodable` for the annotated type, allowing it to be encoded to a `Bufferfish` instance automatically.
+`bufferfish_derive` is where the proc macro code for the `#[derive(Encode)]` and `#[derive(Decode)]` macros live. These annotations implement `Encodable` and `Decodable` - respectively - for the annotated type.
 
 ### /bufferfish-core
 
