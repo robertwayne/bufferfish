@@ -1,7 +1,8 @@
+pub mod decodable;
 pub mod encodable;
 
 use std::{
-    convert::TryInto,
+    convert::TryFrom,
     io::{Cursor, Read, Seek, Write},
     sync::Arc,
 };
@@ -133,13 +134,16 @@ impl Bufferfish {
 
     /// Adds a Bufferfish or Vec<u8> to the end of the buffer.
     /// See `try_extends` for a version that returns a Result.
+    ///
+    /// # Panics
+    /// Panics if the buffer is at max capacity.
     pub fn extend<T: Into<Bufferfish>>(&mut self, other: T) {
         self.try_extend(other).unwrap();
     }
 
     /// Adds a Bufferfish or Vec<u8> to the end of the buffer.
     /// Returns a Result if the buffer is at max capacity.
-    pub fn try_extend<T: Into<Bufferfish>>(&mut self, other: T) -> std::io::Result<()> {
+    pub fn try_extend<T: Into<Bufferfish>>(&mut self, other: T) -> Result<(), BufferfishError> {
         let other = other.into();
         self.write_all(other.as_ref())?;
 
@@ -148,7 +152,7 @@ impl Bufferfish {
 
     /// Returns the next byte in the buffer without advancing the cursor.
     /// Returns a Result if the cursor is at the end of the buffer.
-    pub fn peek(&mut self) -> std::io::Result<u8> {
+    pub fn peek(&mut self) -> Result<u8, BufferfishError> {
         self.start_reading();
         let pos = self.inner.position();
 
@@ -159,7 +163,7 @@ impl Bufferfish {
                     "peek of 1 byte exceeds the max capacity of {} bytes on this Bufferfish",
                     self.capacity
                 ),
-            ));
+            ))?;
         };
 
         let byte = *byte;
@@ -171,7 +175,7 @@ impl Bufferfish {
 
     /// Returns the next n-bytes in the buffer without advancing the cursor.
     /// Returns a Result if the cursor is at the end of the buffer.
-    pub fn peek_n(&mut self, n: usize) -> std::io::Result<Vec<u8>> {
+    pub fn peek_n(&mut self, n: usize) -> Result<Vec<u8>, BufferfishError> {
         self.start_reading();
         let pos = self.inner.position();
 
@@ -182,7 +186,7 @@ impl Bufferfish {
                     "peek of {} bytes exceeds the max capacity of {} bytes on this Bufferfish",
                     n, self.capacity
                 ),
-            ));
+            ))?;
         };
 
         let bytes = bytes.to_vec();
@@ -193,49 +197,49 @@ impl Bufferfish {
     }
 
     /// Writes a u8 to the buffer as one byte.
-    pub fn write_u8(&mut self, value: u8) -> std::io::Result<()> {
+    pub fn write_u8(&mut self, value: u8) -> Result<(), BufferfishError> {
         self.write_all(&[value])?;
 
         Ok(())
     }
 
     /// Writes a u16 to the buffer as two bytes.
-    pub fn write_u16(&mut self, value: u16) -> std::io::Result<()> {
+    pub fn write_u16(&mut self, value: u16) -> Result<(), BufferfishError> {
         self.write_all(&value.to_be_bytes())?;
 
         Ok(())
     }
 
     /// Writes a u32 to the buffer as four bytes.
-    pub fn write_u32(&mut self, value: u32) -> std::io::Result<()> {
+    pub fn write_u32(&mut self, value: u32) -> Result<(), BufferfishError> {
         self.write_all(&value.to_be_bytes())?;
 
         Ok(())
     }
 
     /// Writes an i8 to the buffer as one byte.
-    pub fn write_i8(&mut self, value: i8) -> std::io::Result<()> {
+    pub fn write_i8(&mut self, value: i8) -> Result<(), BufferfishError> {
         self.write_all(&[value as u8])?;
 
         Ok(())
     }
 
     /// Writes an i16 to the buffer as two bytes.
-    pub fn write_i16(&mut self, value: i16) -> std::io::Result<()> {
+    pub fn write_i16(&mut self, value: i16) -> Result<(), BufferfishError> {
         self.write_all(&value.to_be_bytes())?;
 
         Ok(())
     }
 
     /// Writes an i32 to the buffer as four bytes.
-    pub fn write_i32(&mut self, value: i32) -> std::io::Result<()> {
+    pub fn write_i32(&mut self, value: i32) -> Result<(), BufferfishError> {
         self.write_all(&value.to_be_bytes())?;
 
         Ok(())
     }
 
     /// Writes a bool to the buffer as one byte.
-    pub fn write_bool(&mut self, value: bool) -> std::io::Result<()> {
+    pub fn write_bool(&mut self, value: bool) -> Result<(), BufferfishError> {
         self.write_u8(if value { 1 } else { 0 })?;
 
         Ok(())
@@ -243,12 +247,12 @@ impl Bufferfish {
 
     /// Writes a packed array of booleans to the buffer as a single byte.
     /// Can pack up to 8 booleans into a single byte.
-    pub fn write_packed_bools(&mut self, values: &[bool]) -> std::io::Result<()> {
+    pub fn write_packed_bools(&mut self, values: &[bool]) -> Result<(), BufferfishError> {
         if values.len() > 8 {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
-                "cannot pack more than 8 booleans into a single byte",
-            ));
+                "Cannot pack more than 8 booleans into a single byte.",
+            ))?;
         }
 
         let mut packed = 0u8;
@@ -266,8 +270,15 @@ impl Bufferfish {
 
     /// Writes a variable length string to the buffer. It will be prefixed with
     /// its length in bytes as a u16 (two bytes).
-    pub fn write_string(&mut self, value: &str) -> std::io::Result<()> {
-        self.write_u16(value.len().try_into().unwrap())?;
+    pub fn write_string(&mut self, value: &str) -> Result<(), BufferfishError> {
+        let len = u16::try_from(value.len()).map_err(|_| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "String length exceeds u16 max value",
+            )
+        })?;
+
+        self.write_u16(len)?;
         self.write_all(value.as_bytes())?;
 
         Ok(())
@@ -275,7 +286,7 @@ impl Bufferfish {
 
     /// Writes an array to the buffer, where the items implement the Encodable
     /// trait. The array will be prefixed with its length as a u16 (two bytes).
-    pub fn write_array<T: Encodable>(&mut self, vec: &[T]) -> std::io::Result<()> {
+    pub fn write_array<T: Encodable>(&mut self, vec: &[T]) -> Result<(), BufferfishError> {
         self.write_u16(vec.len() as u16)?;
 
         for item in vec {
@@ -287,13 +298,13 @@ impl Bufferfish {
 
     /// Writes an array of raw bytes to the buffer. Useful for encoding
     /// distinct structs into byte arrays and appending them to a buffer later.
-    pub fn write_raw_bytes(&mut self, bytes: &[u8]) -> std::io::Result<()> {
+    pub fn write_raw_bytes(&mut self, bytes: &[u8]) -> Result<(), BufferfishError> {
         self.write_all(bytes)?;
         Ok(())
     }
 
     /// Reads a u8 from the buffer.
-    pub fn read_u8(&mut self) -> std::io::Result<u8> {
+    pub fn read_u8(&mut self) -> Result<u8, BufferfishError> {
         self.start_reading();
 
         let mut bf = [0u8; 1];
@@ -303,7 +314,7 @@ impl Bufferfish {
     }
 
     /// Reads a u16 from the buffer.
-    pub fn read_u16(&mut self) -> std::io::Result<u16> {
+    pub fn read_u16(&mut self) -> Result<u16, BufferfishError> {
         self.start_reading();
 
         let mut bf = [0u8; 2];
@@ -313,7 +324,7 @@ impl Bufferfish {
     }
 
     /// Reads a u32 from the buffer.
-    pub fn read_u32(&mut self) -> std::io::Result<u32> {
+    pub fn read_u32(&mut self) -> Result<u32, BufferfishError> {
         self.start_reading();
 
         let mut bf = [0u8; 4];
@@ -323,7 +334,7 @@ impl Bufferfish {
     }
 
     /// Reads an i8 from the buffer.
-    pub fn read_i8(&mut self) -> std::io::Result<i8> {
+    pub fn read_i8(&mut self) -> Result<i8, BufferfishError> {
         self.start_reading();
 
         let mut bf = [0u8; 1];
@@ -333,7 +344,7 @@ impl Bufferfish {
     }
 
     /// Reads an i16 from the buffer.
-    pub fn read_i16(&mut self) -> std::io::Result<i16> {
+    pub fn read_i16(&mut self) -> Result<i16, BufferfishError> {
         self.start_reading();
 
         let mut bf = [0u8; 2];
@@ -343,7 +354,7 @@ impl Bufferfish {
     }
 
     /// Reads an i32 from the buffer.
-    pub fn read_i32(&mut self) -> std::io::Result<i32> {
+    pub fn read_i32(&mut self) -> Result<i32, BufferfishError> {
         self.start_reading();
 
         let mut bf = [0u8; 4];
@@ -353,7 +364,7 @@ impl Bufferfish {
     }
 
     /// Reads a bool from the buffer.
-    pub fn read_bool(&mut self) -> std::io::Result<bool> {
+    pub fn read_bool(&mut self) -> Result<bool, BufferfishError> {
         let value = self.read_u8()?;
 
         Ok(value != 0)
@@ -361,12 +372,12 @@ impl Bufferfish {
 
     /// Attempts to read a packed array of booleans from the buffer.
     /// You must specify the number of booleans to read.
-    pub fn read_packed_bools(&mut self, count: u8) -> std::io::Result<Vec<bool>> {
+    pub fn read_packed_bools(&mut self, count: u8) -> Result<Vec<bool>, BufferfishError> {
         if count > 8 {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
                 "Cannot pack more than 8 booleans into a single byte.",
-            ));
+            ))?;
         }
 
         let packed = self.read_u8()?;
@@ -380,7 +391,7 @@ impl Bufferfish {
     }
 
     /// Reads a variable length string from the buffer.
-    pub fn read_string(&mut self) -> std::io::Result<String> {
+    pub fn read_string(&mut self) -> Result<String, BufferfishError> {
         self.start_reading();
 
         let len = self.read_u16()? as usize;
@@ -391,7 +402,7 @@ impl Bufferfish {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::UnexpectedEof,
                 "Unexpected EOF",
-            ));
+            ))?;
         };
 
         let string = String::from_utf8(slice.to_vec());
@@ -401,7 +412,7 @@ impl Bufferfish {
             Err(e) => Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 e.to_string(),
-            )),
+            ))?,
         }
     }
 }

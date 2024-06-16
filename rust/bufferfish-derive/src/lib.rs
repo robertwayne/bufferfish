@@ -55,7 +55,7 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
 
     let gen = quote! {
         impl bufferfish::Encodable for #name {
-            fn encode(&self, bf: &mut bufferfish::Bufferfish) -> std::io::Result<()> {
+            fn encode(&self, bf: &mut bufferfish::Bufferfish) -> Result<(), bufferfish::BufferfishError> {
                 #(#encoded_snippets)*
                 Ok(())
             }
