@@ -74,7 +74,7 @@ impl Seek for Bufferfish {
 }
 
 impl Bufferfish {
-    /// Creates a new Bufferfish with a default max capacity (1024 bytes).
+    /// Creates a new `Bufferfish` with a default max capacity (1024 bytes).
     pub fn new() -> Self {
         Self {
             inner: Cursor::new(Vec::new()),
@@ -83,7 +83,7 @@ impl Bufferfish {
         }
     }
 
-    /// Creates a new Bufferfish with a max capacity (in bytes).
+    /// Creates a new `Bufferfish` with a max capacity (in bytes).
     /// A value of 0 will allow the buffer to grow indefinitely.
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
@@ -115,13 +115,13 @@ impl Bufferfish {
         self.reading = true;
     }
 
-    /// Returns a Vec<u8> of the internal byte buffer.
+    /// Returns a `Vec<u8>` of the internal byte buffer.
     pub fn to_vec(&self) -> Vec<u8> {
         self.inner.get_ref().to_vec()
     }
 
-    /// Returns an Arc<[u8]> of the internal byte buffer for cheaply cloning and
-    /// sharing the buffer.
+    /// Returns an `Arc<[u8]>` of the internal byte buffer for cheaply cloning 
+    /// and sharing the buffer.
     pub fn as_bytes(&self) -> Arc<[u8]> {
         self.inner.get_ref().clone().into()
     }
@@ -132,8 +132,8 @@ impl Bufferfish {
         self.capacity = capacity;
     }
 
-    /// Adds a Bufferfish or Vec<u8> to the end of the buffer.
-    /// See `try_extends` for a version that returns a Result.
+    /// Adds a `Bufferfish` or `Vec<u8>` to the end of the buffer.
+    /// See `try_extends` for a version that returns a `Result`.
     ///
     /// # Panics
     /// Panics if the buffer is at max capacity.
@@ -141,8 +141,8 @@ impl Bufferfish {
         self.try_extend(other).unwrap();
     }
 
-    /// Adds a Bufferfish or Vec<u8> to the end of the buffer.
-    /// Returns a Result if the buffer is at max capacity.
+    /// Adds a `Bufferfish` or `Vec<u8>` to the end of the buffer.
+    /// Returns a `Result` if the buffer is at max capacity.
     pub fn try_extend<T: Into<Bufferfish>>(&mut self, other: T) -> Result<(), BufferfishError> {
         let other = other.into();
         self.write_all(other.as_ref())?;
@@ -151,7 +151,7 @@ impl Bufferfish {
     }
 
     /// Returns the next byte in the buffer without advancing the cursor.
-    /// Returns a Result if the cursor is at the end of the buffer.
+    /// Returns a `Result` if the cursor is at the end of the buffer.
     pub fn peek(&mut self) -> Result<u8, BufferfishError> {
         self.start_reading();
         let pos = self.inner.position();
