@@ -458,16 +458,12 @@ mod tests {
         #[repr(u8)]
         enum Class {
             Warrior,
-            Mage,
-            Rogue,
         }
 
         impl From<Class> for u8 {
             fn from(value: Class) -> Self {
                 match value {
                     Class::Warrior => 0,
-                    Class::Mage => 1,
-                    Class::Rogue => 2,
                 }
             }
         }
