@@ -429,4 +429,55 @@ mod tests {
             &[0, 0, 0, 0, 0, 0, 0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104]
         );
     }
+
+    #[test]
+    fn test_encode_enums() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Encodable;
+
+        #[derive(Encode, Clone, Copy)]
+        enum PacketId {
+            Join,
+        }
+
+        impl From<PacketId> for u16 {
+            fn from(value: PacketId) -> Self {
+                match value {
+                    PacketId::Join => 0,
+                }
+            }
+        }
+
+        #[derive(Encode)]
+        #[bufferfish(PacketId::Join)]
+        struct JoinPacket {
+            class: Class,
+        }
+
+        #[derive(Encode, Clone, Copy)]
+        #[repr(u8)]
+        enum Class {
+            Warrior,
+            Mage,
+            Rogue,
+        }
+
+        impl From<Class> for u8 {
+            fn from(value: Class) -> Self {
+                match value {
+                    Class::Warrior => 0,
+                    Class::Mage => 1,
+                    Class::Rogue => 2,
+                }
+            }
+        }
+
+        let bf = JoinPacket {
+            class: Class::Warrior,
+        }
+        .to_bufferfish()
+        .unwrap();
+
+        assert_eq!(bf.as_ref(), &[0, 0, 0]);
+    }
 }
