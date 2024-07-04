@@ -1,8 +1,10 @@
+#[cfg(feature = "derive")]
 pub mod compiler;
 
 pub use bufferfish_core::{decodable::Decodable, encodable::Encodable, *};
 #[cfg(feature = "derive")]
 pub use bufferfish_derive::{Decode, Encode};
+#[cfg(feature = "derive")]
 pub use compiler::generate;
 
 #[cfg(test)]
