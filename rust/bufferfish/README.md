@@ -12,7 +12,8 @@ use futures_util::SinkExt;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 
-#[derive(Debug)]
+#[derive(Encode)]
+#[repr(u16)]
 enum PacketId {
     Join,
 }
