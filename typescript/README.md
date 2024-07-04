@@ -48,13 +48,15 @@ ws.onmessage = (event) => {
 
 ```rust
 fn main() {
-    bufferfish::generate("src/packet.rs", "../client/src/generated/Packet.ts")?;
+    bufferfish::generate("src/", "../client/src/generated/Packet.ts")?;
 }
 ```
 
 ```rust
 use bufferfish::Encode;
 
+#[derive(Encode)]
+#[repr(u16)]
 pub enum PacketId {
     Join = 0,
     Leave,
@@ -88,13 +90,10 @@ export interface JoinPacket {
     username: string
 }
 
-export const parseJoinPacket = (bf: Bufferfish): JoinPacket => {
-    const id = bf.readUint8() as number
-    const username = bf.readString() as string
-
+export const decodeJoinPacket = (bf: Bufferfish): JoinPacket => {
     return {
-        id,
-        username,
+        id: bf.readUint8() as number
+        username: bf.readString() as string
     }
 }
 ```

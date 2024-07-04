@@ -12,10 +12,12 @@ use syn::{
     PathArguments, Type, TypePath,
 };
 
-/// Generate a TypeScript file at `dest` from the Rust source file at `src`.
+/// Generate a TypeScript file at `output_dst` from a directory of Rust source 
+/// files at `src_path`.
+/// 
 /// Requires Rust types to be annotated with `#[derive(Encode)]` and/or
 /// `#[derive(Decode]` macros.
-pub fn generate(src: &str, dest: &str) -> io::Result<()> {
+pub fn generate(src_path: &str, output_dst: &str) -> io::Result<()> {
     let mut files = Vec::new();
 
     fn visit_dirs(dir: &std::path::Path, files: &mut Vec<String>) -> io::Result<()> {
@@ -32,17 +34,17 @@ pub fn generate(src: &str, dest: &str) -> io::Result<()> {
         Ok(())
     }
 
-    visit_dirs(std::path::Path::new(src), &mut files)?;
+    visit_dirs(std::path::Path::new(src_path), &mut files)?;
 
     let mut output = String::new();
     generate_output_string(files, &mut output)?;
-    write_typescript_file(dest, &output)?;
+    write_typescript_file(output_dst, &output)?;
 
     Ok(())
 }
 
-fn write_typescript_file(dest: &str, content: &str) -> io::Result<()> {
-    let path = Path::new(dest);
+fn write_typescript_file(dst: &str, content: &str) -> io::Result<()> {
+    let path = Path::new(dst);
     if let Some(parent) = path.parent() {
         create_dir_all(parent)?;
     }
@@ -51,7 +53,7 @@ fn write_typescript_file(dest: &str, content: &str) -> io::Result<()> {
         .write(true)
         .truncate(true)
         .create(true)
-        .open(dest)?;
+        .open(dst)?;
 
     file.write_all(content.as_bytes())
 }

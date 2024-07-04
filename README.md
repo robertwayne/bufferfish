@@ -91,7 +91,7 @@ async fn process(steam: TcpStream) -> Result<(), Box<dyn std::error::Error>> {
 
 # Decoding Generated Packets
 
-These are built when defining a packet in Rust with the `#[derive(Encode)]` macro after calling the `bufferfish::generate()` function.
+These are built when defining a struct or enum in Rust with the `#[derive(Encode)]` macro after calling the `bufferfish::generate()` function.
 
 ```typescript
 const ws = new WebSocket("ws://127.0.0.1:3000")
@@ -102,7 +102,7 @@ ws.onmessage = (event) => {
   const packetId = bf.readUint16()
 
     if (packetId === PacketId.Join) {
-        const packet = parseJoinPacket(bf)
+        const packet = decodeJoinPacket(bf)
 
         console.log(packet) // { id: 1, username: "Rob" }
     }
@@ -140,7 +140,7 @@ ws.onmessage = (event) => {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-changed=build.rs");
 
-    bufferfish::generate("src/packet.rs", "../client/src/generated/Packet.ts")?;
+    bufferfish::generate("src/", "../client/src/generated/Packet.ts")?;
 
     Ok(())
 }
@@ -184,13 +184,10 @@ export interface JoinPacket {
     username: string
 }
 
-export const parseJoinPacket = (bf: Bufferfish): JoinPacket => {
-    const id = bf.readUint8() as number
-    const username = bf.readString() as string
-
+export const decodeJoinPacket = (bf: Bufferfish): JoinPacket => {
     return {
-        id,
-        username,
+        id: bf.readUint8() as number,
+        username: bf.readString() as string,
     }
 }
 ```

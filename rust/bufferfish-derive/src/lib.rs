@@ -203,7 +203,7 @@ fn get_packet_id(ast: &DeriveInput) -> Option<Expr> {
     None
 }
 
-fn encode_type(accessor: TokenStream, ty: &Type, dest: &mut Vec<TokenStream>) {
+fn encode_type(accessor: TokenStream, ty: &Type, dst: &mut Vec<TokenStream>) {
     match ty {
         // Handle primitive types
         Type::Path(TypePath { path, .. })
@@ -216,7 +216,7 @@ fn encode_type(accessor: TokenStream, ty: &Type, dest: &mut Vec<TokenStream>) {
                 || path.is_ident("bool")
                 || path.is_ident("String") =>
         {
-            dest.push(quote! {
+            dst.push(quote! {
                 bufferfish::Encodable::encode(&#accessor, bf)?;
             });
         }
@@ -224,13 +224,13 @@ fn encode_type(accessor: TokenStream, ty: &Type, dest: &mut Vec<TokenStream>) {
         Type::Path(TypePath { path, .. })
             if path.segments.len() == 1 && path.segments[0].ident == "Vec" =>
         {
-            dest.push(quote! {
+            dst.push(quote! {
                 bf.write_array(&#accessor)?;
             });
         }
         // Handle nested structs where fields impl Encodable
         Type::Path(TypePath { .. }) => {
-            dest.push(quote! {
+            dst.push(quote! {
                 bufferfish::Encodable::encode(&#accessor, bf)?;
             });
         }
