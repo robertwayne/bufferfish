@@ -174,7 +174,7 @@ export const decodeJoinPacket = (bf: Bufferfish): JoinPacket => {
 ## Encodable Types
 
 Supported Types             | Decodes As
---------------------------- | -------------------------------
+--------------------------- | ---------------------
 `u8`                        | `number`
 `u16`                       | `number`
 `u32`                       | `number`
@@ -184,7 +184,7 @@ Supported Types             | Decodes As
 `bool`                      | `boolean`
 `String`                    | `string`
 `Vec<T> where T: Encodable` | `Array<T>`
-Nested `struct { ... }`     | Individual fields on the object
+`T where T: Encodable`      | `object` or primitive
 
 ## Notes
 
