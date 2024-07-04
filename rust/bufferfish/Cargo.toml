@@ -13,9 +13,10 @@ edition = "2021"
 [features]
 default = []
 pretty-print = ["bufferfish-core/unicode-width"]
-derive = ["bufferfish-derive"]
+derive = ["bufferfish-derive", "syn"]
 
 
 [dependencies]
 bufferfish-core = { path = "../bufferfish-core" }
 bufferfish-derive = { path = "../bufferfish-derive", optional = true }
+syn = { version = "2", features = ["full"], optional = true }
