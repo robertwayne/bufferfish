@@ -5,7 +5,7 @@ error[E0277]: the trait bound `u16: From<&str>` is not satisfied
   |          ^^^^^^ the trait `From<&str>` is not implemented for `u16`
   |
   = help: the following other types implement trait `From<T>`:
-            <u16 as From<Char>>
-            <u16 as From<bool>>
-            <u16 as From<u8>>
+            `u16` implements `From<Char>`
+            `u16` implements `From<bool>`
+            `u16` implements `From<u8>`
   = note: this error originates in the derive macro `Encode` (in Nightly builds, run with -Z macro-backtrace for more info)
