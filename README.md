@@ -32,7 +32,8 @@ use futures_util::SinkExt;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 
-#[derive(Debug)]
+#[derive(Encode)]
+#[repr(u16)]
 enum PacketId {
     Join,
 }
@@ -151,10 +152,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```rust
 use bufferfish::Encode;
 
+#[derive(Encode)]
 pub enum PacketId {
     Join = 0,
     Leave,
     Unknown = 255,
+}
+
+impl From<PacketId> for u16 {
+    fn from(id: PacketId) -> u16 {
+        match id {
+            PacketId::Join => 0,
+            PacketId::Leave => 1,
+            PacketId::Unknown => 255,
+        }
+    }
 }
 
 #[derive(Encode)]

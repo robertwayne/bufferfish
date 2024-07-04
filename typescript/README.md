@@ -63,6 +63,16 @@ pub enum PacketId {
     Unknown = 255,
 }
 
+impl From<PacketId> for u16 {
+    fn from(id: PacketId) -> u16 {
+        match id {
+            PacketId::Join => 0,
+            PacketId::Leave => 1,
+            PacketId::Unknown => 255,
+        }
+    }
+}
+
 #[derive(Encode)]
 #[bufferfish(PacketId::Join)]
 pub struct JoinPacket {
