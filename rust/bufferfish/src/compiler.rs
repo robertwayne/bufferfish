@@ -1,7 +1,6 @@
 //! Simple compile for generating TypeScript type definitions, encoders, and
 //! decoders from Rust types annotated with `#[derive(Encode)]` and/or `#[derive
 //! (Decode]`.
-
 use std::{
     fs::{create_dir_all, read_dir, File, OpenOptions},
     io::{self, Read, Write},
@@ -144,14 +143,16 @@ fn generate_typescript_enum_defs(item: ItemEnum, lines: &mut String) {
 
     for variant in item.variants {
         let variant_name = variant.ident.to_string();
-        if let Some((_, expr)) = &variant.discriminant {
-            if let Expr::Lit(ExprLit {
+
+        if let Some((
+            _,
+            Expr::Lit(ExprLit {
                 lit: Lit::Int(lit_int),
                 ..
-            }) = expr
-            {
-                discriminant = lit_int.base10_parse().expect("Invalid discriminant value");
-            }
+            }),
+        )) = &variant.discriminant
+        {
+            discriminant = lit_int.base10_parse().expect("Invalid discriminant value");
         }
 
         variants.push((variant_name, discriminant));
@@ -341,15 +342,12 @@ fn generate_typescript_enum_decoders(item: ItemEnum, output: &mut String) {
 fn get_repr_type(attrs: &[Attribute]) -> Option<String> {
     for attr in attrs {
         if attr.path().is_ident("repr") {
-            match &attr.meta {
-                Meta::List(list) => {
-                    for item in list.tokens.clone() {
-                        if let Some(ident) = item.to_string().split_whitespace().next() {
-                            return Some(ident.to_string());
-                        }
+            if let Meta::List(list) = &attr.meta {
+                for item in list.tokens.clone() {
+                    if let Some(ident) = item.to_string().split_whitespace().next() {
+                        return Some(ident.to_string());
                     }
                 }
-                _ => {}
             }
         }
     }
