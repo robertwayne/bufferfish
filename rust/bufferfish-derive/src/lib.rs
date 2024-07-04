@@ -43,7 +43,39 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
             }
             Fields::Unit => {}
         },
-        _ => abort!(ast.span(), "only structs are supported"),
+        Data::Enum(data) => {
+            for variant in &data.variants {
+                let variant_name = &variant.ident;
+
+                match &variant.fields {
+                    Fields::Named(fields) => {
+                        for field in &fields.named {
+                            let Some(ident) = field.ident.as_ref() else {
+                                abort!(field.span(), "named fields are required");
+                            };
+
+                            encode_type(
+                                quote! { #name::#variant_name { #ident, .. } },
+                                &field.ty,
+                                &mut encoded_snippets,
+                            )
+                        }
+                    }
+                    Fields::Unnamed(fields) => {
+                        for (i, field) in fields.unnamed.iter().enumerate() {
+                            let index = Index::from(i);
+                            encode_type(
+                                quote! { #name::#variant_name(#index, ..) },
+                                &field.ty,
+                                &mut encoded_snippets,
+                            )
+                        }
+                    }
+                    Fields::Unit => {}
+                }
+            }
+        }
+        Data::Union(_) => abort!(ast.span(), "unions are not supported"),
     };
 
     let gen = quote! {
