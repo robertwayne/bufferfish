@@ -9,18 +9,13 @@ _This library has an unstable API and may be missing some basic functionality. I
 ## Table of Contents
 
 - [bufferfish](#bufferfish)
-
   - [Table of Contents](#table-of-contents)
   - [Getting Started](#getting-started)
   - [Examples](#examples)
-
     - [Writing to a Bufferfish](#writing-to-a-bufferfish)
     - [Reading from a Bufferfish](#reading-from-a-bufferfish)
-
   - [TypeScript Code Generation](#typescript-code-generation)
-
     - [Using Generated Decoding Functions](#using-generated-decoding-functions)
-
   - [Encodable Types](#encodable-types)
   - [Feature Flags (Rust)](#feature-flags-rust)
   - [Notes](#notes)
@@ -179,7 +174,7 @@ _*The reverse is true for decoding._
 Flag           | Default  | Description                                                     | Dependencies
 -------------- | -------- | --------------------------------------------------------------- | ------------------------------------------------
 `pretty-print` | Disabled | Enables pretty-printing of buffer output.                       | `unicode-width`
-`derive`       | Disabled | Enables the `#[derive(Encode)]` and `#[derive(Decode)]` macros. | `syn`, `quote`, `proc-macro2`, proc-macro-error` |
+`derive`       | Disabled | Enables the `#[derive(Encode)]` and `#[derive(Decode)]` macros. | `syn`, `quote`, `proc-macro2`, `proc-macro-error` |
 
 ## Notes
 

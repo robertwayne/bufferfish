@@ -216,7 +216,7 @@ _*The reverse is true for decoding._
 Flag           | Default  | Description                                                     | Dependencies
 -------------- | -------- | --------------------------------------------------------------- | ------------------------------------------------
 `pretty-print` | Disabled | Enables pretty-printing of buffer output.                       | `unicode-width`
-`derive`       | Disabled | Enables the `#[derive(Encode)]` and `#[derive(Decode)]` macros. | `syn`, `quote`, `proc-macro2`, proc-macro-error` |
+`derive`       | Disabled | Enables the `#[derive(Encode)]` and `#[derive(Decode)]` macros. | `syn`, `quote`, `proc-macro2`, `proc-macro-error` |
 
 ## Notes
 
