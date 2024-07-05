@@ -1,26 +1,26 @@
 {
-    "name": "bufferfish",
-    "version": "0.1.0",
-    "description": "Binary message utility library for Rust and TypeScript interop.",
-    "repository": "https://github.com/robertwayne/bufferfish",
-    "author": "Rob Wagner <rob@sombia.com>",
-    "license": "(MIT OR Apache-2.0)",
-    "main": "./src/bufferfish.ts",
-    "types": "./dist/index.d.ts",
-    "scripts": {
-        "fmt": "prettier --config .prettierrc --write  \"**/*.{ts,js}\"",
-        "fmt:check": "prettier --config .prettierrc --check  \"**/*.{ts,js}\"",
-        "lint": "eslint \"src/**/*.{ts,js}\"",
-        "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,js}\"",
-        "tsc": "tsc --noEmit",
-        "tsc:watch": "tsc --noEmit --watch",
-        "build-types": "tsc src/bufferfish.ts --declaration --emitDeclarationOnly --outfile dist/index.d.ts"
-    },
-    "devDependencies": {
-        "@types/bun": "^1.1.4",
-        "@typescript-eslint/eslint-plugin": "^7.13.0",
-        "@typescript-eslint/parser": "^7.13.0",
-        "prettier": "^3.3.2",
-        "typescript": "^5.4.5"
-    }
+  "name": "bufferfish",
+  "version": "0.1.0",
+  "description": "Binary message utility library for Rust and TypeScript interop.",
+  "repository": "https://github.com/robertwayne/bufferfish",
+  "author": "Rob Wagner <rob@sombia.com>",
+  "license": "(MIT OR Apache-2.0)",
+  "main": "./src/bufferfish.ts",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "fmt": "prettier --config .prettierrc --write  \"**/*.{ts,js}\"",
+    "fmt:check": "prettier --config .prettierrc --check  \"**/*.{ts,js}\"",
+    "lint": "eslint \"src/**/*.{ts,js}\"",
+    "lint:fix": "eslint --fix --fix-type problem,suggestion \"**/*.{ts,js}\"",
+    "tsc": "tsc --noEmit",
+    "tsc:watch": "tsc --noEmit --watch",
+    "build-types": "tsc src/bufferfish.ts --declaration --emitDeclarationOnly --outfile dist/index.d.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.6",
+    "@typescript-eslint/eslint-plugin": "^7.15.0",
+    "@typescript-eslint/parser": "^7.15.0",
+    "prettier": "^3.3.2",
+    "typescript": "^5.5.3"
+  }
 }
