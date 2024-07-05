@@ -1,4 +1,4 @@
-# bufferfish-core
+# 🐡 bufferfish-core
 
 Core types, traits, and logic implementations for [bufferfish](https://github.com/robertwayne/bufferfish).
 

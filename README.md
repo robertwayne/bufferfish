@@ -1,4 +1,4 @@
-# bufferfish
+# 🐡 bufferfish
 
 `bufferfish` is utility library for working with binary network messages between Rust and TypeScript, such as over WebSockets. It provides a simple API for encoding and decoding data into binary arrays, as well as generating TypeScript definitions and decoding functions from your Rust code.
 
@@ -6,7 +6,7 @@ _This library has an unstable API and may be missing some basic functionality. I
 
 ## Table of Contents
 
-- [bufferfish](#bufferfish)
+- [🐡 bufferfish](#-bufferfish)
   - [Table of Contents](#table-of-contents)
   - [Repository Overview](#repository-overview)
     - [/rust/bufferfish](#rustbufferfish)

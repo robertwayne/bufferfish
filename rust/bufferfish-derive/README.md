@@ -1,4 +1,4 @@
-# bufferfish-derive
+# 🐡 bufferfish-derive
 
 Macros for [bufferfish](https://github.com/robertwayne/bufferfish).
 
