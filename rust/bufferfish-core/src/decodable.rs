@@ -55,3 +55,14 @@ impl Decodable for String {
         bf.read_string().map_err(BufferfishError::from)
     }
 }
+
+impl<T: Decodable> Decodable for Vec<T> {
+    fn decode(bf: &mut Bufferfish) -> Result<Vec<T>, BufferfishError> {
+        let len = bf.read_u16()? as usize;
+        let mut vec = Vec::with_capacity(len);
+        for _ in 0..len {
+            vec.push(T::decode(bf)?);
+        }
+        Ok(vec)
+    }
+}

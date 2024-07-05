@@ -7,6 +7,7 @@ use std::{
     sync::Arc,
 };
 
+pub use decodable::Decodable;
 pub use encodable::Encodable;
 
 /// Errors that can occur when encoding or decoding a `Bufferfish`.
@@ -16,6 +17,8 @@ pub enum BufferfishError {
     FailedWrite(std::io::Error),
     /// Invalid - typically non-u16 - packet ID encountered during a write.
     InvalidPacketId,
+    /// Invalid enum variant encountered during encoding/decoding.
+    InvalidEnumVariant,
 }
 
 impl std::fmt::Display for BufferfishError {
@@ -23,6 +26,7 @@ impl std::fmt::Display for BufferfishError {
         match self {
             BufferfishError::FailedWrite(e) => write!(f, "failed to write to buffer: {}", e),
             BufferfishError::InvalidPacketId => write!(f, "invalid packet id"),
+            BufferfishError::InvalidEnumVariant => write!(f, "invalid enum variant"),
         }
     }
 }
@@ -38,6 +42,7 @@ impl std::error::Error for BufferfishError {
         match self {
             BufferfishError::FailedWrite(e) => Some(e),
             BufferfishError::InvalidPacketId => None,
+            BufferfishError::InvalidEnumVariant => None,
         }
     }
 }
@@ -423,6 +428,20 @@ impl Bufferfish {
                 e.to_string(),
             ))?,
         }
+    }
+
+    /// Reads an array from the buffer, where the items implement the Decodable.
+    pub fn read_array<T: Decodable>(&mut self) -> Result<Vec<T>, BufferfishError> {
+        self.start_reading();
+
+        let len = self.read_u16()? as usize;
+        let mut vec = Vec::with_capacity(len);
+
+        for _ in 0..len {
+            vec.push(T::decode(self)?);
+        }
+
+        Ok(vec)
     }
 }
 

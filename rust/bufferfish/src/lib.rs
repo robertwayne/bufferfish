@@ -10,7 +10,7 @@ pub use compiler::generate;
 #[cfg(test)]
 mod tests {
     use bufferfish_core::Bufferfish;
-    use bufferfish_derive::Encode;
+    use bufferfish_derive::{Decode, Encode};
 
     #[test]
     fn test_peek_one() {
@@ -378,7 +378,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_encodable_items_to_array() {
+    fn test_write_items_to_array() {
         use bufferfish_core as bufferfish;
 
         #[derive(Encode)]
@@ -390,12 +390,40 @@ mod tests {
         let arr = vec![Object { a: 0 }, Object { a: 1 }];
 
         let mut bf = Bufferfish::new();
-        bf.write_u8(0).unwrap();
         bf.write_array(&arr).unwrap();
 
-        let expected_bytes: Vec<u8> = vec![0, 0, 2, 0, 1];
+        let expected_bytes: Vec<u8> = vec![0, 2, 0, 1];
 
         assert_eq!(bf.to_vec(), expected_bytes);
+    }
+
+    #[test]
+    fn test_read_simple_array() {
+        let mut bf = Bufferfish::new();
+        bf.write_array(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]).unwrap();
+
+        let arr = bf.read_array::<u8>().unwrap();
+
+        assert_eq!(arr, vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    }
+
+    #[test]
+    fn test_read_items_from_array() {
+        use bufferfish_core as bufferfish;
+
+        #[derive(Debug, Encode, Decode, PartialEq)]
+        struct Object {
+            a: u8,
+        }
+
+        let arr = vec![Object { a: 0 }, Object { a: 1 }];
+
+        let mut bf = Bufferfish::new();
+        bf.write_array(&arr).unwrap();
+
+        let result = bf.read_array::<Object>().unwrap();
+
+        assert_eq!(result, vec![Object { a: 0 }, Object { a: 1 }]);
     }
 
     #[test]
@@ -475,5 +503,134 @@ mod tests {
         .unwrap();
 
         assert_eq!(bf.as_ref(), &[0, 0, 0]);
+    }
+
+    #[test]
+    fn test_decode_struct() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Decodable;
+
+        #[derive(Decode)]
+        struct User {
+            id: u32,
+            name: String,
+        }
+
+        let mut bf = Bufferfish::new();
+        bf.write_u32(0).unwrap();
+        bf.write_string("Bufferfish").unwrap();
+
+        let user = User::decode(&mut bf).unwrap();
+
+        assert_eq!(user.id, 0);
+        assert_eq!(user.name, "Bufferfish");
+    }
+
+    #[test]
+    fn test_decode_array() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Decodable;
+
+        #[derive(Decode, Encode, PartialEq, Debug)]
+        struct User {
+            id: u32,
+            name: String,
+        }
+
+        let users = vec![
+            User {
+                id: 0,
+                name: "Bufferfish".to_string(),
+            },
+            User {
+                id: 1,
+                name: "Bufferfish2".to_string(),
+            },
+        ];
+
+        let mut bf = Bufferfish::new();
+        bf.write_array(&users).unwrap();
+
+        let result = Vec::<User>::decode(&mut bf).unwrap();
+
+        assert_eq!(
+            result,
+            vec![
+                User {
+                    id: 0,
+                    name: "Bufferfish".to_string()
+                },
+                User {
+                    id: 1,
+                    name: "Bufferfish2".to_string()
+                }
+            ]
+        );
+    }
+
+    #[test]
+    fn test_decode_with_packet_id() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::{Decodable, Encodable};
+
+        #[derive(Decode, Encode)]
+        #[bufferfish(0_u16)]
+        struct JoinPacket {
+            user: String,
+        }
+
+        let mut bf = JoinPacket {
+            user: "Bufferfish".to_string(),
+        }
+        .to_bufferfish()
+        .unwrap();
+
+        let result = JoinPacket::decode(&mut bf).unwrap();
+
+        assert_eq!(result.user, "Bufferfish");
+    }
+
+    #[test]
+    fn test_decode_nested_data() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::{Decodable, Encodable};
+
+        #[derive(Debug, Encode, Decode, PartialEq)]
+        struct User {
+            id: u32,
+            name: String,
+        }
+
+        #[derive(Debug, Encode, Decode, Clone, Copy, PartialEq)]
+        enum Role {
+            User,
+        }
+
+        #[derive(Encode, Decode)]
+        pub struct JoinPacket {
+            user: User,
+            role: Role,
+        }
+
+        let mut bf = JoinPacket {
+            user: User {
+                id: 0,
+                name: "Bufferfish".to_string(),
+            },
+            role: Role::User,
+        }
+        .to_bufferfish()
+        .unwrap();
+
+        let result = JoinPacket::decode(&mut bf).unwrap();
+
+        assert_eq!(
+            result.user,
+            User {
+                id: 0,
+                name: "Bufferfish".to_string()
+            }
+        );
+        assert_eq!(result.role, Role::User);
     }
 }

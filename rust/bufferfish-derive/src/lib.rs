@@ -50,7 +50,7 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
                 bf.write_u8(*self as u8)?;
             });
         }
-        Data::Union(_) => abort!(ast.span(), "unions are not supported"),
+        Data::Union(_) => abort!(ast.span(), "decoding union types is not supported"),
     };
 
     let gen = quote! {
@@ -118,7 +118,19 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                 .collect::<Vec<_>>(),
             Fields::Unit => Vec::new(),
         },
-        _ => abort!(ast.span(), "only structs are supported"),
+        Data::Enum(data_enum) => data_enum
+            .variants
+            .iter()
+            .enumerate()
+            .map(|(i, variant)| {
+                let ident = &variant.ident;
+                let idx = Index::from(i);
+                quote! {
+                    #idx => Self::#ident,
+                }
+            })
+            .collect::<Vec<_>>(),
+        Data::Union(_) => abort!(ast.span(), "unions are not supported"),
     };
 
     let gen = match &ast.data {
@@ -158,7 +170,21 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                 }
             }
         },
-        _ => abort!(ast.span(), "only structs are supported"),
+        Data::Enum(_) => {
+            quote! {
+                impl bufferfish::Decodable for #name {
+                    fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
+                        #packet_id_snippet
+                        let variant_idx = bf.read_u8()?;
+                        Ok(match variant_idx {
+                            #(#decoded_snippets)*
+                            _ => return Err(bufferfish::BufferfishError::InvalidEnumVariant),
+                        })
+                    }
+                }
+            }
+        }
+        _ => abort!(ast.span(), "only structs and enums are supported"),
     };
 
     gen.into()
