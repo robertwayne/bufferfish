@@ -26,7 +26,7 @@ jobs:
             - name: rustfmt
               run: cargo fmt --all --check
             - name: Run tests
-              run: cargo test -p bufferfish-core -p bufferfish -p bufferfish-derive --lib
+              run: cargo test -p bufferfish-core -p bufferfish -p bufferfish-derive --lib --all-features --all-targets
 
     check-ts:
         needs: check-rust

@@ -20,7 +20,3 @@ syn = "2"
 quote = "1"
 proc-macro2 = "1"
 proc-macro-error = "1"
-
-[dev-dependencies]
-trybuild = "1"
-bufferfish = { version = "0.1", path = "../bufferfish", features = ["derive"] }

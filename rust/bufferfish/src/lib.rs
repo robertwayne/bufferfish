@@ -7,6 +7,7 @@ pub use bufferfish_derive::{Decode, Encode};
 #[cfg(feature = "derive")]
 pub use compiler::generate;
 
+#[cfg(feature = "derive")]
 #[cfg(test)]
 mod tests {
     use bufferfish_core::Bufferfish;

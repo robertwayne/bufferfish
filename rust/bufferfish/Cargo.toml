@@ -17,6 +17,9 @@ derive = ["bufferfish-derive", "syn"]
 
 
 [dependencies]
-bufferfish-core = { path = "../bufferfish-core" }
-bufferfish-derive = { path = "../bufferfish-derive", optional = true }
+bufferfish-core = { version = "0.1", path = "../bufferfish-core" }
+bufferfish-derive = { version = "0.1", path = "../bufferfish-derive", optional = true }
 syn = { version = "2", features = ["full"], optional = true }
+
+[dev-dependencies]
+trybuild = "1"
