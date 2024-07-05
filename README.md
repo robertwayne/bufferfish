@@ -20,6 +20,7 @@ _This library has an unstable API and may be missing some basic functionality. I
   - [TypeScript Code Generation](#typescript-code-generation)
     - [Codegen Example](#codegen-example)
   - [Encodable / Decodable Types](#encodable--decodable-types)
+  - [Feature Flags](#feature-flags)
   - [Notes](#notes)
   - [Security](#security)
   - [Contributing](#contributing)
@@ -233,7 +234,7 @@ export const decodeJoinPacket = (bf: Bufferfish): JoinPacket => {
 ## Encodable / Decodable Types
 
 Supported Types             | Decodes As
---------------------------- | ---------------------
+----------------------------|----------------------
 `u8`                        | `number`
 `u16`                       | `number`
 `u32`                       | `number`
@@ -246,6 +247,13 @@ Supported Types             | Decodes As
 `T where T: Encodable`      | `object` or primitive
 
 _*The reverse is true for decoding._
+
+## Feature Flags
+
+Flag           | Default  | Description                                                     | Dependencies
+---------------|----------|-----------------------------------------------------------------|---------------------------------------------------
+`pretty-print` | Disabled | Enables pretty-printing of buffer output.                       | `unicode-width`
+`derive`       | Disabled | Enables the `#[derive(Encode)]` and `#[derive(Decode)]` macros. | `syn`, `quote`, `proc-macro2`, proc-macro-error` |
 
 ## Notes
 

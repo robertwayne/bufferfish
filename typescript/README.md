@@ -9,14 +9,20 @@ _This library has an unstable API and may be missing some basic functionality. I
 ## Table of Contents
 
 - [bufferfish](#bufferfish)
+
   - [Table of Contents](#table-of-contents)
   - [Getting Started](#getting-started)
   - [Examples](#examples)
+
     - [Writing to a Bufferfish](#writing-to-a-bufferfish)
     - [Reading from a Bufferfish](#reading-from-a-bufferfish)
-  - [Using Generated Decoding Functions](#using-generated-decoding-functions)
+
   - [TypeScript Code Generation](#typescript-code-generation)
+
+    - [Using Generated Decoding Functions](#using-generated-decoding-functions)
+
   - [Encodable Types](#encodable-types)
+  - [Feature Flags (Rust)](#feature-flags-rust)
   - [Notes](#notes)
   - [Security](#security)
   - [Contributing](#contributing)
@@ -61,26 +67,6 @@ onmessage = (event) => {
         const message = bf.readString()
 
         console.log({ message }) // { message: "Hello, world!" }
-    }
-}
-```
-
-## Using Generated Decoding Functions
-
-These are built when defining a struct or enum in Rust with the `#[derive(Encode)]` macro after calling the `bufferfish::generate()` function.
-
-```typescript
-const ws = new WebSocket("ws://127.0.0.1:3000")
-ws.binaryType = "arraybuffer"
-
-ws.onmessage = (event) => {
-  const bf = new Bufferfish(event.data)
-  const packetId = bf.readUint16()
-
-    if (packetId === PacketId.Join) {
-        const packet = decodeJoinPacket(bf)
-
-        console.log(packet) // { id: 1, username: "Rob" }
     }
 }
 ```
@@ -151,6 +137,26 @@ export const decodeJoinPacket = (bf: Bufferfish): JoinPacket => {
 }
 ```
 
+### Using Generated Decoding Functions
+
+These are built when defining a struct or enum in Rust with the `#[derive(Encode)]` macro after calling the `bufferfish::generate()` function.
+
+```typescript
+const ws = new WebSocket("ws://127.0.0.1:3000")
+ws.binaryType = "arraybuffer"
+
+ws.onmessage = (event) => {
+  const bf = new Bufferfish(event.data)
+  const packetId = bf.readUint16()
+
+    if (packetId === PacketId.Join) {
+        const packet = decodeJoinPacket(bf)
+
+        console.log(packet) // { id: 1, username: "Rob" }
+    }
+}
+```
+
 ## Encodable Types
 
 Supported Types             | Decodes As
@@ -167,6 +173,13 @@ Supported Types             | Decodes As
 `T where T: Encodable`      | `object` or primitive
 
 _*The reverse is true for decoding._
+
+## Feature Flags (Rust)
+
+Flag           | Default  | Description                                                     | Dependencies
+-------------- | -------- | --------------------------------------------------------------- | ------------------------------------------------
+`pretty-print` | Disabled | Enables pretty-printing of buffer output.                       | `unicode-width`
+`derive`       | Disabled | Enables the `#[derive(Encode)]` and `#[derive(Decode)]` macros. | `syn`, `quote`, `proc-macro2`, proc-macro-error` |
 
 ## Notes
 
