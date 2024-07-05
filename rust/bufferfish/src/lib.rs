@@ -633,4 +633,43 @@ mod tests {
         );
         assert_eq!(result.role, Role::User);
     }
+
+    #[test]
+    fn test_decode_undersized_bufferfish() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Decodable;
+
+        #[derive(Decode, Encode, Debug)]
+        struct User {
+            id: u32,
+            name: String,
+        }
+
+        let mut bf = Bufferfish::new();
+        bf.write_u32(0).unwrap();
+
+        let result = User::decode(&mut bf);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_decode_malformed_data() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Decodable;
+
+        #[derive(Decode, Encode, Debug)]
+        struct User {
+            id: u32,
+            name: String,
+        }
+
+        let mut bf = Bufferfish::new();
+        bf.write_u32(0).unwrap();
+        bf.write_u8(0).unwrap();
+
+        let result = User::decode(&mut bf);
+
+        assert!(result.is_err());
+    }
 }
