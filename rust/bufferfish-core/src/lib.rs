@@ -430,7 +430,8 @@ impl Bufferfish {
         }
     }
 
-    /// Reads an array from the buffer, where the items implement the Decodable.
+    /// Reads an array from the buffer, where the items implement the Decodable
+    /// trait.
     pub fn read_array<T: Decodable>(&mut self) -> Result<Vec<T>, BufferfishError> {
         self.start_reading();
 
