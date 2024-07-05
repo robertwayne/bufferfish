@@ -14,7 +14,7 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-bufferfish-core = { path = "../bufferfish-core" }
+bufferfish-core = { version = "0.1", path = "../bufferfish-core" }
 
 syn = "2"
 quote = "1"
@@ -23,4 +23,4 @@ proc-macro-error = "1"
 
 [dev-dependencies]
 trybuild = "1"
-bufferfish = { path = "../bufferfish", features = ["derive"] }
+bufferfish = { version = "0.1", path = "../bufferfish", features = ["derive"] }
