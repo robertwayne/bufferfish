@@ -43,6 +43,23 @@ pub fn generate(src_path: &str, output_dst: &str) -> io::Result<()> {
     Ok(())
 }
 
+fn snake_to_camel_case(s: String) -> String {
+    s.split('_')
+        .enumerate()
+        .map(|(i, word)| {
+            if i == 0 {
+                word.to_string()
+            } else {
+                let mut chars = word.chars();
+                chars
+                    .next()
+                    .map(|c| c.to_uppercase().collect::<String>() + chars.as_str())
+                    .unwrap_or_default()
+            }
+        })
+        .collect()
+}
+
 fn write_typescript_file(dst: &str, content: &str) -> io::Result<()> {
     let path = Path::new(dst);
     if let Some(parent) = path.parent() {
@@ -211,7 +228,14 @@ fn generate_typescript_struct_defs(item: ItemStruct, lines: &mut String) {
             for field in &fields_named.named {
                 if let Some(field_name) = &field.ident {
                     let field_type = get_typescript_type(field.ty.clone());
-                    lines.push_str(format!("    {}: {}\n", field_name, field_type).as_str());
+                    lines.push_str(
+                        format!(
+                            "    {}: {}\n",
+                            snake_to_camel_case(field_name.to_string()),
+                            field_type
+                        )
+                        .as_str(),
+                    );
                 }
             }
             lines.push_str("}\n");
@@ -249,7 +273,7 @@ fn generate_typescript_struct_decoders(item: ItemStruct, lines: &mut String) {
                     lines.push_str(
                         format!(
                             "        {}: {},\n",
-                            field_name,
+                            snake_to_camel_case(field_name.to_string()),
                             get_bufferfish_fn(field.ty.clone())
                         )
                         .as_str(),
