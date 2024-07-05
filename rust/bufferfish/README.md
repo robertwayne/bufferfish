@@ -4,6 +4,28 @@
 
 _This library has an unstable API and may be missing some basic functionality. I can't recommend using it in production, although I am using it for my own production project._
 
+# Table of Contents
+
+- [bufferfish](#bufferfish)
+- [Table of Contents](#table-of-contents)
+- [Getting Started](#getting-started)
+  - [Examples](#examples)
+    - [Using Generated Decoding Functions (JavaScript)](#using-generated-decoding-functions-javascript)
+    - [Manually Decoding a Bufferfish (JavaScript)](#manually-decoding-a-bufferfish-javascript)
+  - [TypeScript Code Generation](#typescript-code-generation)
+    - [Codegen Example](#codegen-example)
+- [Encodable / Decodable Types](#encodable--decodable-types)
+  - [Notes](#notes)
+- [Security](#security)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+# Getting Started
+
+Use `cargo add bufferfish` to add the Rust library to your project.
+
+Use `npm install bufferfish` to add the TypeScript library to your project.
+
 ## Examples
 
 ```rust

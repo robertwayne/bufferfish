@@ -6,6 +6,28 @@ See the [project repository](https://github.com/robertwayne/bufferfish) for more
 
 _This library has an unstable API and may be missing some basic functionality. I can't recommend using it in production, although I am using it for my own production project._
 
+## Table of Contents
+
+- [bufferfish](#bufferfish)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+  - [Examples](#examples)
+    - [Writing to a Bufferfish](#writing-to-a-bufferfish)
+    - [Reading from a Bufferfish](#reading-from-a-bufferfish)
+  - [Using Generated Decoding Functions](#using-generated-decoding-functions)
+  - [TypeScript Code Generation](#typescript-code-generation)
+  - [Encodable Types](#encodable-types)
+  - [Notes](#notes)
+  - [Security](#security)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+## Getting Started
+
+Use `cargo add bufferfish` to add the Rust library to your project.
+
+Use `npm install bufferfish` to add the TypeScript library to your project.
+
 ## Examples
 
 ### Writing to a Bufferfish

@@ -4,6 +4,27 @@ bufferfish is utility library for working with binary network messages between R
 
 _This library has an unstable API and may be missing some basic functionality. I can't recommend using it in production, although I am using it for my own production project._
 
+## Table of Contents
+
+- [bufferfish](#bufferfish)
+  - [Table of Contents](#table-of-contents)
+  - [Repository Overview](#repository-overview)
+    - [/rust/bufferfish](#rustbufferfish)
+    - [/rust/bufferfish-derive](#rustbufferfish-derive)
+    - [/rust/bufferfish-core](#rustbufferfish-core)
+    - [/typescript/bufferfish](#typescriptbufferfish)
+  - [Getting Started](#getting-started)
+  - [Examples](#examples)
+    - [Using Generated Decoding Functions (JavaScript)](#using-generated-decoding-functions-javascript)
+    - [Manually Decoding a Bufferfish (JavaScript)](#manually-decoding-a-bufferfish-javascript)
+  - [TypeScript Code Generation](#typescript-code-generation)
+    - [Codegen Example](#codegen-example)
+  - [Encodable / Decodable Types](#encodable--decodable-types)
+  - [Notes](#notes)
+  - [Security](#security)
+  - [Contributing](#contributing)
+  - [License](#license)
+
 ## Repository Overview
 
 There are two seperate libraries in this repo: one for Rust and one for TypeScript. Neither of the libraries have any required dependencies. The Rust version optionally uses the `unicode-width` crate for formatting buffer output when `pretty-print` is enabled.
@@ -25,6 +46,12 @@ The Rust library is broken into three seperate crates:
 ### /typescript/bufferfish
 
 The TypeScript implementation lives here. The API is generally mirrored from the Rust version.
+
+## Getting Started
+
+Use `cargo add bufferfish` to add the Rust library to your project.
+
+Use `npm install bufferfish` to add the TypeScript library to your project.
 
 ## Examples
 
@@ -139,10 +166,7 @@ ws.onmessage = (event) => {
 `bufferfish` provides a `generate` function that can be used in `build.rs` _(or used in a CLI script, called by server at launch, etc)_ to generate TypeScript definitions and functions from your Rust code, meaning your Rust server becomes the source of truth for all network messages, and reducing manually interacting with `bufferfish` on the client.
 
 ```rust
-// build.rs
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("cargo:rerun-if-changed=build.rs");
-
     bufferfish::generate("src/", "../client/src/generated/Packet.ts")?;
 
     Ok(())
