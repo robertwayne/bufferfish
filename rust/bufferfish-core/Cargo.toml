@@ -7,7 +7,7 @@ repository = "https://github.com/robertwayne/bufferfish"
 categories = ["network-programming"]
 keywords = ["binary-protocol", "typescript"]
 readme = "README.md"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [dependencies]
