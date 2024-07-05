@@ -2,7 +2,10 @@
   "name": "bufferfish",
   "version": "0.1.0",
   "description": "Binary message utility library for Rust and TypeScript interop.",
-  "repository": "https://github.com/robertwayne/bufferfish",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robertwayne/bufferfish.git"
+  },
   "author": "Rob Wagner <rob@sombia.com>",
   "license": "(MIT OR Apache-2.0)",
   "main": "./src/bufferfish.ts",
