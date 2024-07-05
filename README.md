@@ -33,11 +33,11 @@ The Rust library is broken into three seperate crates:
 
 ### /rust/bufferfish
 
-`bufferfish` is a re-export of the other crates, as well as a `generate` function for use in `build.rs` files in order to generate TypeScript definitions from your Rust packet ID type. This is what users will interact with directly. General tests also live here.
+`bufferfish` is a re-export of the other crates. It also includes the TypeScript codegen compiler and the generate function to interact with it. This is what users will interact with directly. General tests also live here.
 
 ### /rust/bufferfish-derive
 
-`bufferfish_derive` is where the proc macro code for the `#[derive(Encode)]` and `#[derive(Decode)]` macros live. These annotations implement `Encodable` and `Decodable` - respectively - for the annotated type.
+`bufferfish_derive` is where the proc macros for the `#[derive(Encode)]` and `#[derive(Decode)]` macros live. These annotations implement `Encodable` and `Decodable` - respectively - for the annotated types.
 
 ### /rust/bufferfish-core
 
