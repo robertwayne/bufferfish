@@ -10,6 +10,7 @@
   "license": "(MIT OR Apache-2.0)",
   "main": "./src/bufferfish.ts",
   "types": "./dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "fmt": "prettier --config .prettierrc --write  \"**/*.{ts,js}\"",
     "fmt:check": "prettier --config .prettierrc --check  \"**/*.{ts,js}\"",
@@ -21,9 +22,9 @@
   },
   "devDependencies": {
     "@types/bun": "^1.1.6",
-    "@typescript-eslint/eslint-plugin": "^7.16.1",
-    "@typescript-eslint/parser": "^7.16.1",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "prettier": "^3.3.3",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.4"
   }
 }

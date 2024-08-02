@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "target": "esnext",
-        "module": "nodenext",
-        "moduleResolution": "nodenext",
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
         "lib": ["ESNext", "DOM", "Dom.Iterable"],
         "rootDir": "src",
         "outDir": "dist",
