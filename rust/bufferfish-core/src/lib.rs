@@ -47,9 +47,12 @@ impl std::error::Error for BufferfishError {
     }
 }
 
-/// A wrapper around a `Cursor<Vec<u8>>` that provides a simple API for reading
-/// and writing bytes. This is meant to be used with its companion library in
-/// TypeScript to provide consistent encoding and decoding interop.
+/// A wrapper around a `Cursor<Vec<u8>>` providing an API
+/// for encoding and decoding binary data.
+///
+/// This is meant to be used with its companion library in
+/// TypeScript to provide consistent encoding and decoding
+/// interop.
 #[derive(Debug, Default)]
 pub struct Bufferfish {
     inner: Cursor<Vec<u8>>,
