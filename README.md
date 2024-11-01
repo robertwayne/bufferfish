@@ -6,8 +6,6 @@ _This library has an unstable API and may be missing some basic functionality. I
 
 ## Table of Contents
 
-- [🐡 bufferfish](#-bufferfish)
-  - [Table of Contents](#table-of-contents)
   - [Repository Overview](#repository-overview)
     - [/rust/bufferfish](#rustbufferfish)
     - [/rust/bufferfish-derive](#rustbufferfish-derive)
@@ -25,6 +23,7 @@ _This library has an unstable API and may be missing some basic functionality. I
   - [Security](#security)
   - [Contributing](#contributing)
   - [License](#license)
+
 
 ## Repository Overview
 
