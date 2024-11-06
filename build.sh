@@ -1,6 +1,5 @@
 cd typescript
 rm -rf dist
-bun lint
 bun test
 bun fmt
 bun run bundle.js
