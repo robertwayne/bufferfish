@@ -14,7 +14,7 @@ export class Bufferfish {
     private textDecoder: TextDecoder | undefined
     private textEncoder: TextEncoder | undefined
 
-    constructor(bf: ArrayBuffer = new ArrayBuffer(0)) {
+    constructor(bf: ArrayBufferLike = new ArrayBuffer(0)) {
         this.inner = new Uint8Array(bf)
         this.position = 0
         this.reading = false
