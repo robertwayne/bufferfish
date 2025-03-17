@@ -26,6 +26,12 @@ impl Decodable for u32 {
     }
 }
 
+impl Decodable for u64 {
+    fn decode(bf: &mut Bufferfish) -> Result<u64, BufferfishError> {
+        bf.read_u64().map_err(BufferfishError::from)
+    }
+}
+
 impl Decodable for i8 {
     fn decode(bf: &mut Bufferfish) -> Result<i8, BufferfishError> {
         bf.read_i8().map_err(BufferfishError::from)
@@ -41,6 +47,12 @@ impl Decodable for i16 {
 impl Decodable for i32 {
     fn decode(bf: &mut Bufferfish) -> Result<i32, BufferfishError> {
         bf.read_i32().map_err(BufferfishError::from)
+    }
+}
+
+impl Decodable for i64 {
+    fn decode(bf: &mut Bufferfish) -> Result<i64, BufferfishError> {
+        bf.read_i64().map_err(BufferfishError::from)
     }
 }
 

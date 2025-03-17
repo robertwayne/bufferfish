@@ -146,6 +146,18 @@ mod tests {
     }
 
     #[test]
+    fn test_read_u64() {
+        let mut bf = Bufferfish::new();
+        bf.write_u64(0).unwrap();
+        bf.write_u64(4611686018427387904).unwrap();
+        bf.write_u64(u64::MAX).unwrap();
+
+        assert_eq!(bf.read_u64().unwrap(), 0);
+        assert_eq!(bf.read_u64().unwrap(), 4611686018427387904);
+        assert_eq!(bf.read_u64().unwrap(), u64::MAX);
+    }
+
+    #[test]
     fn test_write_i8() {
         let mut bf = Bufferfish::new();
         bf.write_i8(0).unwrap();
@@ -177,6 +189,24 @@ mod tests {
         assert_eq!(
             bf.as_ref(),
             &[0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0]
+        );
+    }
+
+    #[test]
+    fn test_write_i64() {
+        let mut bf = Bufferfish::new();
+        bf.write_i64(0).unwrap();
+        bf.write_i64(4611686018427387904).unwrap();
+        bf.write_i64(9223372036854775807).unwrap();
+        bf.write_i64(-9223372036854775808).unwrap();
+
+        assert_eq!(
+            bf.as_ref(),
+            &[
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00
+            ]
         );
     }
 
@@ -218,6 +248,20 @@ mod tests {
         assert_eq!(bf.read_i32().unwrap(), 1234567890);
         assert_eq!(bf.read_i32().unwrap(), 2147483647);
         assert_eq!(bf.read_i32().unwrap(), -2147483648);
+    }
+
+    #[test]
+    fn test_read_i64() {
+        let mut bf = Bufferfish::new();
+        bf.write_i64(0).unwrap();
+        bf.write_i64(4611686018427387904).unwrap();
+        bf.write_i64(9223372036854775807).unwrap();
+        bf.write_i64(-9223372036854775808).unwrap();
+
+        assert_eq!(bf.read_i64().unwrap(), 0);
+        assert_eq!(bf.read_i64().unwrap(), 4611686018427387904);
+        assert_eq!(bf.read_i64().unwrap(), 9223372036854775807);
+        assert_eq!(bf.read_i64().unwrap(), -9223372036854775808);
     }
 
     #[test]
@@ -395,7 +439,7 @@ mod tests {
 
         let expected_bytes: Vec<u8> = vec![0, 2, 0, 1];
 
-        assert_eq!(bf.to_vec(), expected_bytes);
+        assert_eq!(bf.into_vec(), expected_bytes);
     }
 
     #[test]

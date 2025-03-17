@@ -4,7 +4,6 @@ pub mod encodable;
 use std::{
     convert::TryFrom,
     io::{Cursor, Read, Seek, Write},
-    sync::Arc,
 };
 
 pub use decodable::Decodable;
@@ -133,14 +132,14 @@ impl Bufferfish {
     }
 
     /// Returns a `Vec<u8>` of the internal byte buffer.
-    pub fn to_vec(&self) -> Vec<u8> {
-        self.inner.get_ref().to_vec()
+    pub fn into_vec(self) -> Vec<u8> {
+        self.inner.into_inner()
     }
 
-    /// Returns an `Arc<[u8]>` of the internal byte buffer for cheaply cloning
+    /// Returns an `&[u8]` of the internal byte buffer for cheaply cloning
     /// and sharing the buffer.
-    pub fn as_bytes(&self) -> Arc<[u8]> {
-        self.inner.get_ref().clone().into()
+    pub fn as_bytes(&self) -> &[u8] {
+        self.inner.get_ref().as_slice()
     }
 
     /// Set the max capacity (in bytes) for the internal buffer.
@@ -155,7 +154,8 @@ impl Bufferfish {
     /// # Panics
     /// Panics if the buffer is at max capacity.
     pub fn extend<T: Into<Bufferfish>>(&mut self, other: T) {
-        self.try_extend(other).unwrap();
+        self.try_extend(other)
+            .expect("attempted to extend Bufferfish beyond max capacity");
     }
 
     /// Adds a `Bufferfish` or `Vec<u8>` to the end of the buffer.
@@ -234,6 +234,13 @@ impl Bufferfish {
         Ok(())
     }
 
+    /// Writes a u64 to the buffer as eight bytes.
+    pub fn write_u64(&mut self, value: u64) -> Result<(), BufferfishError> {
+        self.write_all(&value.to_be_bytes())?;
+
+        Ok(())
+    }
+
     /// Writes an i8 to the buffer as one byte.
     pub fn write_i8(&mut self, value: i8) -> Result<(), BufferfishError> {
         self.write_all(&[value as u8])?;
@@ -250,6 +257,13 @@ impl Bufferfish {
 
     /// Writes an i32 to the buffer as four bytes.
     pub fn write_i32(&mut self, value: i32) -> Result<(), BufferfishError> {
+        self.write_all(&value.to_be_bytes())?;
+
+        Ok(())
+    }
+
+    /// Writes an i64 to the buffer as eight bytes.
+    pub fn write_i64(&mut self, value: i64) -> Result<(), BufferfishError> {
         self.write_all(&value.to_be_bytes())?;
 
         Ok(())
@@ -350,6 +364,16 @@ impl Bufferfish {
         Ok(u32::from_be_bytes(bf))
     }
 
+    /// Reads a u64 from the buffer.
+    pub fn read_u64(&mut self) -> Result<u64, BufferfishError> {
+        self.start_reading();
+
+        let mut bf = [0u8; 8];
+        self.inner.read_exact(&mut bf)?;
+
+        Ok(u64::from_be_bytes(bf))
+    }
+
     /// Reads an i8 from the buffer.
     pub fn read_i8(&mut self) -> Result<i8, BufferfishError> {
         self.start_reading();
@@ -378,6 +402,16 @@ impl Bufferfish {
         self.inner.read_exact(&mut bf)?;
 
         Ok(i32::from_be_bytes(bf))
+    }
+
+    /// Reads an i64 from the buffer.
+    pub fn read_i64(&mut self) -> Result<i64, BufferfishError> {
+        self.start_reading();
+
+        let mut bf = [0u8; 8];
+        self.inner.read_exact(&mut bf)?;
+
+        Ok(i64::from_be_bytes(bf))
     }
 
     /// Reads a bool from the buffer.
