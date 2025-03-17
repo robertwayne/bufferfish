@@ -55,10 +55,10 @@ export class Bufferfish {
     }
 
     /**
-     * Returns the (immutable) internal Uint8Array.
+     * Returns a view into the inner Uint8Array.
      */
     public view = (): Uint8Array => {
-        return this.inner.slice()
+        return this.inner.subarray()
     }
 
     /**
