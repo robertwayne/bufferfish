@@ -211,9 +211,11 @@ fn encode_type(accessor: TokenStream, ty: &Type, dst: &mut Vec<TokenStream>) {
             if path.is_ident("u8")
                 || path.is_ident("u16")
                 || path.is_ident("u32")
+                || path.is_ident("u64")
                 || path.is_ident("i8")
                 || path.is_ident("i16")
                 || path.is_ident("i32")
+                || path.is_ident("i64")
                 || path.is_ident("bool")
                 || path.is_ident("String") =>
         {
