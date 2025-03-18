@@ -64,14 +64,11 @@ impl Write for Bufferfish {
         if self.capacity > 0
             && (bf.len() >= self.capacity || self.as_ref().len() + bf.len() > self.capacity)
         {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!(
-                    "write of {} bytes exceeds the max capacity of {} bytes on this Bufferfish",
-                    bf.len(),
-                    self.capacity
-                ),
-            ));
+            return Err(std::io::Error::other(format!(
+                "write of {} bytes exceeds the max capacity of {} bytes on this Bufferfish",
+                bf.len(),
+                self.capacity
+            )));
         }
 
         self.reading = false;
@@ -174,13 +171,10 @@ impl Bufferfish {
         let pos = self.inner.position();
 
         let Some(byte) = self.inner.get_ref().get(pos as usize) else {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!(
-                    "peek of 1 byte exceeds the max capacity of {} bytes on this Bufferfish",
-                    self.capacity
-                ),
-            ))?;
+            return Err(std::io::Error::other(format!(
+                "peek of 1 byte exceeds the max capacity of {} bytes on this Bufferfish",
+                self.capacity
+            )))?;
         };
 
         let byte = *byte;
@@ -197,13 +191,10 @@ impl Bufferfish {
         let pos = self.inner.position();
 
         let Some(bytes) = self.inner.get_ref().get(pos as usize..pos as usize + n) else {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!(
-                    "peek of {} bytes exceeds the max capacity of {} bytes on this Bufferfish",
-                    n, self.capacity
-                ),
-            ))?;
+            return Err(std::io::Error::other(format!(
+                "peek of {} bytes exceeds the max capacity of {} bytes on this Bufferfish",
+                n, self.capacity
+            )))?;
         };
 
         let bytes = bytes.to_vec();
