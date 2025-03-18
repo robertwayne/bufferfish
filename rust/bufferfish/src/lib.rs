@@ -112,6 +112,39 @@ mod tests {
     }
 
     #[test]
+    fn test_write_u64() {
+        let mut bf = Bufferfish::new();
+        bf.write_u64(0).unwrap();
+        bf.write_u64(4611686018427387904).unwrap();
+        bf.write_u64(u64::MAX).unwrap();
+
+        assert_eq!(
+            bf.as_ref(),
+            &[
+                0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 255, 255, 255,
+                255
+            ]
+        );
+    }
+
+    #[test]
+    fn test_write_u128() {
+        let mut bf = Bufferfish::new();
+        bf.write_u128(0).unwrap();
+        bf.write_u128(123456789012345678901234567890).unwrap();
+        bf.write_u128(u128::MAX).unwrap();
+
+        assert_eq!(
+            bf.as_ref(),
+            &[
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 142, 233, 15, 246, 195,
+                115, 224, 238, 78, 63, 10, 210, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+                255, 255, 255, 255, 255, 255
+            ]
+        );
+    }
+
+    #[test]
     fn test_read_u8() {
         let mut bf = Bufferfish::new();
         bf.write_u8(0).unwrap();
@@ -158,6 +191,18 @@ mod tests {
     }
 
     #[test]
+    fn test_read_u128() {
+        let mut bf = Bufferfish::new();
+        bf.write_u128(0).unwrap();
+        bf.write_u128(123456789012345678901234567890).unwrap();
+        bf.write_u128(u128::MAX).unwrap();
+
+        assert_eq!(bf.read_u128().unwrap(), 0);
+        assert_eq!(bf.read_u128().unwrap(), 123456789012345678901234567890);
+        assert_eq!(bf.read_u128().unwrap(), u128::MAX);
+    }
+
+    #[test]
     fn test_write_i8() {
         let mut bf = Bufferfish::new();
         bf.write_i8(0).unwrap();
@@ -197,15 +242,32 @@ mod tests {
         let mut bf = Bufferfish::new();
         bf.write_i64(0).unwrap();
         bf.write_i64(4611686018427387904).unwrap();
-        bf.write_i64(9223372036854775807).unwrap();
-        bf.write_i64(-9223372036854775808).unwrap();
+        bf.write_i64(i64::MAX).unwrap();
+        bf.write_i64(i64::MIN).unwrap();
 
         assert_eq!(
             bf.as_ref(),
             &[
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00
+                0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 127, 255, 255, 255, 255, 255, 255,
+                255, 128, 0, 0, 0, 0, 0, 0, 0
+            ]
+        );
+    }
+
+    #[test]
+    fn test_write_i128() {
+        let mut bf = Bufferfish::new();
+        bf.write_i128(0).unwrap();
+        bf.write_i128(123456789012345678901234567890).unwrap();
+        bf.write_i128(i128::MAX).unwrap();
+        bf.write_i128(i128::MIN).unwrap();
+
+        assert_eq!(
+            bf.as_ref(),
+            &[
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 142, 233, 15, 246, 195,
+                115, 224, 238, 78, 63, 10, 210, 127, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+                255, 255, 255, 255, 255, 255, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             ]
         );
     }
@@ -262,6 +324,20 @@ mod tests {
         assert_eq!(bf.read_i64().unwrap(), 4611686018427387904);
         assert_eq!(bf.read_i64().unwrap(), 9223372036854775807);
         assert_eq!(bf.read_i64().unwrap(), -9223372036854775808);
+    }
+
+    #[test]
+    fn test_read_i128() {
+        let mut bf = Bufferfish::new();
+        bf.write_i128(0).unwrap();
+        bf.write_i128(123456789012345678901234567890).unwrap();
+        bf.write_i128(i128::MAX).unwrap();
+        bf.write_i128(i128::MIN).unwrap();
+
+        assert_eq!(bf.read_i128().unwrap(), 0);
+        assert_eq!(bf.read_i128().unwrap(), 123456789012345678901234567890);
+        assert_eq!(bf.read_i128().unwrap(), i128::MAX);
+        assert_eq!(bf.read_i128().unwrap(), i128::MIN);
     }
 
     #[test]

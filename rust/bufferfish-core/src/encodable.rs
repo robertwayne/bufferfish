@@ -40,6 +40,12 @@ impl Encodable for u64 {
     }
 }
 
+impl Encodable for u128 {
+    fn encode(&self, bf: &mut Bufferfish) -> Result<(), BufferfishError> {
+        bf.write_u128(*self)
+    }
+}
+
 impl Encodable for i8 {
     fn encode(&self, bf: &mut Bufferfish) -> Result<(), BufferfishError> {
         bf.write_i8(*self)
@@ -61,6 +67,12 @@ impl Encodable for i32 {
 impl Encodable for i64 {
     fn encode(&self, bf: &mut Bufferfish) -> Result<(), BufferfishError> {
         bf.write_i64(*self)
+    }
+}
+
+impl Encodable for i128 {
+    fn encode(&self, bf: &mut Bufferfish) -> Result<(), BufferfishError> {
+        bf.write_i128(*self)
     }
 }
 

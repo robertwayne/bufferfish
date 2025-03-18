@@ -198,8 +198,12 @@ fn get_typescript_type(ty: Type) -> String {
             }
 
             match path.get_ident().map(|ident| ident.to_string()).as_deref() {
-                Some("u8") | Some("u16") | Some("u32") | Some("u64") | Some("i8") | Some("i16")
-                | Some("i32") | Some("i64") => "number".to_string(),
+                #[rustfmt::skip]
+                Some("u8") | Some("u16") | Some("u32") | Some("u64") |
+                Some("u128") | Some("i8") | Some("i16") | Some("i32") | 
+                Some("i64") | Some("i128") => {
+                    "number".to_string()
+                },
                 Some("bool") => "boolean".to_string(),
                 Some("String") => "string".to_string(),
                 _ => path
@@ -326,11 +330,13 @@ fn get_bufferfish_fn(ty: Type) -> String {
                 Some("u8") => "bf.readUint8() as number".to_string(),
                 Some("u16") => "bf.readUint16() as number".to_string(),
                 Some("u32") => "bf.readUint32() as number".to_string(),
-                Some("u64") => "bf.readUint64() as number".to_string(),
+                Some("u64") => "bf.readUint64() as BigInt".to_string(),
+                Some("u128") => "bf.readUint128() as BigInt".to_string(),
                 Some("i8") => "bf.readInt8() as number".to_string(),
                 Some("i16") => "bf.readInt16() as number".to_string(),
                 Some("i32") => "bf.readInt32() as number".to_string(),
-                Some("i64") => "bf.readInt64() as number".to_string(),
+                Some("i64") => "bf.readInt64() as BigInt".to_string(),
+                Some("i128") => "bf.readInt128() as BigInt".to_string(),
                 Some("bool") => "bf.readBool() as boolean".to_string(),
                 Some("String") => "bf.readString() as string".to_string(),
                 Some(custom) => format!("decode{}(bf)", custom),
@@ -350,10 +356,12 @@ fn generate_typescript_enum_decoders(item: ItemEnum, output: &mut String) {
         "u16" => "readUint16",
         "u32" => "readUint32",
         "u64" => "readUint64",
+        "u128" => "readUint128",
         "i8" => "readInt8",
         "i16" => "readInt16",
         "i32" => "readInt32",
         "i64" => "readInt64",
+        "i128" => "readInt128",
         _ => panic!("Unsupported repr type"),
     };
 

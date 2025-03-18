@@ -232,6 +232,13 @@ impl Bufferfish {
         Ok(())
     }
 
+    /// Writes a u128 to the buffer as sixteen bytes.
+    pub fn write_u128(&mut self, value: u128) -> Result<(), BufferfishError> {
+        self.write_all(&value.to_be_bytes())?;
+
+        Ok(())
+    }
+
     /// Writes an i8 to the buffer as one byte.
     pub fn write_i8(&mut self, value: i8) -> Result<(), BufferfishError> {
         self.write_all(&[value as u8])?;
@@ -255,6 +262,13 @@ impl Bufferfish {
 
     /// Writes an i64 to the buffer as eight bytes.
     pub fn write_i64(&mut self, value: i64) -> Result<(), BufferfishError> {
+        self.write_all(&value.to_be_bytes())?;
+
+        Ok(())
+    }
+
+    /// Writes an i128 to the buffer as sixteen bytes.
+    pub fn write_i128(&mut self, value: i128) -> Result<(), BufferfishError> {
         self.write_all(&value.to_be_bytes())?;
 
         Ok(())
@@ -365,6 +379,16 @@ impl Bufferfish {
         Ok(u64::from_be_bytes(bf))
     }
 
+    /// Reads a u128 from the buffer.
+    pub fn read_u128(&mut self) -> Result<u128, BufferfishError> {
+        self.start_reading();
+
+        let mut bf = [0u8; 16];
+        self.inner.read_exact(&mut bf)?;
+
+        Ok(u128::from_be_bytes(bf))
+    }
+
     /// Reads an i8 from the buffer.
     pub fn read_i8(&mut self) -> Result<i8, BufferfishError> {
         self.start_reading();
@@ -403,6 +427,16 @@ impl Bufferfish {
         self.inner.read_exact(&mut bf)?;
 
         Ok(i64::from_be_bytes(bf))
+    }
+
+    /// Reads an i128 from the buffer.
+    pub fn read_i128(&mut self) -> Result<i128, BufferfishError> {
+        self.start_reading();
+
+        let mut bf = [0u8; 16];
+        self.inner.read_exact(&mut bf)?;
+
+        Ok(i128::from_be_bytes(bf))
     }
 
     /// Reads a bool from the buffer.
@@ -530,6 +564,7 @@ impl From<&[u8]> for Bufferfish {
 impl From<Vec<u8>> for Bufferfish {
     fn from(vec: Vec<u8>) -> Self {
         let capacity = vec.len();
+
         Self {
             inner: Cursor::new(vec),
             reading: false,
@@ -556,6 +591,6 @@ impl From<bytes::Bytes> for Bufferfish {
 
 impl From<Bufferfish> for bytes::Bytes {
     fn from(buffer: Bufferfish) -> Self {
-        buffer.inner.into_inner().into()
+        bytes::Bytes::from(buffer.inner.into_inner())
     }
 }
