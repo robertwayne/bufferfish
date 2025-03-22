@@ -31,6 +31,7 @@ pub fn generate(src_path: &str, output_dst: &str) -> io::Result<()> {
                 files.push(path.to_str().unwrap().to_string());
             }
         }
+
         Ok(())
     }
 
@@ -144,15 +145,164 @@ fn generate_output_string(input: Vec<String>, output: &mut String) -> Result<(),
         for item in &enums {
             generate_typescript_enum_defs(item.clone(), output);
             generate_typescript_enum_decoders(item.clone(), output);
+            generate_typescript_enum_encoders(item.clone(), output);
         }
 
         for item in &structs {
             generate_typescript_struct_defs(item.clone(), output);
             generate_typescript_struct_decoders(item.clone(), output);
+            generate_typescript_struct_encoders(item.clone(), output);
         }
     }
 
     Ok(())
+}
+
+fn generate_typescript_enum_encoders(item: ItemEnum, output: &mut String) {
+    let enum_name = item.ident.to_string();
+    let repr_type = get_repr_type(&item.attrs).unwrap_or("u8".to_string());
+
+    let write_fn = match repr_type.as_str() {
+        "u8" => "writeUint8",
+        "u16" => "writeUint16",
+        "u32" => "writeUint32",
+        "u64" => "writeUint64",
+        "u128" => "writeUint128",
+        "i8" => "writeInt8",
+        "i16" => "writeInt16",
+        "i32" => "writeInt32",
+        "i64" => "writeInt64",
+        "i128" => "writeInt128",
+        _ => panic!("Unsupported repr type"),
+    };
+
+    output.push_str(
+        format!(
+            "\nexport function encode{}(bf: Bufferfish, value: {}): void {{\n",
+            enum_name, enum_name
+        )
+        .as_str(),
+    );
+    output.push_str(format!("    bf.{}(value)\n", write_fn).as_str());
+    output.push_str("}\n");
+}
+
+fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
+    let struct_name = item.ident.to_string();
+
+    match &item.fields {
+        Fields::Named(fields_named) => {
+            if fields_named.named.is_empty() {
+                return;
+            }
+
+            output.push_str(
+                format!(
+                    "\nexport function encode{}(bf: Bufferfish, value: {}): void {{\n",
+                    struct_name, struct_name
+                )
+                .as_str(),
+            );
+
+            for field in &fields_named.named {
+                if let Some(field_name) = &field.ident {
+                    let field_ts_name = snake_to_camel_case(field_name.to_string());
+                    output.push_str(
+                        format!(
+                            "    {}\n",
+                            get_bufferfish_write_fn(
+                                field.ty.clone(),
+                                &format!("value.{}", field_ts_name)
+                            )
+                        )
+                        .as_str(),
+                    );
+                }
+            }
+
+            output.push_str("}\n");
+        }
+        Fields::Unnamed(fields_unnamed) => {
+            if fields_unnamed.unnamed.is_empty() {
+                return;
+            }
+
+            output.push_str(
+                format!(
+                    "\nexport function encode{}(bf: Bufferfish, value: {}): void {{\n",
+                    struct_name, struct_name
+                )
+                .as_str(),
+            );
+
+            for (i, field) in fields_unnamed.unnamed.iter().enumerate() {
+                output.push_str(
+                    format!(
+                        "    {}\n",
+                        get_bufferfish_write_fn(field.ty.clone(), &format!("value[{}]", i))
+                    )
+                    .as_str(),
+                );
+            }
+
+            output.push_str("}\n");
+        }
+        Fields::Unit => {}
+    }
+}
+
+fn get_bufferfish_write_fn(ty: Type, value_accessor: &str) -> String {
+    match ty {
+        Type::Path(TypePath { path, .. }) => {
+            if path.segments.len() == 1 && path.segments[0].ident == "Vec" {
+                if let PathArguments::AngleBracketed(ref args) = path.segments[0].arguments {
+                    if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
+                        let inner_write_fn = get_element_write_fn(inner_ty.clone());
+
+                        return format!(
+                            "bf.writeUint16({0}.length)\n    for (const item of {0}) {{\n        {1}(bf, item)\n    }}",
+                            value_accessor, inner_write_fn
+                        );
+                    }
+                }
+            }
+
+            match path.get_ident().map(|ident| ident.to_string()).as_deref() {
+                Some("u8") => format!("bf.writeUint8({})", value_accessor),
+                Some("u16") => format!("bf.writeUint16({})", value_accessor),
+                Some("u32") => format!("bf.writeUint32({})", value_accessor),
+                Some("u64") => format!("bf.writeUint64({})", value_accessor),
+                Some("u128") => format!("bf.writeUint128({})", value_accessor),
+                Some("i8") => format!("bf.writeInt8({})", value_accessor),
+                Some("i16") => format!("bf.writeInt16({})", value_accessor),
+                Some("i32") => format!("bf.writeInt32({})", value_accessor),
+                Some("i64") => format!("bf.writeInt64({})", value_accessor),
+                Some("i128") => format!("bf.writeInt128({})", value_accessor),
+                Some("bool") => format!("bf.writeBool({})", value_accessor),
+                Some("String") => format!("bf.writeString({})", value_accessor),
+                Some(custom) => format!("encode{}(bf, {})", custom, value_accessor),
+                _ => format!("/* Unknown type for {} */", value_accessor),
+            }
+        }
+        _ => format!("/* Unsupported type for {} */", value_accessor),
+    }
+}
+
+fn get_element_write_fn(ty: Type) -> String {
+    match ty {
+        Type::Path(TypePath { path, .. }) => {
+            match path.get_ident().map(|ident| ident.to_string()).as_deref() {
+                Some("u8") | Some("u16") | Some("u32") | Some("u64") | Some("u128")
+                | Some("i8") | Some("i16") | Some("i32") | Some("i64") | Some("i128")
+                | Some("bool") | Some("String") => "bf.write".to_string(),
+                Some(custom) => {
+                    format!("encode{}", custom)
+                }
+                _ => "unknown".to_string(),
+            }
+        }
+        _ => "unknown".to_string(),
+    }
 }
 
 fn generate_typescript_enum_defs(item: ItemEnum, lines: &mut String) {
@@ -182,6 +332,7 @@ fn generate_typescript_enum_defs(item: ItemEnum, lines: &mut String) {
     for (variant_name, discriminant) in variants {
         lines.push_str(format!("    {} = {},\n", variant_name, discriminant).as_str());
     }
+
     lines.push_str("}\n");
 }
 
@@ -420,7 +571,7 @@ pub struct LeavePacket;
 #[derive(Encode)]
 #[bufferfish(PacketId::Unknown)]
 pub struct UnknownPacket(pub u8, pub u16);
-        "#;
+    "#;
 
         let expected_output = r#"/* AUTOGENERATED BUFFERFISH FILE, DO NOT EDIT */
 import { Bufferfish } from 'bufferfish'
@@ -431,12 +582,44 @@ export enum PacketId {
     Unknown = 255,
 }
 
+export function decodePacketId(bf: Bufferfish): PacketId {
+    return bf.readUint16() as PacketId
+}
+
+export function encodePacketId(bf: Bufferfish, value: PacketId): void {
+    bf.writeUint16(value)
+}
+
 export interface JoinPacket {
     id: number
     username: string
 }
 
+export function decodeJoinPacket(bf: Bufferfish): JoinPacket {
+    return {
+        id: bf.readUint8() as number,
+        username: bf.readString() as string,
+    };
+}
+
+export function encodeJoinPacket(bf: Bufferfish, value: JoinPacket): void {
+    bf.writeUint8(value.id)
+    bf.writeString(value.username)
+}
+
 export type UnknownPacket = [number, number]
+
+export function decodeUnknownPacket(bf: Bufferfish): UnknownPacket {
+    return [
+        bf.readUint8() as number,
+        bf.readUint16() as number,
+    ]
+}
+
+export function encodeUnknownPacket(bf: Bufferfish, value: UnknownPacket): void {
+    bf.writeUint8(value[0])
+    bf.writeUint16(value[1])
+}
 "#;
 
         let mut output = String::new();
@@ -447,11 +630,15 @@ export type UnknownPacket = [number, number]
         let (structs, enums) = get_items_implementing_encode(syntax_tree.items);
 
         for item in enums {
-            generate_typescript_enum_defs(item, &mut output);
+            generate_typescript_enum_defs(item.clone(), &mut output);
+            generate_typescript_enum_decoders(item.clone(), &mut output);
+            generate_typescript_enum_encoders(item.clone(), &mut output);
         }
 
         for item in structs {
-            generate_typescript_struct_defs(item, &mut output);
+            generate_typescript_struct_defs(item.clone(), &mut output);
+            generate_typescript_struct_decoders(item.clone(), &mut output);
+            generate_typescript_struct_encoders(item.clone(), &mut output);
         }
 
         assert_eq!(output, expected_output);
