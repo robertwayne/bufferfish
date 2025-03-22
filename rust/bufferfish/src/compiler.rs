@@ -281,10 +281,10 @@ fn get_bufferfish_write_fn(ty: Type, value_accessor: &str) -> String {
                 Some("bool") => format!("bf.writeBool({})", value_accessor),
                 Some("String") => format!("bf.writeString({})", value_accessor),
                 Some(custom) => format!("encode{}(bf, {})", custom, value_accessor),
-                _ => format!("unknown", value_accessor),
+                _ => format!("/* Unsupported type for {} */", value_accessor),
             }
         }
-        _ => format!("unknown", value_accessor),
+        _ => format!("/* Unsupported type for {} */", value_accessor),
     }
 }
 
