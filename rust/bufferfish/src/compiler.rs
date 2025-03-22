@@ -259,10 +259,17 @@ fn get_bufferfish_write_fn(ty: Type, value_accessor: &str) -> String {
                     if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
                         let inner_write_fn = get_element_write_fn(inner_ty.clone());
 
-                        return format!(
-                            "bf.writeUint16({0}.length)\n    for (const item of {0}) {{\n        bf.{1}(item)\n    }}",
-                            value_accessor, inner_write_fn
-                        );
+                        if is_primitive_type(inner_ty) {
+                            return format!(
+                                "bf.writeUint16({0}.length)\n    for (const item of {0}) {{\n        bf.{1}(item)\n    }}",
+                                value_accessor, inner_write_fn
+                            );
+                        } else {
+                            return format!(
+                                "bf.writeUint16({0}.length)\n    for (const item of {0}) {{\n        {1}(bf, item)\n    }}",
+                                value_accessor, inner_write_fn
+                            );
+                        }
                     }
                 }
             }
@@ -290,12 +297,21 @@ fn get_bufferfish_write_fn(ty: Type, value_accessor: &str) -> String {
 
 fn is_primitive_type(ty: &Type) -> bool {
     if let Type::Path(TypePath { path, .. }) = ty {
-        match path.get_ident().map(|ident| ident.to_string()).as_deref() {
-            Some("u8") | Some("u16") | Some("u32") | Some("u64") | Some("u128") | Some("i8")
-            | Some("i16") | Some("i32") | Some("i64") | Some("i128") | Some("bool")
-            | Some("String") => true,
-            _ => false,
-        }
+        matches!(
+            path.get_ident().map(|ident| ident.to_string()).as_deref(),
+            Some("u8")
+                | Some("u16")
+                | Some("u32")
+                | Some("u64")
+                | Some("u128")
+                | Some("i8")
+                | Some("i16")
+                | Some("i32")
+                | Some("i64")
+                | Some("i128")
+                | Some("bool")
+                | Some("String")
+        )
     } else {
         false
     }
