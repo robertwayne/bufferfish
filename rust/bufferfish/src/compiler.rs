@@ -187,12 +187,31 @@ fn generate_typescript_enum_encoders(item: ItemEnum, output: &mut String) {
     output.push_str("}\n");
 }
 
+/// Extract the PacketID from struct attributes and format it for TypeScript
+fn get_packet_id(attrs: &[Attribute]) -> Option<String> {
+    for attr in attrs {
+        if attr.path().is_ident("bufferfish") {
+            if let Meta::List(list) = &attr.meta {
+                let tokens = list.tokens.to_string();
+
+                let cleaned = tokens.trim().replace(" ", "").replace("::", ".");
+
+                return Some(cleaned);
+            }
+        }
+    }
+    None
+}
+
+/// Generate TypeScript encoders for structs including PacketID if specified
 fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
     let struct_name = item.ident.to_string();
+    let packet_id = get_packet_id(&item.attrs);
 
     match &item.fields {
         Fields::Named(fields_named) => {
-            if fields_named.named.is_empty() {
+            // For empty structs, only generate encoder if we have a PacketID
+            if fields_named.named.is_empty() && packet_id.is_none() {
                 return;
             }
 
@@ -204,6 +223,11 @@ fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
                 .as_str(),
             );
 
+            if let Some(id) = &packet_id {
+                output.push_str(format!("    encodePacketId(bf, {})\n", id).as_str());
+            }
+
+            // Write struct fields
             for field in &fields_named.named {
                 if let Some(field_name) = &field.ident {
                     let field_ts_name = snake_to_camel_case(field_name.to_string());
@@ -223,7 +247,8 @@ fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
             output.push_str("}\n");
         }
         Fields::Unnamed(fields_unnamed) => {
-            if fields_unnamed.unnamed.is_empty() {
+            // For empty tuple structs, only generate encoder if we have a PacketID
+            if fields_unnamed.unnamed.is_empty() && packet_id.is_none() {
                 return;
             }
 
@@ -235,6 +260,11 @@ fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
                 .as_str(),
             );
 
+            if let Some(id) = &packet_id {
+                output.push_str(format!("    encodePacketId(bf, {})\n", id).as_str());
+            }
+
+            // Write tuple fields
             for (i, field) in fields_unnamed.unnamed.iter().enumerate() {
                 output.push_str(
                     format!(
@@ -247,7 +277,20 @@ fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
 
             output.push_str("}\n");
         }
-        Fields::Unit => {}
+        Fields::Unit => {
+            // For unit structs, only generate encoder if we have a PacketID
+            if let Some(id) = packet_id {
+                output.push_str(
+                    format!(
+                        "\nexport function encode{}(bf: Bufferfish, _value: {}): void {{\n",
+                        struct_name, struct_name
+                    )
+                    .as_str(),
+                );
+                output.push_str(format!("    encodePacketId(bf, {})\n", id).as_str());
+                output.push_str("}\n");
+            }
+        }
     }
 }
 
@@ -639,8 +682,13 @@ export function decodeJoinPacket(bf: Bufferfish): JoinPacket {
 }
 
 export function encodeJoinPacket(bf: Bufferfish, value: JoinPacket): void {
+    encodePacketId(bf, PacketId.Join)
     bf.writeUint8(value.id)
     bf.writeString(value.username)
+}
+
+export function encodeLeavePacket(bf: Bufferfish, _value: LeavePacket): void {
+    encodePacketId(bf, PacketId.Leave)
 }
 
 export type UnknownPacket = [number, number]
@@ -653,6 +701,7 @@ export function decodeUnknownPacket(bf: Bufferfish): UnknownPacket {
 }
 
 export function encodeUnknownPacket(bf: Bufferfish, value: UnknownPacket): void {
+    encodePacketId(bf, PacketId.Unknown)
     bf.writeUint8(value[0])
     bf.writeUint16(value[1])
 }
