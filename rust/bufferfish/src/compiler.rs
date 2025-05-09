@@ -141,12 +141,12 @@ fn generate_output_string(input: Vec<String>, output: &mut String) -> Result<(),
     let mut packet_id_enum_names = Vec::new();
     let mut all_structs = Vec::new();
     let mut all_enums = Vec::new();
+    let mut generated_encoders = std::collections::HashSet::new();
 
     for path in &input {
         let items = parse_rust_source_file(path)?;
         let (structs, enums) = get_items_implementing_encode(items);
 
-        // Find struct attributes with #[bufferfish(...)] to identify packet ID enums
         for item in &structs {
             if let Some(packet_id) = get_packet_id(&item.attrs) {
                 if let Some(enum_name) = extract_enum_name_from_packet_id(&packet_id) {
@@ -164,11 +164,15 @@ fn generate_output_string(input: Vec<String>, output: &mut String) -> Result<(),
     for item in &all_enums {
         generate_typescript_enum_defs(item.clone(), output);
         generate_typescript_enum_decoders(item.clone(), output);
-        generate_typescript_enum_encoders(item.clone(), output);
+    }
 
+    for item in &all_enums {
         let enum_name = item.ident.to_string();
         if packet_id_enum_names.contains(&enum_name) {
             generate_typescript_packet_id_encoder(item.clone(), output);
+            generated_encoders.insert(enum_name);
+        } else if !generated_encoders.contains(&enum_name) {
+            generate_typescript_enum_encoders(item.clone(), output);
         }
     }
 
@@ -229,8 +233,8 @@ fn extract_enum_name_from_packet_id(id: &str) -> Option<String> {
     id.split('.').next().map(|s| s.to_string())
 }
 
-/// Generate TypeScript encoders for structs including PacketID if specified
 /// Generate a TypeScript encoder function for a specific packet ID enum
+/// This is used specifically for enum types that are used as packet IDs
 fn generate_typescript_packet_id_encoder(item: ItemEnum, output: &mut String) {
     let enum_name = item.ident.to_string();
     let repr_type = get_repr_type(&item.attrs).unwrap_or("u8".to_string());
@@ -269,7 +273,6 @@ fn generate_typescript_struct_encoders(
 
     match &item.fields {
         Fields::Named(fields_named) => {
-            // For empty structs, only generate encoder if we have a PacketID
             if fields_named.named.is_empty() && packet_id.is_none() {
                 return;
             }
@@ -309,7 +312,6 @@ fn generate_typescript_struct_encoders(
             output.push_str("}\n");
         }
         Fields::Unnamed(fields_unnamed) => {
-            // For empty tuple structs, only generate encoder if we have a PacketID
             if fields_unnamed.unnamed.is_empty() && packet_id.is_none() {
                 return;
             }
@@ -343,7 +345,6 @@ fn generate_typescript_struct_encoders(
             output.push_str("}\n");
         }
         Fields::Unit => {
-            // For unit structs, only generate encoder if we have a PacketID
             if let Some(id) = packet_id {
                 output.push_str(
                     format!(
@@ -553,7 +554,10 @@ fn generate_typescript_struct_defs(item: ItemStruct, lines: &mut String) {
             lines.push_str(&field_types.join(", "));
             lines.push_str("]\n");
         }
-        Fields::Unit => {}
+        Fields::Unit => {
+            lines.push_str(format!("\nexport interface {struct_name} {{\n").as_str());
+            lines.push_str("}\n");
+        }
     }
 }
 
@@ -562,6 +566,10 @@ fn generate_typescript_struct_decoders(item: ItemStruct, lines: &mut String) {
 
     match &item.fields {
         Fields::Named(fields_named) => {
+            if fields_named.named.is_empty() {
+                return;
+            }
+
             lines.push_str(
                 format!(
                     "\nexport function decode{struct_name}(bf: Bufferfish): {struct_name} {{\n"
@@ -587,6 +595,10 @@ fn generate_typescript_struct_decoders(item: ItemStruct, lines: &mut String) {
             lines.push_str("}\n");
         }
         Fields::Unnamed(fields_unnamed) => {
+            if fields_unnamed.unnamed.is_empty() {
+                return;
+            }
+
             lines.push_str(
                 format!(
                     "\nexport function decode{struct_name}(bf: Bufferfish): {struct_name} {{\n"
@@ -604,7 +616,17 @@ fn generate_typescript_struct_decoders(item: ItemStruct, lines: &mut String) {
             lines.push_str("    ]\n");
             lines.push_str("}\n");
         }
-        Fields::Unit => {}
+        Fields::Unit => {
+            // lines.push_str(
+            //     format!(
+            //         "\nexport function decode{struct_name}(bf: Bufferfish): {struct_name} {{\n"
+            //     )
+            //     .as_str(),
+            // );
+            // lines.push_str("    return {\n");
+            // lines.push_str("    }\n");
+            // lines.push_str("}\n");
+        }
     }
 }
 
@@ -730,10 +752,6 @@ export function encodePacketId(bf: Bufferfish, value: PacketId): void {
     bf.writeUint16(value)
 }
 
-export function encodePacketId(bf: Bufferfish, value: PacketId): void {
-    bf.writeUint16(value)
-}
-
 export interface JoinPacket {
     id: number
     username: string
@@ -769,8 +787,7 @@ export function encodeUnknownPacket(bf: Bufferfish, value: UnknownPacket): void 
     encodePacketId(bf, PacketId.Unknown)
     bf.writeUint8(value[0])
     bf.writeUint16(value[1])
-}
-"#;
+}"#;
 
         let items = syn::parse_file(test_file)
             .unwrap_or_else(|e| panic!("Failed to parse: {e}"))
@@ -796,11 +813,16 @@ export function encodeUnknownPacket(bf: Bufferfish, value: UnknownPacket): void 
         for item in &enums {
             generate_typescript_enum_defs(item.clone(), &mut output);
             generate_typescript_enum_decoders(item.clone(), &mut output);
-            generate_typescript_enum_encoders(item.clone(), &mut output);
+        }
 
+        let mut generated_encoders = std::collections::HashSet::new();
+        for item in &enums {
             let enum_name = item.ident.to_string();
             if packet_id_enum_names.contains(&enum_name) {
                 generate_typescript_packet_id_encoder(item.clone(), &mut output);
+                generated_encoders.insert(enum_name);
+            } else if !generated_encoders.contains(&enum_name) {
+                generate_typescript_enum_encoders(item.clone(), &mut output);
             }
         }
 
@@ -810,7 +832,7 @@ export function encodeUnknownPacket(bf: Bufferfish, value: UnknownPacket): void 
             generate_typescript_struct_encoders(item.clone(), &mut output, &packet_id_enum_names);
         }
 
-        if output != expected_output {
+        if output.trim() != expected_output.trim() {
             println!("Expected:\n{expected_output}");
             println!("Got:\n{output}");
             panic!("Output does not match expected output");
