@@ -451,7 +451,7 @@ mod tests {
         // Should look like this:
         //  Byte:  0  4  0  10  66  117  102  102  101  114  102  105  115  104
         // Index:  0  1  2   3   4    5    6    7    8    9   10   11   12   13
-        println!("{}", bf);
+        println!("{bf}");
     }
 
     #[test]
@@ -792,5 +792,70 @@ mod tests {
         let result = User::decode(&mut bf);
 
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_decode_into_struct() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::FromBytes;
+
+        #[derive(Decode, Encode, Debug)]
+        struct User {
+            id: u32,
+            name: String,
+        }
+
+        let mut bf = Bufferfish::new();
+        bf.write_u32(0).unwrap();
+        bf.write_string("Bufferfish").unwrap();
+
+        let bytes = bf.into_vec();
+
+        let user = User::from_bytes(&bytes).unwrap();
+
+        assert_eq!(user.id, 0);
+        assert_eq!(user.name, "Bufferfish");
+    }
+
+    #[test]
+    fn test_decode_too_small_into_struct() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::FromBytes;
+
+        #[derive(Decode, Encode, Debug)]
+        struct User {
+            id: u32,
+            name: String,
+        }
+
+        // Minimum of 6 bytes: 4 bytes for u32 and 2 bytes for string length
+        let bytes_err = vec![0, 0, 0, 0, 0];
+        let bytes_ok = vec![0, 0, 0, 0, 0, 0];
+
+        let result_should_err = User::from_bytes(&bytes_err);
+        let result_should_ok = User::from_bytes(&bytes_ok);
+
+        assert!(result_should_err.is_err());
+        assert!(result_should_ok.is_ok());
+    }
+
+    #[test]
+    fn test_decode_too_large_into_struct() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::FromBytes;
+
+        #[derive(Decode, Encode, Debug)]
+        struct User {
+            id: u32,
+        }
+
+        let bytes_err = vec![0, 0, 0, 0, 0];
+        let bytes_ok = vec![0, 0, 0, 0];
+
+        let result_should_err = User::from_bytes(&bytes_err);
+        let result_should_ok = User::from_bytes(&bytes_ok);
+
+        assert!(result_should_err.is_err());
+        assert!(result_should_ok.is_ok());
     }
 }

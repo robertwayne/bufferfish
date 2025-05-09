@@ -78,8 +78,8 @@ impl From<PacketId> for u16 {
     }
 }
 
-// We annotate our packet with the #[Encode] macro to enable automatic
-// encoding and decoding to or from a `Bufferfish`.
+// We annotate our packet with the #[Encode] and #[Decode] macros to enable
+//  automatic encoding and decoding to or from a `Bufferfish`.
 //
 // Additionally, we use the #[bufferfish] attribute to specify the packet ID.
 #[derive(Encode)]

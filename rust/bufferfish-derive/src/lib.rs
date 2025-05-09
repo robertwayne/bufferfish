@@ -80,6 +80,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
     let name = &ast.ident;
 
     let packet_id = get_packet_id(&ast);
+    let has_packet_id = packet_id.is_some();
     let packet_id_snippet = {
         if let Some(packet_id) = packet_id {
             quote! {
@@ -133,6 +134,78 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
         Data::Union(_) => abort!(ast.span(), "unions are not supported"),
     };
 
+    // Generate size calculation for fields
+    let min_size_snippets = match &ast.data {
+        Data::Struct(data) => match &data.fields {
+            Fields::Named(fields) => fields
+                .named
+                .iter()
+                .map(|field| {
+                    let ty = &field.ty;
+                    quote! {
+                        if let Some(size) = <#ty as bufferfish::Decodable>::min_bytes_required() {
+                            min_size += size;
+                        }
+                    }
+                })
+                .collect::<Vec<_>>(),
+            Fields::Unnamed(fields) => fields
+                .unnamed
+                .iter()
+                .map(|field| {
+                    let ty = &field.ty;
+                    quote! {
+                        if let Some(size) = <#ty as bufferfish::Decodable>::min_bytes_required() {
+                            min_size += size;
+                        }
+                    }
+                })
+                .collect::<Vec<_>>(),
+            Fields::Unit => Vec::new(),
+        },
+        Data::Enum(_) => vec![quote! { min_size = 1; }], // Enum variant as u8
+        Data::Union(_) => Vec::new(),
+    };
+
+    // Generate max size calculation for fields
+    let max_size_snippets = match &ast.data {
+        Data::Struct(data) => match &data.fields {
+            Fields::Named(fields) => fields
+                .named
+                .iter()
+                .map(|field| {
+                    let ty = &field.ty;
+                    quote! {
+                        if let Some(size) = <#ty as bufferfish::Decodable>::max_bytes_allowed() {
+                            max_size += size;
+                        } else {
+                            // If any field doesn't have a max size, we can't determine overall max size
+                            return None;
+                        }
+                    }
+                })
+                .collect::<Vec<_>>(),
+            Fields::Unnamed(fields) => fields
+                .unnamed
+                .iter()
+                .map(|field| {
+                    let ty = &field.ty;
+                    quote! {
+                        if let Some(size) = <#ty as bufferfish::Decodable>::max_bytes_allowed() {
+                            max_size += size;
+                        } else {
+                            // If any field doesn't have a max size, we can't determine overall max size
+                            return None;
+                        }
+                    }
+                })
+                .collect::<Vec<_>>(),
+            Fields::Unit => Vec::new(),
+        },
+        Data::Enum(_) => vec![quote! { max_size = 1; }], // Enum variant as u8
+        _ => Vec::new(),
+    };
+
     let gen = match &ast.data {
         Data::Struct(data) => match &data.fields {
             Fields::Named(_) => {
@@ -143,6 +216,20 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                             Ok(Self {
                                 #(#decoded_snippets)*
                             })
+                        }
+
+                        fn min_bytes_required() -> Option<usize> {
+                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
+                            let mut min_size = packet_id_size;
+                            #(#min_size_snippets)*
+                            Some(min_size)
+                        }
+
+                        fn max_bytes_allowed() -> Option<usize> {
+                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
+                            let mut max_size = packet_id_size;
+                            #(#max_size_snippets)*
+                            Some(max_size)
                         }
                     }
                 }
@@ -156,6 +243,20 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                                 #(#decoded_snippets)*
                             ))
                         }
+
+                        fn min_bytes_required() -> Option<usize> {
+                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
+                            let mut min_size = packet_id_size;
+                            #(#min_size_snippets)*
+                            Some(min_size)
+                        }
+
+                        fn max_bytes_allowed() -> Option<usize> {
+                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
+                            let mut max_size = packet_id_size;
+                            #(#max_size_snippets)*
+                            Some(max_size)
+                        }
                     }
                 }
             }
@@ -165,6 +266,16 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                         fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                             #packet_id_snippet
                             Ok(Self)
+                        }
+
+                        fn min_bytes_required() -> Option<usize> {
+                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
+                            Some(packet_id_size)
+                        }
+
+                        fn max_bytes_allowed() -> Option<usize> {
+                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
+                            Some(packet_id_size)
                         }
                     }
                 }
@@ -180,6 +291,18 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                             #(#decoded_snippets)*
                             _ => return Err(bufferfish::BufferfishError::InvalidEnumVariant),
                         })
+                    }
+
+                    fn min_bytes_required() -> Option<usize> {
+                        // Enum variant (u8) + packet id if present
+                        let packet_id_size = if #has_packet_id { 2 } else { 0 };
+                        Some(1 + packet_id_size) // 1 byte for variant + packet id size if present
+                    }
+
+                    fn max_bytes_allowed() -> Option<usize> {
+                        // Enum variant (u8) + packet id if present
+                        let packet_id_size = if #has_packet_id { 2 } else { 0 };
+                        Some(1 + packet_id_size) // 1 byte for variant + packet id size if present
                     }
                 }
             }

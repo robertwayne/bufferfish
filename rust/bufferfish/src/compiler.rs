@@ -82,7 +82,7 @@ fn parse_rust_source_file(path: &str) -> io::Result<Vec<Item>> {
     file.read_to_string(&mut content)?;
 
     let syntax_tree = syn::parse_file(&content).map_err(|e| {
-        eprintln!("Failed to parse Rust source file: {}", e);
+        eprintln!("Failed to parse Rust source file: {e}");
         io::Error::new(
             io::ErrorKind::InvalidData,
             "Failed to parse Rust source file",
@@ -178,12 +178,11 @@ fn generate_typescript_enum_encoders(item: ItemEnum, output: &mut String) {
 
     output.push_str(
         format!(
-            "\nexport function encode{}(bf: Bufferfish, value: {}): void {{\n",
-            enum_name, enum_name
+            "\nexport function encode{enum_name}(bf: Bufferfish, value: {enum_name}): void {{\n",
         )
         .as_str(),
     );
-    output.push_str(format!("    bf.{}(value)\n", write_fn).as_str());
+    output.push_str(format!("    bf.{write_fn}(value)\n").as_str());
     output.push_str("}\n");
 }
 
@@ -217,14 +216,14 @@ fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
 
             output.push_str(
                 format!(
-                    "\nexport function encode{}(bf: Bufferfish, value: {}): void {{\n",
-                    struct_name, struct_name
+                    "\nexport function encode{struct_name}(bf: Bufferfish, value: {struct_name}): void {{\n",
+
                 )
                 .as_str(),
             );
 
             if let Some(id) = &packet_id {
-                output.push_str(format!("    encodePacketId(bf, {})\n", id).as_str());
+                output.push_str(format!("    encodePacketId(bf, {id})\n").as_str());
             }
 
             // Write struct fields
@@ -236,7 +235,7 @@ fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
                             "    {}\n",
                             get_bufferfish_write_fn(
                                 field.ty.clone(),
-                                &format!("value.{}", field_ts_name)
+                                &format!("value.{field_ts_name}",)
                             )
                         )
                         .as_str(),
@@ -254,14 +253,14 @@ fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
 
             output.push_str(
                 format!(
-                    "\nexport function encode{}(bf: Bufferfish, value: {}): void {{\n",
-                    struct_name, struct_name
+                    "\nexport function encode{struct_name}(bf: Bufferfish, value: {struct_name}): void {{\n",
+
                 )
                 .as_str(),
             );
 
             if let Some(id) = &packet_id {
-                output.push_str(format!("    encodePacketId(bf, {})\n", id).as_str());
+                output.push_str(format!("    encodePacketId(bf, {id})\n").as_str());
             }
 
             // Write tuple fields
@@ -269,7 +268,7 @@ fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
                 output.push_str(
                     format!(
                         "    {}\n",
-                        get_bufferfish_write_fn(field.ty.clone(), &format!("value[{}]", i))
+                        get_bufferfish_write_fn(field.ty.clone(), &format!("value[{i}]",))
                     )
                     .as_str(),
                 );
@@ -282,12 +281,11 @@ fn generate_typescript_struct_encoders(item: ItemStruct, output: &mut String) {
             if let Some(id) = packet_id {
                 output.push_str(
                     format!(
-                        "\nexport function encode{}(bf: Bufferfish, _value: {}): void {{\n",
-                        struct_name, struct_name
+                        "\nexport function encode{struct_name}(bf: Bufferfish, _value: {struct_name}): void {{\n",
                     )
                     .as_str(),
                 );
-                output.push_str(format!("    encodePacketId(bf, {})\n", id).as_str());
+                output.push_str(format!("    encodePacketId(bf, {id})\n").as_str());
                 output.push_str("}\n");
             }
         }
@@ -304,13 +302,13 @@ fn get_bufferfish_write_fn(ty: Type, value_accessor: &str) -> String {
 
                         if is_primitive_type(inner_ty) {
                             return format!(
-                                "bf.writeUint16({0}.length)\n    for (const item of {0}) {{\n        bf.{1}(item)\n    }}",
-                                value_accessor, inner_write_fn
+                                "bf.writeUint16({value_accessor}.length)\n    for (const item of {value_accessor}) {{\n        bf.{inner_write_fn}(item)\n    }}",
+
                             );
                         } else {
                             return format!(
-                                "bf.writeUint16({0}.length)\n    for (const item of {0}) {{\n        {1}(bf, item)\n    }}",
-                                value_accessor, inner_write_fn
+                                "bf.writeUint16({value_accessor}.length)\n    for (const item of {value_accessor}) {{\n        {inner_write_fn}(bf, item)\n    }}",
+
                             );
                         }
                     }
@@ -318,23 +316,23 @@ fn get_bufferfish_write_fn(ty: Type, value_accessor: &str) -> String {
             }
 
             match path.get_ident().map(|ident| ident.to_string()).as_deref() {
-                Some("u8") => format!("bf.writeUint8({})", value_accessor),
-                Some("u16") => format!("bf.writeUint16({})", value_accessor),
-                Some("u32") => format!("bf.writeUint32({})", value_accessor),
-                Some("u64") => format!("bf.writeUint64({})", value_accessor),
-                Some("u128") => format!("bf.writeUint128({})", value_accessor),
-                Some("i8") => format!("bf.writeInt8({})", value_accessor),
-                Some("i16") => format!("bf.writeInt16({})", value_accessor),
-                Some("i32") => format!("bf.writeInt32({})", value_accessor),
-                Some("i64") => format!("bf.writeInt64({})", value_accessor),
-                Some("i128") => format!("bf.writeInt128({})", value_accessor),
-                Some("bool") => format!("bf.writeBool({})", value_accessor),
-                Some("String") => format!("bf.writeString({})", value_accessor),
-                Some(custom) => format!("encode{}(bf, {})", custom, value_accessor),
-                _ => format!("/* Unsupported type for {} */", value_accessor),
+                Some("u8") => format!("bf.writeUint8({value_accessor})"),
+                Some("u16") => format!("bf.writeUint16({value_accessor})"),
+                Some("u32") => format!("bf.writeUint32({value_accessor})",),
+                Some("u64") => format!("bf.writeUint64({value_accessor})",),
+                Some("u128") => format!("bf.writeUint128({value_accessor})",),
+                Some("i8") => format!("bf.writeInt8({value_accessor})",),
+                Some("i16") => format!("bf.writeInt16({value_accessor})",),
+                Some("i32") => format!("bf.writeInt32({value_accessor})",),
+                Some("i64") => format!("bf.writeInt64({value_accessor})",),
+                Some("i128") => format!("bf.writeInt128({value_accessor})",),
+                Some("bool") => format!("bf.writeBool({value_accessor})",),
+                Some("String") => format!("bf.writeString({value_accessor})",),
+                Some(custom) => format!("encode{custom}(bf, {value_accessor})",),
+                _ => format!("/* Unsupported type for {value_accessor} */",),
             }
         }
-        _ => format!("/* Unsupported type for {} */", value_accessor),
+        _ => format!("/* Unsupported type for {value_accessor} */"),
     }
 }
 
@@ -376,7 +374,7 @@ fn get_element_write_fn(ty: Type) -> String {
                 Some("i128") => "writeInt128".to_string(),
                 Some("bool") => "writeBool".to_string(),
                 Some("String") => "writeString".to_string(),
-                Some(custom) => format!("encode{}", custom),
+                Some(custom) => format!("encode{custom}"),
                 _ => "unknown".to_string(),
             }
         }
@@ -407,9 +405,9 @@ fn generate_typescript_enum_defs(item: ItemEnum, lines: &mut String) {
         discriminant += 1;
     }
 
-    lines.push_str(format!("\nexport enum {} {{\n", enum_name).as_str());
+    lines.push_str(format!("\nexport enum {enum_name} {{\n").as_str());
     for (variant_name, discriminant) in variants {
-        lines.push_str(format!("    {} = {},\n", variant_name, discriminant).as_str());
+        lines.push_str(format!("    {variant_name} = {discriminant},\n").as_str());
     }
 
     lines.push_str("}\n");
@@ -422,7 +420,7 @@ fn get_typescript_type(ty: Type) -> String {
                 if let PathArguments::AngleBracketed(ref args) = path.segments[0].arguments {
                     if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
                         let inner_ts_type = get_typescript_type(inner_ty.clone());
-                        return format!("Array<{}>", inner_ts_type);
+                        return format!("Array<{inner_ts_type}>");
                     }
                 }
             }
@@ -430,7 +428,7 @@ fn get_typescript_type(ty: Type) -> String {
             match path.get_ident().map(|ident| ident.to_string()).as_deref() {
                 #[rustfmt::skip]
                 Some("u8") | Some("u16") | Some("u32") | Some("u64") |
-                Some("u128") | Some("i8") | Some("i16") | Some("i32") | 
+                Some("u128") | Some("i8") | Some("i16") | Some("i32") |
                 Some("i64") | Some("i128") => {
                     "number".to_string()
                 },
@@ -457,7 +455,7 @@ fn generate_typescript_struct_defs(item: ItemStruct, lines: &mut String) {
 
     match &item.fields {
         Fields::Named(fields_named) => {
-            lines.push_str(format!("\nexport interface {} {{\n", struct_name).as_str());
+            lines.push_str(format!("\nexport interface {struct_name} {{\n").as_str());
             for field in &fields_named.named {
                 if let Some(field_name) = &field.ident {
                     let field_type = get_typescript_type(field.ty.clone());
@@ -474,7 +472,7 @@ fn generate_typescript_struct_defs(item: ItemStruct, lines: &mut String) {
             lines.push_str("}\n");
         }
         Fields::Unnamed(fields_unnamed) => {
-            lines.push_str(format!("\nexport type {} = [", struct_name).as_str());
+            lines.push_str(format!("\nexport type {struct_name} = [").as_str());
             let field_types: Vec<String> = fields_unnamed
                 .unnamed
                 .iter()
@@ -494,8 +492,7 @@ fn generate_typescript_struct_decoders(item: ItemStruct, lines: &mut String) {
         Fields::Named(fields_named) => {
             lines.push_str(
                 format!(
-                    "\nexport function decode{}(bf: Bufferfish): {} {{\n",
-                    struct_name, struct_name
+                    "\nexport function decode{struct_name}(bf: Bufferfish): {struct_name} {{\n"
                 )
                 .as_str(),
             );
@@ -520,8 +517,7 @@ fn generate_typescript_struct_decoders(item: ItemStruct, lines: &mut String) {
         Fields::Unnamed(fields_unnamed) => {
             lines.push_str(
                 format!(
-                    "\nexport function decode{}(bf: Bufferfish): {} {{\n",
-                    struct_name, struct_name
+                    "\nexport function decode{struct_name}(bf: Bufferfish): {struct_name} {{\n"
                 )
                 .as_str(),
             );
@@ -548,10 +544,7 @@ fn get_bufferfish_fn(ty: Type) -> String {
                     if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
                         let inner_fn = get_bufferfish_fn(inner_ty.clone());
                         let inner_ts_type = get_typescript_type(inner_ty.clone());
-                        return format!(
-                            "bf.readArray(() => {}) as Array<{}>",
-                            inner_fn, inner_ts_type
-                        );
+                        return format!("bf.readArray(() => {inner_fn}) as Array<{inner_ts_type}>");
                     }
                 }
             }
@@ -569,7 +562,7 @@ fn get_bufferfish_fn(ty: Type) -> String {
                 Some("i128") => "bf.readInt128() as BigInt".to_string(),
                 Some("bool") => "bf.readBool() as boolean".to_string(),
                 Some("String") => "bf.readString() as string".to_string(),
-                Some(custom) => format!("decode{}(bf)", custom),
+                Some(custom) => format!("decode{custom}(bf)"),
                 _ => "unknown".to_string(),
             }
         }
@@ -596,13 +589,9 @@ fn generate_typescript_enum_decoders(item: ItemEnum, output: &mut String) {
     };
 
     output.push_str(
-        format!(
-            "\nexport function decode{}(bf: Bufferfish): {} {{\n",
-            enum_name, enum_name
-        )
-        .as_str(),
+        format!("\nexport function decode{enum_name}(bf: Bufferfish): {enum_name} {{\n").as_str(),
     );
-    output.push_str(format!("    return bf.{}() as {}\n", read_fn, enum_name).as_str());
+    output.push_str(format!("    return bf.{read_fn}() as {enum_name}\n").as_str());
     output.push_str("}\n");
 }
 

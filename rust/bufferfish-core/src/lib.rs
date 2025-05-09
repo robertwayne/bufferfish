@@ -9,6 +9,38 @@ use std::{
 pub use decodable::Decodable;
 pub use encodable::Encodable;
 
+/// Trait for types that can be created from bytes.
+pub trait FromBytes: Sized {
+    /// Create a new instance from bytes.
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferfishError>;
+}
+
+impl<T: Decodable> FromBytes for T {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferfishError> {
+        if let Some(required) = T::min_bytes_required() {
+            if bytes.len() < required {
+                return Err(BufferfishError::InsufficientBytes {
+                    available: bytes.len(),
+                    required,
+                });
+            }
+        }
+
+        if let Some(max_allowed) = T::max_bytes_allowed() {
+            if bytes.len() > max_allowed {
+                return Err(BufferfishError::ExcessiveBytes {
+                    available: bytes.len(),
+                    max_allowed,
+                });
+            }
+        }
+
+        let mut bf = Bufferfish::from(bytes);
+        bf.start_reading();
+        T::decode(&mut bf)
+    }
+}
+
 /// Errors that can occur when encoding or decoding a `Bufferfish`.
 #[derive(Debug)]
 pub enum BufferfishError {
@@ -18,14 +50,35 @@ pub enum BufferfishError {
     InvalidPacketId,
     /// Invalid enum variant encountered during encoding/decoding.
     InvalidEnumVariant,
+    /// The buffer doesn't contain enough bytes for the requested operation.
+    InsufficientBytes { available: usize, required: usize },
+    /// The buffer contains too many bytes for the requested operation.
+    ExcessiveBytes {
+        available: usize,
+        max_allowed: usize,
+    },
 }
 
 impl std::fmt::Display for BufferfishError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            BufferfishError::FailedWrite(e) => write!(f, "failed to write to buffer: {}", e),
+            BufferfishError::FailedWrite(e) => write!(f, "failed to write to buffer: {e}"),
             BufferfishError::InvalidPacketId => write!(f, "invalid packet id"),
             BufferfishError::InvalidEnumVariant => write!(f, "invalid enum variant"),
+            BufferfishError::InsufficientBytes {
+                available,
+                required,
+            } => write!(
+                f,
+                "insufficient bytes in buffer: available {available}, required {required}"
+            ),
+            BufferfishError::ExcessiveBytes {
+                available,
+                max_allowed,
+            } => write!(
+                f,
+                "excessive bytes in buffer: available {available}, maximum allowed {max_allowed}"
+            ),
         }
     }
 }
@@ -42,6 +95,8 @@ impl std::error::Error for BufferfishError {
             BufferfishError::FailedWrite(e) => Some(e),
             BufferfishError::InvalidPacketId => None,
             BufferfishError::InvalidEnumVariant => None,
+            BufferfishError::InsufficientBytes { .. } => None,
+            BufferfishError::ExcessiveBytes { .. } => None,
         }
     }
 }
@@ -87,6 +142,62 @@ impl Seek for Bufferfish {
 }
 
 impl Bufferfish {
+    /// Decode a value from this `Bufferfish`.
+    ///
+    /// This function will start reading from the beginning of the buffer.
+    /// Performs validation to check if the buffer's content is within acceptable size limits.
+    pub fn decode<T: Decodable>(&mut self) -> Result<T, BufferfishError> {
+        let bytes = self.as_bytes();
+
+        if let Some(required) = T::min_bytes_required() {
+            if bytes.len() < required {
+                return Err(BufferfishError::InsufficientBytes {
+                    available: bytes.len(),
+                    required,
+                });
+            }
+        }
+
+        if let Some(max_allowed) = T::max_bytes_allowed() {
+            if bytes.len() > max_allowed {
+                return Err(BufferfishError::ExcessiveBytes {
+                    available: bytes.len(),
+                    max_allowed,
+                });
+            }
+        }
+
+        self.start_reading();
+        T::decode(self)
+    }
+
+    /// Convert this Bufferfish into a value of type T.
+    /// Performs validation to check if the buffer's content is within acceptable size limits.
+    pub fn into_value<T: Decodable>(mut self) -> Result<T, BufferfishError> {
+        let bytes = self.as_bytes();
+
+        if let Some(required) = T::min_bytes_required() {
+            if bytes.len() < required {
+                return Err(BufferfishError::InsufficientBytes {
+                    available: bytes.len(),
+                    required,
+                });
+            }
+        }
+
+        if let Some(max_allowed) = T::max_bytes_allowed() {
+            if bytes.len() > max_allowed {
+                return Err(BufferfishError::ExcessiveBytes {
+                    available: bytes.len(),
+                    max_allowed,
+                });
+            }
+        }
+
+        self.start_reading();
+        T::decode(&mut self)
+    }
+
     /// Creates a new `Bufferfish` with a default max capacity (1024 bytes).
     pub fn new() -> Self {
         Self {
@@ -514,7 +625,7 @@ impl std::fmt::Display for Bufferfish {
         write!(f, " Byte: ")?;
 
         for val in inner {
-            write!(f, " {} ", val)?;
+            write!(f, " {val} ")?;
         }
 
         write!(f, "\nIndex: ")?;
@@ -526,7 +637,7 @@ impl std::fmt::Display for Bufferfish {
             #[cfg(not(feature = "pretty-print"))]
             let width = 1;
 
-            write!(f, " {:width$} ", i, width = width)?;
+            write!(f, " {i:width$} ")?;
         }
 
         Ok(())
