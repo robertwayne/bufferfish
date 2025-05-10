@@ -1,7 +1,7 @@
 {
     "name": "bufferfish",
     "version": "0.2.0",
-    "description": "Binary message utility library for Rust and TypeScript interop.",
+    "description": "Binary messaging library for network communication between Rust and TypeScript. ",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/robertwayne/bufferfish.git"
@@ -12,15 +12,19 @@
     "types": "./dist/index.d.ts",
     "type": "module",
     "scripts": {
-        "fmt": "prettier --config .prettierrc --write  \"**/*.{ts,js}\"",
-        "fmt:check": "prettier --config .prettierrc --check  \"**/*.{ts,js}\"",
+        "fmt": "prettier --write  \"**/*.{ts,js}\"",
+        "fmt:check": "prettier --check  \"**/*.{ts,js}\"",
         "tsc": "tsc --noEmit",
         "tsc:watch": "tsc --noEmit --watch",
         "build-types": "tsc src/bufferfish.ts --declaration --emitDeclarationOnly --outfile dist/index.d.ts"
     },
     "devDependencies": {
-        "@types/bun": "^1.2.5",
+        "@types/bun": "^1.2.12",
         "prettier": "^3.5.3",
-        "typescript": "^5.8.2"
+        "typescript": "^5.8.3"
+    },
+    "prettier": {
+        "tabWidth": 4,
+        "semi": false
     }
 }
