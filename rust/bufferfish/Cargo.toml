@@ -2,7 +2,7 @@
 name = "bufferfish"
 authors = ["Rob Wagner <rob@sombia.com>"]
 license = "MIT OR Apache-2.0"
-description = "Binary message utility library for Rust and TypeScript interop."
+description = "Binary messaging library for network communication between Rust and TypeScript."
 repository = "https://github.com/robertwayne/bufferfish"
 categories = ["network-programming"]
 keywords = ["binary-protocol", "typescript"]
