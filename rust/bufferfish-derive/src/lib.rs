@@ -1,10 +1,10 @@
 extern crate proc_macro;
 
-use proc_macro2::TokenStream;
 use proc_macro_error::{abort, proc_macro_error};
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
-    parse_macro_input, spanned::Spanned, Data, DeriveInput, Expr, Fields, Index, Type, TypePath,
+    Data, DeriveInput, Expr, Fields, Index, Type, TypePath, parse_macro_input, spanned::Spanned,
 };
 
 #[proc_macro_derive(Encode, attributes(bufferfish))]
@@ -53,7 +53,7 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
         Data::Union(_) => abort!(ast.span(), "decoding union types is not supported"),
     };
 
-    let gen = quote! {
+    let generated = quote! {
         impl bufferfish::Encodable for #name {
             fn encode(&self, bf: &mut bufferfish::Bufferfish) -> Result<(), bufferfish::BufferfishError> {
                 #(#encoded_snippets)*
@@ -70,7 +70,7 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
         }
     };
 
-    gen.into()
+    generated.into()
 }
 
 #[proc_macro_derive(Decode, attributes(bufferfish))]
@@ -206,7 +206,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
         _ => Vec::new(),
     };
 
-    let gen = match &ast.data {
+    let generated = match &ast.data {
         Data::Struct(data) => match &data.fields {
             Fields::Named(_) => {
                 quote! {
@@ -310,7 +310,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
         _ => abort!(ast.span(), "only structs and enums are supported"),
     };
 
-    gen.into()
+    generated.into()
 }
 
 fn get_packet_id(ast: &DeriveInput) -> Option<Expr> {
