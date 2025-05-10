@@ -2,7 +2,7 @@
 //! decoders from Rust types annotated with `#[derive(Encode)]` and/or `#[derive
 //! (Decode]`.
 use std::{
-    fs::{create_dir_all, read_dir, File, OpenOptions},
+    fs::{File, OpenOptions, create_dir_all, read_dir},
     io::{self, Read, Write},
     path::Path,
 };
@@ -376,12 +376,10 @@ fn get_bufferfish_write_fn(ty: Type, value_accessor: &str) -> String {
                         if is_primitive_type(inner_ty) {
                             return format!(
                                 "bf.writeUint16({value_accessor}.length)\n    for (const item of {value_accessor}) {{\n        bf.{inner_write_fn}(item)\n    }}",
-
                             );
                         } else {
                             return format!(
                                 "bf.writeUint16({value_accessor}.length)\n    for (const item of {value_accessor}) {{\n        {inner_write_fn}(bf, item)\n    }}",
-
                             );
                         }
                     }
