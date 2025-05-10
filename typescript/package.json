@@ -12,8 +12,8 @@
     "types": "./dist/index.d.ts",
     "type": "module",
     "scripts": {
-        "fmt": "prettier --write  \"**/*.{ts,js}\"",
-        "fmt:check": "prettier --check  \"**/*.{ts,js}\"",
+        "fmt": "prettier --write  \"**/*.{ts,js}\" \"!dist/**/*\"",
+        "fmt:check": "prettier --check  \"**/*.{ts,js}\" \"!dist/**/*\"",
         "tsc": "tsc --noEmit",
         "tsc:watch": "tsc --noEmit --watch",
         "build-types": "tsc src/bufferfish.ts --declaration --emitDeclarationOnly --outfile dist/index.d.ts"
