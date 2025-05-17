@@ -14,6 +14,7 @@ edition = "2024"
 default = []
 pretty-print = ["bufferfish-core/unicode-width"]
 derive = ["bufferfish-derive", "syn"]
+with-bytes = ["bufferfish-core/bytes"]
 
 [dependencies]
 bufferfish-core = { version = "0.1", path = "../bufferfish-core" }
