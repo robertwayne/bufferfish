@@ -108,7 +108,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                     let ident = field.ident.as_ref().expect("named fields required");
                     let ty = &field.ty;
                     quote! {
-                        #ident: <#ty as bufferfish::Decodable>::decode(bf)?,
+                        #ident: <#ty as bufferfish::Decodable>::decode_value(bf)?,
                     }
                 })
                 .collect::<Vec<_>>(),
@@ -118,7 +118,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                 .map(|field| {
                     let ty = &field.ty;
                     quote! {
-                        <#ty as bufferfish::Decodable>::decode(bf)?,
+                        <#ty as bufferfish::Decodable>::decode_value(bf)?,
                     }
                 })
                 .collect::<Vec<_>>(),
@@ -218,6 +218,10 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                     impl bufferfish::Decodable for #name {
                         fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                             #packet_id_snippet
+                            Self::decode_value(bf)
+                        }
+
+                        fn decode_value(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                             Ok(Self {
                                 #(#decoded_snippets)*
                             })
@@ -244,6 +248,10 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                     impl bufferfish::Decodable for #name {
                         fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                             #packet_id_snippet
+                            Self::decode_value(bf)
+                        }
+
+                        fn decode_value(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                             Ok(Self(
                                 #(#decoded_snippets)*
                             ))
@@ -270,6 +278,10 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                     impl bufferfish::Decodable for #name {
                         fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                             #packet_id_snippet
+                            Self::decode_value(bf)
+                        }
+
+                        fn decode_value(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                             Ok(Self)
                         }
 
@@ -291,6 +303,10 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                 impl bufferfish::Decodable for #name {
                     fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                         #packet_id_snippet
+                        Self::decode_value(bf)
+                    }
+
+                    fn decode_value(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                         let variant_idx = bf.read_u8()?;
                         Ok(match variant_idx {
                             #(#decoded_snippets)*
