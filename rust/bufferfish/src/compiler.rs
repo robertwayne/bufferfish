@@ -344,10 +344,8 @@ fn generate_typescript_struct_encoders(
         Fields::Unit => {
             if let Some(id) = packet_id {
                 output.push_str(
-                    format!(
-                        "\nexport function encode{struct_name}(bf: Bufferfish, _value: {struct_name}): void {{\n",
-                    )
-                    .as_str(),
+                    format!("\nexport function encode{struct_name}(bf: Bufferfish): void {{\n",)
+                        .as_str(),
                 );
 
                 if let Some(enum_name) = extract_enum_name_from_packet_id(&id)
@@ -611,17 +609,7 @@ fn generate_typescript_struct_decoders(item: ItemStruct, lines: &mut String) {
             lines.push_str("    ]\n");
             lines.push_str("}\n");
         }
-        Fields::Unit => {
-            // lines.push_str(
-            //     format!(
-            //         "\nexport function decode{struct_name}(bf: Bufferfish): {struct_name} {{\n"
-            //     )
-            //     .as_str(),
-            // );
-            // lines.push_str("    return {\n");
-            // lines.push_str("    }\n");
-            // lines.push_str("}\n");
-        }
+        Fields::Unit => {}
     }
 }
 
