@@ -1,3 +1,5 @@
+set -e
+
 cd rust
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo fmt --all --check
