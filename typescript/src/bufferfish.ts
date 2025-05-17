@@ -9,7 +9,7 @@ export class Bufferfish {
     private inner: Uint8Array
     private position: number
     private reading: boolean
-    private capacity: number
+    private max_capacity: number
 
     private textDecoder: TextDecoder | undefined
     private textEncoder: TextEncoder | undefined
@@ -18,7 +18,7 @@ export class Bufferfish {
         this.inner = new Uint8Array(bf)
         this.position = 0
         this.reading = false
-        this.capacity = 1024
+        this.max_capacity = 1024
 
         this.textDecoder = undefined
         this.textEncoder = undefined
@@ -32,12 +32,12 @@ export class Bufferfish {
      */
     private write(bf: Uint8Array): number | Error {
         if (
-            this.capacity > 0 &&
-            (bf.length > this.capacity ||
-                this.inner.length + bf.length > this.capacity)
+            this.max_capacity > 0 &&
+            (bf.length > this.max_capacity ||
+                this.inner.length + bf.length > this.max_capacity)
         ) {
             return new Error(
-                `Bufferfish capacity exceeded (${this.capacity} bytes)`,
+                `Bufferfish capacity exceeded (${this.max_capacity} bytes)`,
             )
         }
 
@@ -80,7 +80,42 @@ export class Bufferfish {
      * A value of 0 will allow the buffer to grow indefinitely.
      */
     public setMaxCapacity(capacity: number): void {
-        this.capacity = capacity
+        this.max_capacity = capacity
+    }
+
+    /**
+     * Returns true if the buffer is empty.
+     */
+    public isEmpty = (): boolean => {
+        return this.inner.length === 0
+    }
+
+    /**
+     * Returns the current length (in bytes) of the buffer.
+     */
+    public length = (): number => {
+        return this.inner.length
+    }
+
+    /**
+     * Clears the buffer and resets the cursor to the start position.
+     */
+    public clear = (): void => {
+        this.inner = new Uint8Array(0)
+        this.position = 0
+        this.reading = false
+    }
+
+    /**
+     * Resizes the internal buffer to the specified size (in bytes).
+     * This resets the buffer state and clears any existing data.
+     */
+    public truncate = (length: number): void => {
+        this.clear()
+        this.inner = this.inner.subarray(0, length)
+        this.position = 0
+        this.max_capacity = length
+        this.reading = false
     }
 
     /**
@@ -95,7 +130,7 @@ export class Bufferfish {
 
         if (this.position >= this.inner.length || value === undefined) {
             return new Error(
-                `peek of 1 byte exceeds the max capacity of ${this.capacity} bytes on this Bufferfish`,
+                `peek of 1 byte exceeds the max capacity of ${this.max_capacity} bytes on this Bufferfish`,
             )
         }
 
@@ -113,7 +148,7 @@ export class Bufferfish {
 
         if (this.position + n > this.inner.length) {
             return new Error(
-                `peek of ${n} bytes exceeds the max capacity of ${this.capacity} bytes on this Bufferfish`,
+                `peek of ${n} bytes exceeds the max capacity of ${this.max_capacity} bytes on this Bufferfish`,
             )
         }
 

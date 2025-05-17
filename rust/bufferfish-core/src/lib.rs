@@ -9,9 +9,8 @@ use std::{
 pub use decodable::Decodable;
 pub use encodable::Encodable;
 
-/// Trait for types that can be created from bytes.
+/// Types that can be created from bytes.
 pub trait FromBytes: Sized {
-    /// Create a new instance from bytes.
     fn from_bytes(bytes: &[u8]) -> Result<Self, BufferfishError>;
 }
 
@@ -37,6 +36,7 @@ impl<T: Decodable> FromBytes for T {
 
         let mut bf = Bufferfish::from(bytes);
         bf.start_reading();
+
         T::decode(&mut bf)
     }
 }
@@ -145,7 +145,8 @@ impl Bufferfish {
     /// Decode a value from this `Bufferfish`.
     ///
     /// This function will start reading from the beginning of the buffer.
-    /// Performs validation to check if the buffer's content is within acceptable size limits.
+    /// Performs validation to check if the buffer's content is within
+    /// acceptable size limits.
     pub fn decode<T: Decodable>(&mut self) -> Result<T, BufferfishError> {
         let bytes = self.as_bytes();
 
@@ -172,7 +173,8 @@ impl Bufferfish {
     }
 
     /// Convert this Bufferfish into a value of type T.
-    /// Performs validation to check if the buffer's content is within acceptable size limits.
+    /// Performs validation to check if the buffer's content is within
+    /// acceptable size limits.
     pub fn into_value<T: Decodable>(mut self) -> Result<T, BufferfishError> {
         let bytes = self.as_bytes();
 
@@ -249,9 +251,11 @@ impl Bufferfish {
     /// Resizes the internal buffer to the given size (in bytes).
     /// This resets the buffer state and clears any existing data.
     pub fn truncate(&mut self, len: usize) {
+        self.clear();
         self.inner.get_mut().truncate(len);
         self.inner.set_position(0);
         self.reading = false;
+        self.max_capacity = len;
     }
 
     /// Returns a `Vec<u8>` of the internal byte buffer.
