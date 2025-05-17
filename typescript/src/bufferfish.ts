@@ -375,6 +375,33 @@ export class Bufferfish {
     }
 
     /**
+     * Writes an array of elements to the buffer.
+     * The array is prefixed with its length as a u16 (two bytes).
+     */
+    public writeArray<T>(
+        values: Array<T>,
+        writeFn: (value: T) => void | Error,
+    ): void | Error {
+        if (values.length > 65535) {
+            return new Error(
+                `array length ${values.length} exceeds maximum size of 65535`,
+            )
+        }
+
+        const err = this.writeUint16(values.length)
+        if (err instanceof Error) {
+            return err
+        }
+
+        for (const value of values) {
+            const err = writeFn(value)
+            if (err instanceof Error) {
+                return err
+            }
+        }
+    }
+
+    /**
      * Attempts to read a u8 from the buffer.
      */
     public readUint8(): number | Error {

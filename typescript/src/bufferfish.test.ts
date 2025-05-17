@@ -393,3 +393,69 @@ test("should return error on more than 8 packed bools", () => {
         Error("cannot pack more than 8 bools into a single byte"),
     )
 })
+
+test("should write and read arrays of u8", () => {
+    const bf = new Bufferfish()
+
+    const numbers = [1, 2, 3, 4, 5]
+    bf.writeArray(numbers, (n) => bf.writeUint8(n))
+
+    expect(bf.view()).toEqual(new Uint8Array([0, 5, 1, 2, 3, 4, 5]))
+
+    const readArray = bf.readArray(() => {
+        const val = bf.readUint8()
+        if (val instanceof Error) {
+            throw val
+        }
+        return val
+    })
+
+    expect(readArray).toEqual(numbers)
+})
+
+test("should write and read arrays of strings", () => {
+    const bf = new Bufferfish()
+
+    const strings = ["hello", "world", "bufferfish"]
+    bf.writeArray(strings, (s) => bf.writeString(s))
+
+    const readArray = bf.readArray(() => {
+        const val = bf.readString()
+        if (val instanceof Error) {
+            throw val
+        }
+        return val
+    })
+
+    expect(readArray).toEqual(strings)
+})
+
+test("should handle empty arrays", () => {
+    const bf = new Bufferfish()
+
+    const emptyArray: number[] = []
+    bf.writeArray(emptyArray, (n) => bf.writeUint8(n))
+
+    expect(bf.view()).toEqual(new Uint8Array([0, 0]))
+
+    const readArray = bf.readArray(() => {
+        const val = bf.readUint8()
+        if (val instanceof Error) {
+            throw val
+        }
+        return val
+    })
+
+    expect(readArray).toEqual(emptyArray)
+})
+
+test("should return error for arrays exceeding maximum length", () => {
+    const bf = new Bufferfish()
+
+    const hugeArray = new Array(65536).fill(1)
+
+    const err = bf.writeArray(hugeArray, (n) => bf.writeUint8(n))
+    expect(err).toEqual(
+        Error("array length 65536 exceeds maximum size of 65535"),
+    )
+})
