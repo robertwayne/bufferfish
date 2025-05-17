@@ -753,7 +753,7 @@ export function encodeJoinPacket(bf: Bufferfish, value: JoinPacket): void {
     bf.writeString(value.username)
 }
 
-export function encodeLeavePacket(bf: Bufferfish, _value: LeavePacket): void {
+export function encodeLeavePacket(bf: Bufferfish): void {
     encodePacketId(bf, PacketId.Leave)
 }
 
