@@ -712,3 +712,9 @@ impl From<Bufferfish> for bytes::Bytes {
         bytes::Bytes::from(buffer.inner.into_inner())
     }
 }
+
+impl From<&Bufferfish> for bytes::Bytes {
+    fn from(buffer: &Bufferfish) -> Self {
+        bytes::Bytes::copy_from_slice(buffer.as_ref())
+    }
+}
