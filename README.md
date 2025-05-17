@@ -253,6 +253,7 @@ Flag           | Default  | Description                                         
 ---------------|----------|-----------------------------------------------------------------|---------------------------------------------------
 `pretty-print` | Disabled | Enables pretty-printing of buffer output.                       | `unicode-width`
 `derive`       | Disabled | Enables the `#[derive(Encode)]` and `#[derive(Decode)]` macros. | `syn`, `quote`, `proc-macro2`, `proc-macro-error` |
+`with-bytes`   | Disabled | Enables the From/Into impls for the `bytes::Bytes` type.                    | `bytes`                                           |
 
 ## Notes
 
