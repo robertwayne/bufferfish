@@ -152,7 +152,7 @@ impl Bufferfish {
     }
 
     /// Clears the buffer and resets the cursor to the start position.
-    pub fn clear(&mut self) {
+    pub fn reset(&mut self) {
         self.inner.get_mut().clear();
         self.inner.set_position(0);
         self.reading = false;
@@ -161,7 +161,7 @@ impl Bufferfish {
     /// Resizes the internal buffer to the given size (in bytes).
     /// This resets the buffer state and clears any existing data.
     pub fn truncate(&mut self, len: usize) {
-        self.clear();
+        self.reset();
         self.inner.get_mut().truncate(len);
         self.inner.set_position(0);
         self.reading = false;

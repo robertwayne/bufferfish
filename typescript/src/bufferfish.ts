@@ -100,7 +100,7 @@ export class Bufferfish {
     /**
      * Clears the buffer and resets the cursor to the start position.
      */
-    public clear = (): void => {
+    public reset = (): void => {
         this.inner = new Uint8Array(0)
         this.position = 0
         this.reading = false
@@ -111,7 +111,7 @@ export class Bufferfish {
      * This resets the buffer state and clears any existing data.
      */
     public truncate = (length: number): void => {
-        this.clear()
+        this.reset()
         this.inner = this.inner.subarray(0, length)
         this.position = 0
         this.max_capacity = length

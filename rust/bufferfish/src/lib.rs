@@ -1011,4 +1011,16 @@ mod tests {
         assert!(result_should_err.is_err());
         assert!(result_should_ok.is_ok());
     }
+
+    #[test]
+    fn test_reset() {
+        let mut bf = Bufferfish::new();
+        bf.write_u8(0).unwrap();
+        bf.write_u8(255).unwrap();
+
+        bf.reset();
+
+        assert_eq!(bf.len(), 0);
+        assert_eq!(bf.as_ref(), &[]);
+    }
 }
