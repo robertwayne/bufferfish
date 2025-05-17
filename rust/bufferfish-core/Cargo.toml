@@ -12,8 +12,9 @@ edition = "2024"
 
 [dependencies]
 unicode-width = { version = "0.2", optional = true }
-bytes = "1"
+bytes = { version = "1", optional = true }
 
 [features]
 default = []
 pretty-print = ["unicode-width"]
+with-bytes = ["bytes"]

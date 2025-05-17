@@ -705,6 +705,7 @@ impl From<Bufferfish> for Vec<u8> {
     }
 }
 
+#[cfg(feature = "bytes")]
 impl From<bytes::Bytes> for Bufferfish {
     fn from(bytes: bytes::Bytes) -> Self {
         Self {
@@ -715,12 +716,14 @@ impl From<bytes::Bytes> for Bufferfish {
     }
 }
 
+#[cfg(feature = "bytes")]
 impl From<Bufferfish> for bytes::Bytes {
     fn from(buffer: Bufferfish) -> Self {
         bytes::Bytes::from(buffer.inner.into_inner())
     }
 }
 
+#[cfg(feature = "bytes")]
 impl From<&Bufferfish> for bytes::Bytes {
     fn from(buffer: &Bufferfish) -> Self {
         bytes::Bytes::copy_from_slice(buffer.as_ref())
