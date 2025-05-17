@@ -27,7 +27,7 @@ _This library has an unstable API. I can't recommend using it in production, alt
 
 ## Repository Overview
 
-There are two seperate libraries in this repo: one for Rust and one for TypeScript. Neither of the libraries have any required dependencies. The Rust version optionally uses the `unicode-width` crate for formatting buffer output when `pretty-print` is enabled.
+There are two seperate libraries in this repo: one for Rust and one for TypeScript. Neither of the libraries have any required dependencies. See the [Feature Flags](#feature-flags) section for optional dependencies.
 
 The Rust library is broken into three seperate crates:
 
