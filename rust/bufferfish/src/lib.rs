@@ -552,7 +552,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_struct() {
+    fn test_to_bufferfish_struct() {
         use bufferfish_core as bufferfish;
         use bufferfish_core::Encodable;
 
@@ -586,7 +586,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_array() {
+    fn test_to_bufferfish_array() {
         use bufferfish_core as bufferfish;
         use bufferfish_core::Encodable;
 
@@ -619,7 +619,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_enums() {
+    fn test_to_bufferfish_enums() {
         use bufferfish_core as bufferfish;
         use bufferfish_core::Encodable;
 
@@ -661,6 +661,122 @@ mod tests {
         }
         .to_bufferfish()
         .unwrap();
+
+        assert_eq!(bf.as_ref(), &[0, 0, 0]);
+    }
+
+    #[test]
+    fn test_encode_into_struct() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Encodable;
+
+        #[derive(Encode)]
+        #[bufferfish(0_u16)]
+        struct JoinPacket {
+            user: User,
+        }
+
+        #[derive(Encode)]
+        struct User {
+            id: u32,
+            name: String,
+        }
+
+        let mut bf = Bufferfish::new();
+        let user = User {
+            id: 0,
+            name: "Bufferfish".to_string(),
+        };
+        let packet = JoinPacket { user };
+
+        packet.encode_into(&mut bf).unwrap();
+
+        assert_eq!(
+            bf.as_ref(),
+            &[
+                0, 0, 0, 0, 0, 0, 0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104
+            ]
+        );
+    }
+
+    #[test]
+    fn test_encode_into_array() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Encodable;
+
+        #[derive(Encode)]
+        struct User {
+            id: u32,
+            name: String,
+        }
+
+        let users = vec![
+            User {
+                id: 0,
+                name: "Bufferfish".to_string(),
+            },
+            User {
+                id: 1,
+                name: "Bufferfish2".to_string(),
+            },
+        ];
+
+        let mut bf = Bufferfish::new();
+        users.encode_into(&mut bf).unwrap();
+
+        assert_eq!(
+            bf.as_ref(),
+            &[
+                0, 2, 0, 0, 0, 0, 0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104, 0, 0, 0,
+                1, 0, 11, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104, 50,
+            ]
+        );
+    }
+
+    #[test]
+    fn test_encode_into_enums() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Encodable;
+
+        #[derive(Encode, Clone, Copy)]
+        enum PacketId {
+            Join,
+        }
+
+        impl From<PacketId> for u16 {
+            fn from(value: PacketId) -> Self {
+                match value {
+                    PacketId::Join => 0,
+                }
+            }
+        }
+
+        #[derive(Encode)]
+        #[bufferfish(PacketId::Join)]
+        struct JoinPacket {
+            class: Class,
+        }
+
+        #[derive(Encode, Clone, Copy)]
+        #[repr(u8)]
+        enum Class {
+            Warrior,
+        }
+
+        impl From<Class> for u8 {
+            fn from(value: Class) -> Self {
+                match value {
+                    Class::Warrior => 0,
+                }
+            }
+        }
+
+        let mut bf = Bufferfish::new();
+        let packet = JoinPacket {
+            class: Class::Warrior,
+        };
+
+        packet.encode_into(&mut bf).unwrap();
 
         assert_eq!(bf.as_ref(), &[0, 0, 0]);
     }

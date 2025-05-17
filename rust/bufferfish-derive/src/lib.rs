@@ -67,6 +67,14 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
 
                 Ok(bf)
             }
+
+            fn encode_into(self, bf: &mut bufferfish::Bufferfish) -> Result<(), bufferfish::BufferfishError>
+            where
+                Self: Sized,
+            {
+                #packet_id_snippet
+                self.encode(bf)
+            }
         }
     };
 

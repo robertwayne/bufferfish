@@ -14,6 +14,17 @@ pub trait Encodable {
 
         Ok(bf)
     }
+
+    /// Encode this type into a provided `Bufferfish` buffer.
+    ///
+    /// This is useful when you want to reuse an existing buffer to avoid
+    /// allocations.
+    fn encode_into(self, bf: &mut Bufferfish) -> Result<(), BufferfishError>
+    where
+        Self: Sized,
+    {
+        self.encode(bf)
+    }
 }
 
 impl Encodable for u8 {
