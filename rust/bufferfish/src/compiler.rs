@@ -148,12 +148,11 @@ fn generate_output_string(input: Vec<String>, output: &mut String) -> Result<(),
         let (structs, enums) = get_items_implementing_encode(items);
 
         for item in &structs {
-            if let Some(packet_id) = get_packet_id(&item.attrs) {
-                if let Some(enum_name) = extract_enum_name_from_packet_id(&packet_id) {
-                    if !packet_id_enum_names.contains(&enum_name) {
-                        packet_id_enum_names.push(enum_name);
-                    }
-                }
+            if let Some(packet_id) = get_packet_id(&item.attrs)
+                && let Some(enum_name) = extract_enum_name_from_packet_id(&packet_id)
+                && !packet_id_enum_names.contains(&enum_name)
+            {
+                packet_id_enum_names.push(enum_name);
             }
         }
 
@@ -216,13 +215,13 @@ fn generate_typescript_enum_encoders(item: ItemEnum, output: &mut String) {
 /// Extract the PacketID from struct attributes and format it for TypeScript
 fn get_packet_id(attrs: &[Attribute]) -> Option<String> {
     for attr in attrs {
-        if attr.path().is_ident("bufferfish") {
-            if let Meta::List(list) = &attr.meta {
-                let tokens = list.tokens.to_string();
-                let cleaned = tokens.trim().replace(" ", "").replace("::", ".");
+        if attr.path().is_ident("bufferfish")
+            && let Meta::List(list) = &attr.meta
+        {
+            let tokens = list.tokens.to_string();
+            let cleaned = tokens.trim().replace(" ", "").replace("::", ".");
 
-                return Some(cleaned);
-            }
+            return Some(cleaned);
         }
     }
     None
@@ -285,12 +284,11 @@ fn generate_typescript_struct_encoders(
                 .as_str(),
             );
 
-            if let Some(id) = &packet_id {
-                if let Some(enum_name) = extract_enum_name_from_packet_id(id) {
-                    if packet_id_enums.contains(&enum_name) {
-                        output.push_str(format!("    encode{enum_name}(bf, {id})\n").as_str());
-                    }
-                }
+            if let Some(id) = &packet_id
+                && let Some(enum_name) = extract_enum_name_from_packet_id(id)
+                && packet_id_enums.contains(&enum_name)
+            {
+                output.push_str(format!("    encode{enum_name}(bf, {id})\n").as_str());
             }
 
             for field in &fields_named.named {
@@ -324,12 +322,11 @@ fn generate_typescript_struct_encoders(
                 .as_str(),
             );
 
-            if let Some(id) = &packet_id {
-                if let Some(enum_name) = extract_enum_name_from_packet_id(id) {
-                    if packet_id_enums.contains(&enum_name) {
-                        output.push_str(format!("    encode{enum_name}(bf, {id})\n").as_str());
-                    }
-                }
+            if let Some(id) = &packet_id
+                && let Some(enum_name) = extract_enum_name_from_packet_id(id)
+                && packet_id_enums.contains(&enum_name)
+            {
+                output.push_str(format!("    encode{enum_name}(bf, {id})\n").as_str());
             }
 
             for (i, field) in fields_unnamed.unnamed.iter().enumerate() {
@@ -353,10 +350,10 @@ fn generate_typescript_struct_encoders(
                     .as_str(),
                 );
 
-                if let Some(enum_name) = extract_enum_name_from_packet_id(&id) {
-                    if packet_id_enums.contains(&enum_name) {
-                        output.push_str(format!("    encode{enum_name}(bf, {id})\n").as_str());
-                    }
+                if let Some(enum_name) = extract_enum_name_from_packet_id(&id)
+                    && packet_id_enums.contains(&enum_name)
+                {
+                    output.push_str(format!("    encode{enum_name}(bf, {id})\n").as_str());
                 }
 
                 output.push_str("}\n");
@@ -368,21 +365,21 @@ fn generate_typescript_struct_encoders(
 fn get_bufferfish_write_fn(ty: Type, value_accessor: &str) -> String {
     match ty {
         Type::Path(TypePath { path, .. }) => {
-            if path.segments.len() == 1 && path.segments[0].ident == "Vec" {
-                if let PathArguments::AngleBracketed(ref args) = path.segments[0].arguments {
-                    if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
-                        let inner_write_fn = get_element_write_fn(inner_ty.clone());
+            if path.segments.len() == 1
+                && path.segments[0].ident == "Vec"
+                && let PathArguments::AngleBracketed(ref args) = path.segments[0].arguments
+                && let Some(GenericArgument::Type(inner_ty)) = args.args.first()
+            {
+                let inner_write_fn = get_element_write_fn(inner_ty.clone());
 
-                        if is_primitive_type(inner_ty) {
-                            return format!(
-                                "bf.writeUint16({value_accessor}.length)\n    for (const item of {value_accessor}) {{\n        bf.{inner_write_fn}(item)\n    }}",
-                            );
-                        } else {
-                            return format!(
-                                "bf.writeUint16({value_accessor}.length)\n    for (const item of {value_accessor}) {{\n        {inner_write_fn}(bf, item)\n    }}",
-                            );
-                        }
-                    }
+                if is_primitive_type(inner_ty) {
+                    return format!(
+                        "bf.writeUint16({value_accessor}.length)\n    for (const item of {value_accessor}) {{\n        bf.{inner_write_fn}(item)\n    }}",
+                    );
+                } else {
+                    return format!(
+                        "bf.writeUint16({value_accessor}.length)\n    for (const item of {value_accessor}) {{\n        {inner_write_fn}(bf, item)\n    }}",
+                    );
                 }
             }
 
@@ -487,13 +484,13 @@ fn generate_typescript_enum_defs(item: ItemEnum, lines: &mut String) {
 fn get_typescript_type(ty: Type) -> String {
     match ty {
         Type::Path(TypePath { path, .. }) => {
-            if path.segments.len() == 1 && path.segments[0].ident == "Vec" {
-                if let PathArguments::AngleBracketed(ref args) = path.segments[0].arguments {
-                    if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
-                        let inner_ts_type = get_typescript_type(inner_ty.clone());
-                        return format!("Array<{inner_ts_type}>");
-                    }
-                }
+            if path.segments.len() == 1
+                && path.segments[0].ident == "Vec"
+                && let PathArguments::AngleBracketed(ref args) = path.segments[0].arguments
+                && let Some(GenericArgument::Type(inner_ty)) = args.args.first()
+            {
+                let inner_ts_type = get_typescript_type(inner_ty.clone());
+                return format!("Array<{inner_ts_type}>");
             }
 
             match path.get_ident().map(|ident| ident.to_string()).as_deref() {
@@ -631,14 +628,14 @@ fn generate_typescript_struct_decoders(item: ItemStruct, lines: &mut String) {
 fn get_bufferfish_fn(ty: Type) -> String {
     match ty {
         Type::Path(TypePath { path, .. }) => {
-            if path.segments.len() == 1 && path.segments[0].ident == "Vec" {
-                if let PathArguments::AngleBracketed(ref args) = path.segments[0].arguments {
-                    if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
-                        let inner_fn = get_bufferfish_fn(inner_ty.clone());
-                        let inner_ts_type = get_typescript_type(inner_ty.clone());
-                        return format!("bf.readArray(() => {inner_fn}) as Array<{inner_ts_type}>");
-                    }
-                }
+            if path.segments.len() == 1
+                && path.segments[0].ident == "Vec"
+                && let PathArguments::AngleBracketed(ref args) = path.segments[0].arguments
+                && let Some(GenericArgument::Type(inner_ty)) = args.args.first()
+            {
+                let inner_fn = get_bufferfish_fn(inner_ty.clone());
+                let inner_ts_type = get_typescript_type(inner_ty.clone());
+                return format!("bf.readArray(() => {inner_fn}) as Array<{inner_ts_type}>");
             }
 
             match path.get_ident().map(|ident| ident.to_string()).as_deref() {
@@ -689,12 +686,12 @@ fn generate_typescript_enum_decoders(item: ItemEnum, output: &mut String) {
 
 fn get_repr_type(attrs: &[Attribute]) -> Option<String> {
     for attr in attrs {
-        if attr.path().is_ident("repr") {
-            if let Meta::List(list) = &attr.meta {
-                for item in list.tokens.clone() {
-                    if let Some(ident) = item.to_string().split_whitespace().next() {
-                        return Some(ident.to_string());
-                    }
+        if attr.path().is_ident("repr")
+            && let Meta::List(list) = &attr.meta
+        {
+            for item in list.tokens.clone() {
+                if let Some(ident) = item.to_string().split_whitespace().next() {
+                    return Some(ident.to_string());
                 }
             }
         }
@@ -799,12 +796,11 @@ export function encodeUnknownPacket(bf: Bufferfish, value: UnknownPacket): void 
         let mut packet_id_enum_names = Vec::new();
 
         for item in &structs {
-            if let Some(packet_id) = get_packet_id(&item.attrs) {
-                if let Some(enum_name) = extract_enum_name_from_packet_id(&packet_id) {
-                    if !packet_id_enum_names.contains(&enum_name) {
-                        packet_id_enum_names.push(enum_name);
-                    }
-                }
+            if let Some(packet_id) = get_packet_id(&item.attrs)
+                && let Some(enum_name) = extract_enum_name_from_packet_id(&packet_id)
+                && !packet_id_enum_names.contains(&enum_name)
+            {
+                packet_id_enum_names.push(enum_name);
             }
         }
 

@@ -17,22 +17,22 @@ pub trait FromBytes: Sized {
 
 impl<T: Decodable> FromBytes for T {
     fn from_bytes(bytes: &[u8]) -> Result<Self, BufferfishError> {
-        if let Some(required) = T::min_bytes_required() {
-            if bytes.len() < required {
-                return Err(BufferfishError::InsufficientBytes {
-                    available: bytes.len(),
-                    required,
-                });
-            }
+        if let Some(required) = T::min_bytes_required()
+            && bytes.len() < required
+        {
+            return Err(BufferfishError::InsufficientBytes {
+                available: bytes.len(),
+                required,
+            });
         }
 
-        if let Some(max_allowed) = T::max_bytes_allowed() {
-            if bytes.len() > max_allowed {
-                return Err(BufferfishError::ExcessiveBytes {
-                    available: bytes.len(),
-                    max_allowed,
-                });
-            }
+        if let Some(max_allowed) = T::max_bytes_allowed()
+            && bytes.len() > max_allowed
+        {
+            return Err(BufferfishError::ExcessiveBytes {
+                available: bytes.len(),
+                max_allowed,
+            });
         }
 
         let mut bf = Bufferfish::from(bytes);
@@ -149,22 +149,22 @@ impl Bufferfish {
     pub fn decode<T: Decodable>(&mut self) -> Result<T, BufferfishError> {
         let bytes = self.as_bytes();
 
-        if let Some(required) = T::min_bytes_required() {
-            if bytes.len() < required {
-                return Err(BufferfishError::InsufficientBytes {
-                    available: bytes.len(),
-                    required,
-                });
-            }
+        if let Some(required) = T::min_bytes_required()
+            && bytes.len() < required
+        {
+            return Err(BufferfishError::InsufficientBytes {
+                available: bytes.len(),
+                required,
+            });
         }
 
-        if let Some(max_allowed) = T::max_bytes_allowed() {
-            if bytes.len() > max_allowed {
-                return Err(BufferfishError::ExcessiveBytes {
-                    available: bytes.len(),
-                    max_allowed,
-                });
-            }
+        if let Some(max_allowed) = T::max_bytes_allowed()
+            && bytes.len() > max_allowed
+        {
+            return Err(BufferfishError::ExcessiveBytes {
+                available: bytes.len(),
+                max_allowed,
+            });
         }
 
         self.start_reading();
@@ -176,22 +176,22 @@ impl Bufferfish {
     pub fn into_value<T: Decodable>(mut self) -> Result<T, BufferfishError> {
         let bytes = self.as_bytes();
 
-        if let Some(required) = T::min_bytes_required() {
-            if bytes.len() < required {
-                return Err(BufferfishError::InsufficientBytes {
-                    available: bytes.len(),
-                    required,
-                });
-            }
+        if let Some(required) = T::min_bytes_required()
+            && bytes.len() < required
+        {
+            return Err(BufferfishError::InsufficientBytes {
+                available: bytes.len(),
+                required,
+            });
         }
 
-        if let Some(max_allowed) = T::max_bytes_allowed() {
-            if bytes.len() > max_allowed {
-                return Err(BufferfishError::ExcessiveBytes {
-                    available: bytes.len(),
-                    max_allowed,
-                });
-            }
+        if let Some(max_allowed) = T::max_bytes_allowed()
+            && bytes.len() > max_allowed
+        {
+            return Err(BufferfishError::ExcessiveBytes {
+                available: bytes.len(),
+                max_allowed,
+            });
         }
 
         self.start_reading();
