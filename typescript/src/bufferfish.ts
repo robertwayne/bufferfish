@@ -583,23 +583,26 @@ export class Bufferfish {
     /**
      * Attempts to read a variable-length array of elements from the buffer.
      */
-    public readArray<T>(readFn: () => T): Array<T> | Error {
+    public readArray<T>(readFn: () => T | Error): Array<T> | Error {
         const lengthOrError = this.readUint16()
         if (lengthOrError instanceof Error) {
             return lengthOrError
         }
 
-        const length = lengthOrError as number
-        const values: Array<T> = []
-        for (let i = 0; i < length; i++) {
-            const valueOrError = readFn()
-            if (valueOrError instanceof Error) {
-                return valueOrError
+        const length = lengthOrError
+        const values: Array<T> = new Array(length)
+
+        try {
+            for (let i = 0; i < length; i++) {
+                const valueOrError = readFn()
+                if (valueOrError instanceof Error) {
+                    return valueOrError
+                }
+                values[i] = valueOrError as T
             }
-
-            values.push(valueOrError as T)
+            return values
+        } catch (error) {
+            return error instanceof Error ? error : new Error(String(error))
         }
-
-        return values
     }
 }

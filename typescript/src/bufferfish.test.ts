@@ -459,3 +459,40 @@ test("should return error for arrays exceeding maximum length", () => {
         Error("array length 65536 exceeds maximum size of 65535"),
     )
 })
+
+test("should read an array of objects implementing read methods", () => {
+    const arr = [
+        { id: 1, name: "Alice", key: { inner: 1 } },
+        { id: 2, name: "Bob", key: { inner: 2 } },
+        { id: 3, name: "Charlie", key: { inner: 3 } },
+    ]
+
+    const decodeKey = (bf: Bufferfish) => {
+        const inner = bf.readUint8()
+        if (inner instanceof Error) {
+            throw inner
+        }
+        return { inner }
+    }
+
+    const decodePerson = (bf: Bufferfish) => {
+        const id = bf.readUint8()
+        const name = bf.readString()
+        const key = decodeKey(bf)
+        if (id instanceof Error || name instanceof Error) {
+            throw id instanceof Error ? id : name
+        }
+        return { id, name, key }
+    }
+
+    const bf = new Bufferfish()
+
+    bf.writeArray(arr, (person) => {
+        bf.writeUint8(person.id)
+        bf.writeString(person.name)
+        bf.writeUint8(person.key.inner)
+    })
+
+    const people = bf.readArray(() => decodePerson(bf))
+    expect(people).toEqual(arr)
+})
