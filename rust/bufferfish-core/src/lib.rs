@@ -239,6 +239,13 @@ impl Bufferfish {
         self.reading = true;
     }
 
+    /// Clears the buffer and resets the cursor to the start position.
+    pub fn clear(&mut self) {
+        self.inner.get_mut().clear();
+        self.inner.set_position(0);
+        self.reading = false;
+    }
+
     /// Returns a `Vec<u8>` of the internal byte buffer.
     pub fn into_vec(self) -> Vec<u8> {
         self.inner.into_inner()
