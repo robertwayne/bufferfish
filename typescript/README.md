@@ -4,35 +4,35 @@
 
 See the [project repository](https://github.com/robertwayne/bufferfish) for more details, including how to interop with Rust.
 
-_This library has an unstable API and may be missing some basic functionality. I can't recommend using it in production, although I am using it for my own production project._
+_This library has an unstable API. I can't recommend using it in production, although I am using it for my own production project._
 
 ## Table of Contents
 
-  - [Getting Started](#getting-started)
-  - [Examples](#examples)
+- [Getting Started](#getting-started)
+- [Examples](#examples)
     - [Writing to a Bufferfish](#writing-to-a-bufferfish)
     - [Reading from a Bufferfish](#reading-from-a-bufferfish)
-  - [TypeScript Code Generation](#typescript-code-generation)
+- [TypeScript Code Generation](#typescript-code-generation)
     - [Using Generated Decoding Functions](#using-generated-decoding-functions)
-  - [Encodable Types](#encodable-types)
-  - [Feature Flags (Rust)](#feature-flags-rust)
-  - [Notes](#notes)
-  - [Security](#security)
-  - [Contributing](#contributing)
-  - [License](#license)
+- [Encodable Types](#encodable-types)
+- [Feature Flags (Rust)](#feature-flags-rust)
+- [Notes](#notes)
+- [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Getting Started
 
 Use `cargo add bufferfish` to add the Rust library to your project.
 
-Use `npm install bufferfish` to add the TypeScript library to your project.
+Use `bun install bufferfish` to add the TypeScript library to your project.
 
 ## Examples
 
 ### Writing to a Bufferfish
 
 ```typescript
-import { Bufferfish } from 'bufferfish'
+import { Bufferfish } from "bufferfish"
 
 const ws = new WebSocket("ws://127.0.0.1:3000")
 ws.binaryType = "arraybuffer"
@@ -47,14 +47,14 @@ ws.send(bf.view())
 ### Reading from a Bufferfish
 
 ```typescript
-import { Bufferfish } from 'bufferfish'
+import { Bufferfish } from "bufferfish"
 
 const ws = new WebSocket("ws://127.0.0.1:3000")
 ws.binaryType = "arraybuffer"
 
 onmessage = (event) => {
-  const bf = new Bufferfish(event.data)
-  const id = bf.readUint8()
+    const bf = new Bufferfish(event.data)
+    const id = bf.readUint8()
 
     if (id === 0) {
         const message = bf.readString()
@@ -139,8 +139,8 @@ const ws = new WebSocket("ws://127.0.0.1:3000")
 ws.binaryType = "arraybuffer"
 
 ws.onmessage = (event) => {
-  const bf = new Bufferfish(event.data)
-  const packetId = bf.readUint16()
+    const bf = new Bufferfish(event.data)
+    const packetId = bf.readUint16()
 
     if (packetId === PacketId.Join) {
         const packet = decodeJoinPacket(bf)
@@ -152,27 +152,27 @@ ws.onmessage = (event) => {
 
 ## Encodable Types
 
-Supported Types             | Decodes As
---------------------------- | ---------------------
-`u8`                        | `number`
-`u16`                       | `number`
-`u32`                       | `number`
-`i8`                        | `number`
-`i16`                       | `number`
-`i32`                       | `number`
-`bool`                      | `boolean`
-`String`                    | `string`
-`Vec<T> where T: Encodable` | `Array<T>`
-`T where T: Encodable`      | `object` or primitive
+| Supported Types             | Decodes As            |
+| --------------------------- | --------------------- |
+| `u8`                        | `number`              |
+| `u16`                       | `number`              |
+| `u32`                       | `number`              |
+| `i8`                        | `number`              |
+| `i16`                       | `number`              |
+| `i32`                       | `number`              |
+| `bool`                      | `boolean`             |
+| `String`                    | `string`              |
+| `Vec<T> where T: Encodable` | `Array<T>`            |
+| `T where T: Encodable`      | `object` or primitive |
 
-_*The reverse is true for decoding._
+_\*The reverse is true for decoding._
 
 ## Feature Flags (Rust)
 
-Flag           | Default  | Description                                                     | Dependencies
--------------- | -------- | --------------------------------------------------------------- | ------------------------------------------------
-`pretty-print` | Disabled | Enables pretty-printing of buffer output.                       | `unicode-width`
-`derive`       | Disabled | Enables the `#[derive(Encode)]` and `#[derive(Decode)]` macros. | `syn`, `quote`, `proc-macro2`, `proc-macro-error` |
+| Flag           | Default  | Description                                                     | Dependencies                                      |
+| -------------- | -------- | --------------------------------------------------------------- | ------------------------------------------------- |
+| `pretty-print` | Disabled | Enables pretty-printing of buffer output.                       | `unicode-width`                                   |
+| `derive`       | Disabled | Enables the `#[derive(Encode)]` and `#[derive(Decode)]` macros. | `syn`, `quote`, `proc-macro2`, `proc-macro-error` |
 
 ## Notes
 

@@ -2,7 +2,7 @@
 
 `bufferfish` is utility library for working with binary network messages between Rust and TypeScript, such as over WebSockets. It provides a simple API for encoding and decoding data into binary arrays, as well as generating TypeScript definitions and decoding functions from your Rust code.
 
-_This library has an unstable API and may be missing some basic functionality. I can't recommend using it in production, although I am using it for my own production project._
+_This library has an unstable API. I can't recommend using it in production, although I am using it for my own production project._
 
 # Table of Contents
 
@@ -23,7 +23,7 @@ _This library has an unstable API and may be missing some basic functionality. I
 
 Use `cargo add bufferfish` to add the Rust library to your project.
 
-Use `npm install bufferfish` to add the TypeScript library to your project.
+Use `bun install bufferfish` to add the TypeScript library to your project.
 
 ## Examples
 
