@@ -111,18 +111,18 @@ impl std::error::Error for BufferfishError {
 pub struct Bufferfish {
     inner: Cursor<Vec<u8>>,
     reading: bool,
-    capacity: usize,
+    max_capacity: usize,
 }
 
 impl Write for Bufferfish {
     fn write(&mut self, bf: &[u8]) -> std::io::Result<usize> {
-        if self.capacity > 0
-            && (bf.len() >= self.capacity || self.as_ref().len() + bf.len() > self.capacity)
+        if self.max_capacity > 0
+            && (bf.len() > self.max_capacity || self.len() + bf.len() > self.max_capacity)
         {
             return Err(std::io::Error::other(format!(
                 "write of {} bytes exceeds the max capacity of {} bytes on this Bufferfish",
                 bf.len(),
-                self.capacity
+                self.max_capacity
             )));
         }
 
@@ -203,7 +203,7 @@ impl Bufferfish {
         Self {
             inner: Cursor::new(Vec::new()),
             reading: false,
-            capacity: 1024,
+            max_capacity: 1024,
         }
     }
 
@@ -213,7 +213,7 @@ impl Bufferfish {
         Self {
             inner: Cursor::new(Vec::with_capacity(capacity)),
             reading: false,
-            capacity,
+            max_capacity: capacity,
         }
     }
 
@@ -246,6 +246,14 @@ impl Bufferfish {
         self.reading = false;
     }
 
+    /// Resizes the internal buffer to the given size (in bytes).
+    /// This resets the buffer state and clears any existing data.
+    pub fn truncate(&mut self, len: usize) {
+        self.inner.get_mut().truncate(len);
+        self.inner.set_position(0);
+        self.reading = false;
+    }
+
     /// Returns a `Vec<u8>` of the internal byte buffer.
     pub fn into_vec(self) -> Vec<u8> {
         self.inner.into_inner()
@@ -260,7 +268,7 @@ impl Bufferfish {
     /// Set the max capacity (in bytes) for the internal buffer.
     /// A value of 0 will allow the buffer to grow indefinitely.
     pub fn set_max_capacity(&mut self, capacity: usize) {
-        self.capacity = capacity;
+        self.max_capacity = capacity;
     }
 
     /// Adds a `Bufferfish` or `Vec<u8>` to the end of the buffer.
@@ -291,7 +299,7 @@ impl Bufferfish {
         let Some(byte) = self.inner.get_ref().get(pos as usize) else {
             return Err(std::io::Error::other(format!(
                 "peek of 1 byte exceeds the max capacity of {} bytes on this Bufferfish",
-                self.capacity
+                self.max_capacity
             )))?;
         };
 
@@ -311,7 +319,7 @@ impl Bufferfish {
         let Some(bytes) = self.inner.get_ref().get(pos as usize..pos as usize + n) else {
             return Err(std::io::Error::other(format!(
                 "peek of {} bytes exceeds the max capacity of {} bytes on this Bufferfish",
-                n, self.capacity
+                n, self.max_capacity
             )))?;
         };
 
@@ -674,19 +682,19 @@ impl From<&[u8]> for Bufferfish {
         Self {
             inner: Cursor::new(slice.to_vec()),
             reading: false,
-            capacity: slice.len(),
+            max_capacity: slice.len(),
         }
     }
 }
 
 impl From<Vec<u8>> for Bufferfish {
     fn from(vec: Vec<u8>) -> Self {
-        let capacity = vec.len();
+        let max_capacity = vec.len();
 
         Self {
             inner: Cursor::new(vec),
             reading: false,
-            capacity,
+            max_capacity,
         }
     }
 }
@@ -702,7 +710,7 @@ impl From<bytes::Bytes> for Bufferfish {
         Self {
             inner: Cursor::new(bytes.to_vec()),
             reading: false,
-            capacity: bytes.len(),
+            max_capacity: bytes.len(),
         }
     }
 }
