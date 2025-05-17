@@ -87,3 +87,9 @@ impl Encodable for String {
         bf.write_string(self)
     }
 }
+
+impl<T: Encodable> Encodable for Vec<T> {
+    fn encode(&self, bf: &mut Bufferfish) -> Result<(), BufferfishError> {
+        bf.write_array(self)
+    }
+}

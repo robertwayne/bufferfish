@@ -552,7 +552,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_array() {
+    fn test_encode_struct() {
         use bufferfish_core as bufferfish;
         use bufferfish_core::Encodable;
 
@@ -581,6 +581,39 @@ mod tests {
             bf.as_ref(),
             &[
                 0, 0, 0, 0, 0, 0, 0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104
+            ]
+        );
+    }
+
+    #[test]
+    fn test_encode_array() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Encodable;
+
+        #[derive(Encode)]
+        struct User {
+            id: u32,
+            name: String,
+        }
+
+        let users = vec![
+            User {
+                id: 0,
+                name: "Bufferfish".to_string(),
+            },
+            User {
+                id: 1,
+                name: "Bufferfish2".to_string(),
+            },
+        ];
+
+        let bf = users.to_bufferfish().unwrap();
+
+        assert_eq!(
+            bf.as_ref(),
+            &[
+                0, 2, 0, 0, 0, 0, 0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104, 0, 0, 0,
+                1, 0, 11, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104, 50,
             ]
         );
     }

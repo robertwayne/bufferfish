@@ -110,64 +110,6 @@ impl Seek for Bufferfish {
 }
 
 impl Bufferfish {
-    /// Decode a value from this `Bufferfish`.
-    ///
-    /// This function will start reading from the beginning of the buffer.
-    /// Performs validation to check if the buffer's content is within
-    /// acceptable size limits.
-    pub fn decode<T: Decodable>(&mut self) -> Result<T, BufferfishError> {
-        let bytes = self.as_bytes();
-
-        if let Some(required) = T::min_bytes_required()
-            && bytes.len() < required
-        {
-            return Err(BufferfishError::InsufficientBytes {
-                available: bytes.len(),
-                required,
-            });
-        }
-
-        if let Some(max_allowed) = T::max_bytes_allowed()
-            && bytes.len() > max_allowed
-        {
-            return Err(BufferfishError::ExcessiveBytes {
-                available: bytes.len(),
-                max_allowed,
-            });
-        }
-
-        self.start_reading();
-        T::decode(self)
-    }
-
-    /// Convert this Bufferfish into a value of type T.
-    /// Performs validation to check if the buffer's content is within
-    /// acceptable size limits.
-    pub fn into_value<T: Decodable>(mut self) -> Result<T, BufferfishError> {
-        let bytes = self.as_bytes();
-
-        if let Some(required) = T::min_bytes_required()
-            && bytes.len() < required
-        {
-            return Err(BufferfishError::InsufficientBytes {
-                available: bytes.len(),
-                required,
-            });
-        }
-
-        if let Some(max_allowed) = T::max_bytes_allowed()
-            && bytes.len() > max_allowed
-        {
-            return Err(BufferfishError::ExcessiveBytes {
-                available: bytes.len(),
-                max_allowed,
-            });
-        }
-
-        self.start_reading();
-        T::decode(&mut self)
-    }
-
     /// Creates a new `Bufferfish` with a default max capacity (1024 bytes).
     pub fn new() -> Self {
         Self {
