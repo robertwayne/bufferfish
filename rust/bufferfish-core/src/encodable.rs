@@ -3,7 +3,7 @@
 use crate::{Bufferfish, BufferfishError};
 
 /// Types implementing this trait are able to be encoded to a `Bufferfish`.
-pub trait Encodable {
+pub trait Encodable: Sized {
     /// Encode the type into a given `Bufferfish`.
     fn encode(&self, bf: &mut Bufferfish) -> Result<(), BufferfishError>;
 
@@ -19,10 +19,7 @@ pub trait Encodable {
     ///
     /// This is useful when you want to reuse an existing buffer to avoid
     /// allocations.
-    fn encode_into(self, bf: &mut Bufferfish) -> Result<(), BufferfishError>
-    where
-        Self: Sized,
-    {
+    fn encode_into(self, bf: &mut Bufferfish) -> Result<(), BufferfishError> {
         self.encode(bf)
     }
 }
