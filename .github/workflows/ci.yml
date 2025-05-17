@@ -21,9 +21,9 @@ jobs:
               with:
                   components: clippy, rustfmt
             - uses: Swatinem/rust-cache@v2
-            - name: clippy
+            - name: Run clippy
               run: cargo clippy --workspace --all-targets --all-features -- -D warnings
-            - name: rustfmt
+            - name: Run formatter checks
               run: cargo fmt --all --check
             - name: Run tests
               run: cargo test -p bufferfish-core -p bufferfish -p bufferfish-derive --lib --all-features --all-targets
@@ -39,7 +39,9 @@ jobs:
             - uses: oven-sh/setup-bun@v1
             - name: install
               run: bun i
-            - name: tsc 
+            - name: Run type checks
               run: bun tsc
-            - name: fmt
+            - name: Run formatter checks
               run: bun fmt:check
+            - name: Run tests
+              run: bun test
