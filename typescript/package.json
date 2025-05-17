@@ -19,7 +19,7 @@
         "build-types": "tsc src/bufferfish.ts --declaration --emitDeclarationOnly --outfile dist/index.d.ts"
     },
     "devDependencies": {
-        "@types/bun": "^1.2.12",
+        "@types/bun": "^1.2.13",
         "prettier": "^3.5.3",
         "typescript": "^5.8.3"
     },
