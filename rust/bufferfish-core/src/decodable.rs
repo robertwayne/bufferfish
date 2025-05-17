@@ -7,6 +7,31 @@ pub trait Decodable: Sized {
     /// Decode the type from a `Bufferfish`.
     fn decode(bf: &mut Bufferfish) -> Result<Self, BufferfishError>;
 
+    /// Creates a checked generic type from a `Bufferfish`.
+    ///
+    /// If the `Bufferfish` does not contain enough bytes to properly
+    /// decode the type, an error is returned.
+    fn from_bufferfish(bf: &mut Bufferfish) -> Result<Self, BufferfishError> {
+        if let Some(min) = Self::min_bytes_required()
+            && bf.len() < min
+        {
+            return Err(BufferfishError::InsufficientBytes {
+                available: bf.len(),
+                required: min,
+            });
+        }
+        if let Some(max) = Self::max_bytes_allowed()
+            && bf.len() > max
+        {
+            return Err(BufferfishError::ExcessiveBytes {
+                available: bf.len(),
+                max_allowed: max,
+            });
+        }
+
+        Self::decode(bf)
+    }
+
     /// Get the minimum number of bytes required to decode this type.
     /// Returns None if the size can't be determined statically.
     fn min_bytes_required() -> Option<usize> {

@@ -9,38 +9,6 @@ use std::{
 pub use decodable::Decodable;
 pub use encodable::Encodable;
 
-/// Types that can be created from bytes.
-pub trait FromBytes: Sized {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferfishError>;
-}
-
-impl<T: Decodable> FromBytes for T {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, BufferfishError> {
-        if let Some(required) = T::min_bytes_required()
-            && bytes.len() < required
-        {
-            return Err(BufferfishError::InsufficientBytes {
-                available: bytes.len(),
-                required,
-            });
-        }
-
-        if let Some(max_allowed) = T::max_bytes_allowed()
-            && bytes.len() > max_allowed
-        {
-            return Err(BufferfishError::ExcessiveBytes {
-                available: bytes.len(),
-                max_allowed,
-            });
-        }
-
-        let mut bf = Bufferfish::from(bytes);
-        bf.start_reading();
-
-        T::decode(&mut bf)
-    }
-}
-
 /// Errors that can occur when encoding or decoding a `Bufferfish`.
 #[derive(Debug)]
 pub enum BufferfishError {
