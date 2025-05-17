@@ -55,23 +55,22 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
 
     let generated = quote! {
         impl bufferfish::Encodable for #name {
-            fn encode(&self, bf: &mut bufferfish::Bufferfish) -> Result<(), bufferfish::BufferfishError> {
+            fn encode_value(&self, bf: &mut bufferfish::Bufferfish) -> Result<(), bufferfish::BufferfishError> {
                 #(#encoded_snippets)*
                 Ok(())
             }
 
             fn to_bufferfish(&self) -> Result<bufferfish::Bufferfish, bufferfish::BufferfishError> {
                 let mut bf = bufferfish::Bufferfish::new();
-                #packet_id_snippet
                 self.encode(&mut bf)?;
 
                 Ok(bf)
             }
 
-            fn encode_into(self, bf: &mut bufferfish::Bufferfish) -> Result<(), bufferfish::BufferfishError>
+            fn encode(&self, bf: &mut bufferfish::Bufferfish) -> Result<(), bufferfish::BufferfishError>
             {
                 #packet_id_snippet
-                self.encode(bf)
+                self.encode_value(bf)
             }
         }
     };

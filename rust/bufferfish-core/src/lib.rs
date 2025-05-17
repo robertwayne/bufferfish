@@ -366,7 +366,7 @@ impl Bufferfish {
         self.write_u16(vec.len() as u16)?;
 
         for item in vec {
-            item.encode(self)?;
+            item.encode_value(self)?;
         }
 
         Ok(())

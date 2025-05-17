@@ -689,7 +689,7 @@ mod tests {
         };
         let packet = JoinPacket { user };
 
-        packet.encode_into(&mut bf).unwrap();
+        packet.encode(&mut bf).unwrap();
 
         assert_eq!(
             bf.as_ref(),
@@ -722,7 +722,7 @@ mod tests {
         ];
 
         let mut bf = Bufferfish::new();
-        users.encode_into(&mut bf).unwrap();
+        users.encode(&mut bf).unwrap();
 
         assert_eq!(
             bf.as_ref(),
@@ -776,7 +776,7 @@ mod tests {
             class: Class::Warrior,
         };
 
-        packet.encode_into(&mut bf).unwrap();
+        packet.encode(&mut bf).unwrap();
 
         assert_eq!(bf.as_ref(), &[0, 0, 0]);
     }

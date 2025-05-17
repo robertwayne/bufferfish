@@ -4,10 +4,10 @@ use crate::{Bufferfish, BufferfishError};
 
 /// Types implementing this trait are able to be decoded from a `Bufferfish`.
 pub trait Decodable: Sized {
-    /// Decode the type from a `Bufferfish`.
+    /// Decode the type from a given `Bufferfish`.
     fn decode(bf: &mut Bufferfish) -> Result<Self, BufferfishError>;
 
-    /// Creates a checked generic type from a `Bufferfish`.
+    /// Creates a checked, generic type from a `Bufferfish`.
     ///
     /// If the `Bufferfish` does not contain enough bytes to properly
     /// decode the type, an error is returned.
