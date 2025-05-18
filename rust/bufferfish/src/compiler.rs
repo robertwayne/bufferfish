@@ -493,11 +493,11 @@ fn get_typescript_type(ty: Type) -> String {
 
             match path.get_ident().map(|ident| ident.to_string()).as_deref() {
                 #[rustfmt::skip]
-                Some("u8") | Some("u16") | Some("u32") | Some("u64") |
-                Some("u128") | Some("i8") | Some("i16") | Some("i32") |
-                Some("i64") | Some("i128") => {
+                Some("u8") | Some("u16") | Some("u32") | Some("i8") | Some("i16") | Some("i32") 
+                 => {
                     "number".to_string()
                 },
+                Some("u64") | Some("u128") | Some("i64") | Some("i128") => "BigInt".to_string(),
                 Some("bool") => "boolean".to_string(),
                 Some("String") => "string".to_string(),
                 _ => path
