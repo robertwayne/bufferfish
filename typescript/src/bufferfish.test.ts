@@ -39,34 +39,12 @@ test("should fail to peek too many bytes", () => {
     )
 })
 
-test("should push another bufferfish", () => {
-    const bf = new Bufferfish()
-    bf.writeUint8(0)
-
-    const buf2 = new Bufferfish()
-    buf2.writeUint8(1)
-
-    bf.push(buf2)
-
-    expect(bf.view()).toEqual(new Uint8Array([0, 1]))
-})
-
-test("should push array-likes", () => {
-    const bf = new Bufferfish()
-    bf.writeUint8(0)
-
-    bf.push([1])
-    bf.push(new Uint8Array([2]))
-
-    expect(bf.view()).toEqual(new Uint8Array([0, 1, 2]))
-})
-
 test("should write u8", () => {
     const bf = new Bufferfish()
     bf.writeUint8(0)
     bf.writeUint8(255)
 
-    expect(bf.view()).toEqual(new Uint8Array([0, 255]))
+    expect(bf.bytes()).toEqual(new Uint8Array([0, 255]))
 })
 
 test("should write u16", () => {
@@ -75,7 +53,7 @@ test("should write u16", () => {
     bf.writeUint16(12345)
     bf.writeUint16(65535)
 
-    expect(bf.view()).toEqual(new Uint8Array([0, 0, 48, 57, 255, 255]))
+    expect(bf.bytes()).toEqual(new Uint8Array([0, 0, 48, 57, 255, 255]))
 })
 
 test("should write u32", () => {
@@ -84,8 +62,37 @@ test("should write u32", () => {
     bf.writeUint32(1234567890)
     bf.writeUint32(4294967295)
 
-    expect(bf.view()).toEqual(
+    expect(bf.bytes()).toEqual(
         new Uint8Array([0, 0, 0, 0, 73, 150, 2, 210, 255, 255, 255, 255]),
+    )
+})
+
+test("should write u64", () => {
+    const bf = new Bufferfish()
+    bf.writeUint64(0n)
+    bf.writeUint64(1234567890123456789n)
+    bf.writeUint64(18446744073709551615n)
+
+    expect(bf.bytes()).toEqual(
+        new Uint8Array([
+            0, 0, 0, 0, 0, 0, 0, 0, 17, 34, 16, 244, 125, 233, 129, 21, 255,
+            255, 255, 255, 255, 255, 255, 255,
+        ]),
+    )
+})
+
+test("should write u128", () => {
+    const bf = new Bufferfish()
+    bf.writeUint128(0n)
+    bf.writeUint128(170141183460469231731687303715884105728n)
+    bf.writeUint128(340282366920938463463374607431768211455n)
+
+    expect(bf.bytes()).toEqual(
+        new Uint8Array([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 255, 255, 255,
+            255, 255, 255, 255, 255, 255, 255, 255, 255,
+        ]),
     )
 })
 
@@ -120,13 +127,33 @@ test("should read u32", () => {
     expect(bf.readUint32()).toEqual(4294967295)
 })
 
+test("should read u64", () => {
+    const bf = new Bufferfish()
+    bf.writeUint64(0n)
+    bf.writeUint64(1234567890123456789n)
+    bf.writeUint64(18446744073709551615n)
+
+    expect(bf.readUint64()).toEqual(0n)
+    expect(bf.readUint64()).toEqual(1234567890123456789n)
+    expect(bf.readUint64()).toEqual(18446744073709551615n)
+})
+
+test("should read u128", () => {
+    const bf = new Bufferfish()
+    bf.writeUint128(0n)
+    bf.writeUint128(340282366920938463463374607431768211455n)
+
+    expect(bf.readUint128()).toEqual(0n)
+    expect(bf.readUint128()).toEqual(340282366920938463463374607431768211455n)
+})
+
 test("should write i8", () => {
     const bf = new Bufferfish()
     bf.writeInt8(0)
     bf.writeInt8(127)
     bf.writeInt8(-128)
 
-    expect(bf.view()).toEqual(new Uint8Array([0, 127, 128]))
+    expect(bf.bytes()).toEqual(new Uint8Array([0, 127, 128]))
 })
 
 test("should write i16", () => {
@@ -136,7 +163,7 @@ test("should write i16", () => {
     bf.writeInt16(32767)
     bf.writeInt16(-32768)
 
-    expect(bf.view()).toEqual(new Uint8Array([0, 0, 48, 57, 127, 255, 128, 0]))
+    expect(bf.bytes()).toEqual(new Uint8Array([0, 0, 48, 57, 127, 255, 128, 0]))
 })
 
 test("should write i32", () => {
@@ -146,9 +173,39 @@ test("should write i32", () => {
     bf.writeInt32(2147483647)
     bf.writeInt32(-2147483648)
 
-    expect(bf.view()).toEqual(
+    expect(bf.bytes()).toEqual(
         new Uint8Array([
             0, 0, 0, 0, 73, 150, 2, 210, 127, 255, 255, 255, 128, 0, 0, 0,
+        ]),
+    )
+})
+
+test("should write i64", () => {
+    const bf = new Bufferfish()
+    bf.writeInt64(0n)
+    bf.writeInt64(1234567890123456789n)
+    bf.writeInt64(9223372036854775807n)
+    bf.writeInt64(-9223372036854775808n)
+
+    expect(bf.bytes()).toEqual(
+        new Uint8Array([
+            0, 0, 0, 0, 0, 0, 0, 0, 17, 34, 16, 244, 125, 233, 129, 21, 127,
+            255, 255, 255, 255, 255, 255, 255, 128, 0, 0, 0, 0, 0, 0, 0,
+        ]),
+    )
+})
+
+test("should write i128", () => {
+    const bf = new Bufferfish()
+    bf.writeInt128(0n)
+    bf.writeInt128(-170141183460469231731687303715884105728n)
+    bf.writeInt128(170141183460469231731687303715884105727n)
+
+    expect(bf.bytes()).toEqual(
+        new Uint8Array([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 255, 255, 255, 255, 255, 255,
+            255, 255, 255, 255, 255, 255, 255, 255, 255,
         ]),
     )
 })
@@ -192,6 +249,30 @@ test("should read i32", () => {
     expect(bf.readInt32()).toEqual(-1)
 })
 
+test("should read i64", () => {
+    const bf = new Bufferfish()
+    bf.writeInt64(0n)
+    bf.writeInt64(1234567890123456789n)
+    bf.writeInt64(9223372036854775807n)
+    bf.writeInt64(-9223372036854775808n)
+
+    expect(bf.readInt64()).toEqual(0n)
+    expect(bf.readInt64()).toEqual(1234567890123456789n)
+    expect(bf.readInt64()).toEqual(9223372036854775807n)
+    expect(bf.readInt64()).toEqual(-9223372036854775808n)
+})
+
+test("should read i128", () => {
+    const bf = new Bufferfish()
+    bf.writeInt128(0n)
+    bf.writeInt128(-170141183460469231731687303715884105728n)
+    bf.writeInt128(170141183460469231731687303715884105727n)
+
+    expect(bf.readInt128()).toEqual(0n)
+    expect(bf.readInt128()).toEqual(-170141183460469231731687303715884105728n)
+    expect(bf.readInt128()).toEqual(170141183460469231731687303715884105727n)
+})
+
 test("should read from reset position", () => {
     const bf = new Bufferfish()
     bf.writeUint8(0)
@@ -227,7 +308,7 @@ test("should write string", () => {
     const bf = new Bufferfish()
     bf.writeString("Bufferfish")
 
-    expect(bf.view()).toEqual(
+    expect(bf.bytes()).toEqual(
         new Uint8Array([
             0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104,
         ]),
@@ -238,7 +319,7 @@ test("should write string big chars", () => {
     const bf = new Bufferfish()
     bf.writeString("안녕하세요")
 
-    expect(bf.view()).toEqual(
+    expect(bf.bytes()).toEqual(
         new Uint8Array([
             0, 15, 236, 149, 136, 235, 133, 149, 237, 149, 152, 236, 132, 184,
             236, 154, 148,
@@ -251,7 +332,7 @@ test("should write multiple strings", () => {
     bf.writeString("Bufferfish")
     bf.writeString("안녕하세요")
 
-    expect(bf.view()).toEqual(
+    expect(bf.bytes()).toEqual(
         new Uint8Array([
             0, 10, 66, 117, 102, 102, 101, 114, 102, 105, 115, 104, 0, 15, 236,
             149, 136, 235, 133, 149, 237, 149, 152, 236, 132, 184, 236, 154,
@@ -272,21 +353,21 @@ test("should write bool", () => {
     bf.writeBool(true)
     bf.writeBool(false)
 
-    expect(bf.view()).toEqual(new Uint8Array([1, 0]))
+    expect(bf.bytes()).toEqual(new Uint8Array([1, 0]))
 })
 
 test("should write full packed bools", () => {
     const bf = new Bufferfish()
     bf.writePackedBools([true, false, true, true, false, false, true, false])
 
-    expect(bf.view()).toEqual(new Uint8Array([0b10110010]))
+    expect(bf.bytes()).toEqual(new Uint8Array([0b10110010]))
 })
 
 test("should write partial packed bools", () => {
     const bf = new Bufferfish()
     bf.writePackedBools([true, false])
 
-    expect(bf.view()).toEqual(new Uint8Array([0b10000000]))
+    expect(bf.bytes()).toEqual(new Uint8Array([0b10000000]))
 })
 
 test("should read bool", () => {
@@ -328,7 +409,7 @@ test("should write raw bytes", () => {
     const buf2 = new Bufferfish()
     buf2.writeString("안녕하세요")
 
-    bf.writeRawBytes(buf2.view())
+    bf.writeRawBytes(buf2.bytes())
 
     expect(bf.readString()).toEqual("Bufferfish")
     expect(bf.readString()).toEqual("안녕하세요")
@@ -400,7 +481,7 @@ test("should write and read arrays of u8", () => {
     const numbers = [1, 2, 3, 4, 5]
     bf.writeArray(numbers, (n) => bf.writeUint8(n))
 
-    expect(bf.view()).toEqual(new Uint8Array([0, 5, 1, 2, 3, 4, 5]))
+    expect(bf.bytes()).toEqual(new Uint8Array([0, 5, 1, 2, 3, 4, 5]))
 
     const readArray = bf.readArray(() => {
         const val = bf.readUint8()
@@ -436,7 +517,7 @@ test("should handle empty arrays", () => {
     const emptyArray: number[] = []
     bf.writeArray(emptyArray, (n) => bf.writeUint8(n))
 
-    expect(bf.view()).toEqual(new Uint8Array([0, 0]))
+    expect(bf.bytes()).toEqual(new Uint8Array([0, 0]))
 
     const readArray = bf.readArray(() => {
         const val = bf.readUint8()

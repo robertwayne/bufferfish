@@ -9,7 +9,7 @@ export class Bufferfish {
     private inner: Uint8Array
     private position: number
     private reading: boolean
-    private max_capacity: number
+    private maxCapacity: number
 
     private textDecoder: TextDecoder | undefined
     private textEncoder: TextEncoder | undefined
@@ -18,7 +18,7 @@ export class Bufferfish {
         this.inner = new Uint8Array(bf)
         this.position = 0
         this.reading = false
-        this.max_capacity = 1024
+        this.maxCapacity = 1024
 
         this.textDecoder = undefined
         this.textEncoder = undefined
@@ -32,12 +32,12 @@ export class Bufferfish {
      */
     private write(bf: Uint8Array): number | Error {
         if (
-            this.max_capacity > 0 &&
-            (bf.length > this.max_capacity ||
-                this.inner.length + bf.length > this.max_capacity)
+            this.maxCapacity > 0 &&
+            (bf.length > this.maxCapacity ||
+                this.inner.length + bf.length > this.maxCapacity)
         ) {
             return new Error(
-                `Bufferfish capacity exceeded (${this.max_capacity} bytes)`,
+                `Bufferfish capacity exceeded (${this.maxCapacity} bytes)`,
             )
         }
 
@@ -57,7 +57,7 @@ export class Bufferfish {
     /**
      * Returns a view into the inner Uint8Array.
      */
-    public view = (): Uint8Array => {
+    public bytes = (): Uint8Array => {
         return this.inner.subarray()
     }
 
@@ -66,7 +66,7 @@ export class Bufferfish {
      *
      * This should only be called by the library.
      */
-    private startReading(): void {
+    private startReading = (): void => {
         if (this.reading) {
             return
         }
@@ -79,8 +79,8 @@ export class Bufferfish {
      * Sets the max capacity (in bytes) for the internal buffer.
      * A value of 0 will allow the buffer to grow indefinitely.
      */
-    public setMaxCapacity(capacity: number): void {
-        this.max_capacity = capacity
+    public setMaxCapacity = (capacity: number): void => {
+        this.maxCapacity = capacity
     }
 
     /**
@@ -107,18 +107,6 @@ export class Bufferfish {
     }
 
     /**
-     * Resizes the internal buffer to the specified size (in bytes).
-     * This resets the buffer state and clears any existing data.
-     */
-    public truncate = (length: number): void => {
-        this.reset()
-        this.inner = this.inner.subarray(0, length)
-        this.position = 0
-        this.max_capacity = length
-        this.reading = false
-    }
-
-    /**
      * Returns the next byte in the buffer without advancing the cursor.
      *
      * Throws if the cursor is at the end of the buffer.
@@ -130,7 +118,7 @@ export class Bufferfish {
 
         if (this.position >= this.inner.length || value === undefined) {
             return new Error(
-                `peek of 1 byte exceeds the max capacity of ${this.max_capacity} bytes on this Bufferfish`,
+                `peek of 1 byte exceeds the max capacity of ${this.maxCapacity} bytes on this Bufferfish`,
             )
         }
 
@@ -148,42 +136,11 @@ export class Bufferfish {
 
         if (this.position + n > this.inner.length) {
             return new Error(
-                `peek of ${n} bytes exceeds the max capacity of ${this.max_capacity} bytes on this Bufferfish`,
+                `peek of ${n} bytes exceeds the max capacity of ${this.maxCapacity} bytes on this Bufferfish`,
             )
         }
 
         return value
-    }
-
-    /**
-     * Appends another `Bufferfish`, `Uint8Array`, `ArrayBuffer`, or `Array<number>` to the buffer. This modifies the `Bufferfish` in-place.
-     */
-    public push = (
-        arr: Bufferfish | Uint8Array | ArrayBuffer | Array<number>,
-    ): void | Error => {
-        if (arr instanceof Bufferfish) {
-            const err = this.write(arr.view())
-            if (err instanceof Error) {
-                return err
-            }
-        } else if (arr instanceof Uint8Array) {
-            const err = this.write(arr)
-            if (err instanceof Error) {
-                return err
-            }
-        } else if (arr instanceof ArrayBuffer) {
-            const err = this.write(new Uint8Array(arr))
-            if (err instanceof Error) {
-                return err
-            }
-        } else if (arr instanceof Array) {
-            const err = this.write(new Uint8Array(arr))
-            if (err instanceof Error) {
-                return err
-            }
-        } else {
-            return new Error("invalid type")
-        }
     }
 
     /**
@@ -247,6 +204,55 @@ export class Bufferfish {
     }
 
     /**
+     * Writes a u64 to the buffer as eight bytes.
+     *
+     * Returns an error if the value is out of range (0-18446744073709551615).
+     */
+    public writeUint64 = (value: bigint): void | Error => {
+        if (value > BigInt("18446744073709551615") || value < BigInt(0)) {
+            return new Error(
+                `value ${value} must be between 0 and 18446744073709551615`,
+            )
+        }
+
+        const slice: Uint8Array = new Uint8Array(8)
+        const view = new DataView(slice.buffer)
+        view.setBigUint64(0, value)
+
+        const err = this.write(slice)
+        if (err instanceof Error) {
+            return err
+        }
+    }
+
+    /**
+     * Writes a u128 to the buffer as sixteen bytes.
+     *
+     * Returns an error if the value is out of range (0-340282366920938463463374607431768211455
+     */
+    public writeUint128 = (value: bigint): void | Error => {
+        if (
+            value > BigInt("340282366920938463463374607431768211455") ||
+            value < BigInt(0)
+        ) {
+            return new Error(
+                `value ${value} must be between 0 and 340282366920938463463374607431768211455`,
+            )
+        }
+
+        const slice: Uint8Array = new Uint8Array(16)
+        const view = new DataView(slice.buffer)
+
+        view.setBigUint64(0, value >> 64n)
+        view.setBigUint64(8, value & BigInt("0xffffffffffffffff"))
+
+        const err = this.write(slice)
+        if (err instanceof Error) {
+            return err
+        }
+    }
+
+    /**
      * Writes an i8 to the buffer as one byte.
      *
      * Returns an error if the value is out of range (-128-127).
@@ -301,6 +307,63 @@ export class Bufferfish {
         const slice: Uint8Array = new Uint8Array(4)
         const view = new DataView(slice.buffer)
         view.setInt32(0, value)
+
+        const err = this.write(slice)
+        if (err instanceof Error) {
+            return err
+        }
+    }
+
+    /**
+     * Writes an i64 to the buffer as eight bytes.
+     *
+     * Returns an error if the value is out of range (-9223372036854775808-9223372036854775807).
+     */
+    public writeInt64 = (value: bigint): void | Error => {
+        if (
+            value > BigInt("9223372036854775807") ||
+            value < BigInt("-9223372036854775808")
+        ) {
+            return new Error(
+                `value ${value} must be between -9223372036854775808 and 9223372036854775807`,
+            )
+        }
+
+        const slice: Uint8Array = new Uint8Array(8)
+        const view = new DataView(slice.buffer)
+        view.setBigInt64(0, value)
+
+        const err = this.write(slice)
+        if (err instanceof Error) {
+            return err
+        }
+    }
+
+    /**
+     * Writes an i128 to the buffer as sixteen bytes.
+     *
+     * Returns an error if the value is out of range (-170141183460469231731687303715884105728-170141183460469231731687303715884105727).
+     */
+    public writeInt128 = (value: bigint): void | Error => {
+        if (
+            value > BigInt("170141183460469231731687303715884105727") ||
+            value < BigInt("-170141183460469231731687303715884105728")
+        ) {
+            return new Error(
+                `value ${value} must be between -170141183460469231731687303715884105728 and 170141183460469231731687303715884105727`,
+            )
+        }
+
+        const slice: Uint8Array = new Uint8Array(16)
+        const view = new DataView(slice.buffer)
+
+        let unsignedValue = value
+        if (value < 0n) {
+            unsignedValue = (1n << 128n) + value
+        }
+
+        view.setBigUint64(0, unsignedValue >> 64n)
+        view.setBigUint64(8, unsignedValue & BigInt("0xffffffffffffffff"))
 
         const err = this.write(slice)
         if (err instanceof Error) {
@@ -378,10 +441,10 @@ export class Bufferfish {
      * Writes an array of elements to the buffer.
      * The array is prefixed with its length as a u16 (two bytes).
      */
-    public writeArray<T>(
+    public writeArray = <T>(
         values: Array<T>,
         writeFn: (value: T) => void | Error,
-    ): void | Error {
+    ): void | Error => {
         if (values.length > 65535) {
             return new Error(
                 `array length ${values.length} exceeds maximum size of 65535`,
@@ -404,7 +467,7 @@ export class Bufferfish {
     /**
      * Attempts to read a u8 from the buffer.
      */
-    public readUint8(): number | Error {
+    public readUint8 = (): number | Error => {
         this.startReading()
 
         if (this.position + 1 > this.inner.length) {
@@ -424,7 +487,7 @@ export class Bufferfish {
     /**
      * Attempts to read a u16 from the buffer.
      */
-    public readUint16(): number | Error {
+    public readUint16 = (): number | Error => {
         this.startReading()
 
         if (this.position + 2 > this.inner.length) {
@@ -444,7 +507,7 @@ export class Bufferfish {
     /**
      * Attempts to read a u32 from the buffer.
      */
-    public readUint32(): number | Error {
+    public readUint32 = (): number | Error => {
         this.startReading()
 
         if (this.position + 4 > this.inner.length) {
@@ -462,9 +525,55 @@ export class Bufferfish {
     }
 
     /**
+     * Attempts to read a u64 from the buffer.
+     */
+    public readUint64 = (): bigint | Error => {
+        this.startReading()
+        if (this.position + 8 > this.inner.length) {
+            return new Error(OVERFLOW_ERR)
+        }
+
+        const value = new DataView(
+            this.inner.buffer,
+            this.position,
+            8,
+        ).getBigUint64(0)
+        this.position += 8
+
+        return value
+    }
+
+    /**
+     * Attempts to read a u128 from the buffer.
+     */
+    public readUint128 = (): bigint | Error => {
+        this.startReading()
+
+        if (this.position + 16 > this.inner.length) {
+            return new Error(OVERFLOW_ERR)
+        }
+
+        const high = new DataView(
+            this.inner.buffer,
+            this.position,
+            8,
+        ).getBigUint64(0)
+
+        const low = new DataView(
+            this.inner.buffer,
+            this.position + 8,
+            8,
+        ).getBigUint64(0)
+
+        this.position += 16
+
+        return (high << 64n) | low
+    }
+
+    /**
      * Attempts to read an i8 from the buffer.
      */
-    public readInt8(): number | Error {
+    public readInt8 = (): number | Error => {
         this.startReading()
 
         if (this.position + 1 > this.inner.length) {
@@ -482,7 +591,7 @@ export class Bufferfish {
     /**
      * Attempts to read an i16 from the buffer.
      */
-    public readInt16(): number | Error {
+    public readInt16 = (): number | Error => {
         this.startReading()
 
         if (this.position + 2 > this.inner.length) {
@@ -502,7 +611,7 @@ export class Bufferfish {
     /**
      * Attempts to read an i32 from the buffer.
      */
-    public readInt32(): number | Error {
+    public readInt32 = (): number | Error => {
         this.startReading()
 
         if (this.position + 4 > this.inner.length) {
@@ -520,9 +629,61 @@ export class Bufferfish {
     }
 
     /**
+     * Attempts to read an i64 from the buffer.
+     */
+    public readInt64 = (): bigint | Error => {
+        this.startReading()
+
+        if (this.position + 8 > this.inner.length) {
+            return new Error(OVERFLOW_ERR)
+        }
+
+        const value = new DataView(
+            this.inner.buffer,
+            this.position,
+            8,
+        ).getBigInt64(0)
+        this.position += 8
+
+        return value
+    }
+
+    /**
+     * Attempts to read an i128 from the buffer.
+     */
+    public readInt128 = (): bigint | Error => {
+        this.startReading()
+
+        if (this.position + 16 > this.inner.length) {
+            return new Error(OVERFLOW_ERR)
+        }
+
+        const high = new DataView(
+            this.inner.buffer,
+            this.position,
+            8,
+        ).getBigUint64(0)
+
+        const low = new DataView(
+            this.inner.buffer,
+            this.position + 8,
+            8,
+        ).getBigUint64(0)
+
+        this.position += 16
+        let value = (high << 64n) | low
+
+        if (value >> 127n === 1n) {
+            value = value - (1n << 128n)
+        }
+
+        return value
+    }
+
+    /**
      * Attempts to read a bool from the buffer.
      */
-    public readBool(): boolean | Error {
+    public readBool = (): boolean | Error => {
         const valueOrError = this.readUint8()
         if (valueOrError instanceof Error) {
             return valueOrError
@@ -537,7 +698,7 @@ export class Bufferfish {
      * packed less than 8, the count parameter can be used to specify
      * how many booleans to read.
      */
-    public readPackedBools(count: number = 8): Array<boolean> | Error {
+    public readPackedBools = (count: number = 8): Array<boolean> | Error => {
         if (count > 8) {
             return new Error("cannot read more than 8 bools from a single byte")
         }
@@ -559,7 +720,7 @@ export class Bufferfish {
     /**
      * Attempts to read a variable length string from the buffer.
      */
-    public readString(): string | Error {
+    public readString = (): string | Error => {
         const lengthOrError = this.readUint16()
         if (lengthOrError instanceof Error) {
             return lengthOrError
@@ -583,7 +744,7 @@ export class Bufferfish {
     /**
      * Attempts to read a variable-length array of elements from the buffer.
      */
-    public readArray<T>(readFn: () => T | Error): Array<T> | Error {
+    public readArray = <T>(readFn: () => T | Error): Array<T> | Error => {
         const lengthOrError = this.readUint16()
         if (lengthOrError instanceof Error) {
             return lengthOrError
