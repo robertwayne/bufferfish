@@ -5,20 +5,20 @@ class Bufferfish {
   inner;
   position;
   reading;
-  capacity;
+  maxCapacity;
   textDecoder;
   textEncoder;
   constructor(bf = new ArrayBuffer(0)) {
     this.inner = new Uint8Array(bf);
     this.position = 0;
     this.reading = false;
-    this.capacity = 1024;
+    this.maxCapacity = 1024;
     this.textDecoder = undefined;
     this.textEncoder = undefined;
   }
   write(bf) {
-    if (this.capacity > 0 && (bf.length > this.capacity || this.inner.length + bf.length > this.capacity)) {
-      return new Error(`Bufferfish capacity exceeded (${this.capacity} bytes)`);
+    if (this.maxCapacity > 0 && (bf.length > this.maxCapacity || this.inner.length + bf.length > this.maxCapacity)) {
+      return new Error(`Bufferfish capacity exceeded (${this.maxCapacity} bytes)`);
     }
     this.reading = false;
     const tmp = new Uint8Array(this.inner.length + bf.length);
@@ -29,24 +29,35 @@ class Bufferfish {
     this.position += bytesWritten;
     return bytesWritten;
   }
-  view = () => {
-    return this.inner.slice();
+  bytes = () => {
+    return this.inner.subarray();
   };
-  startReading() {
+  startReading = () => {
     if (this.reading) {
       return;
     }
     this.position = 0;
     this.reading = true;
-  }
-  setMaxCapacity(capacity) {
-    this.capacity = capacity;
-  }
+  };
+  setMaxCapacity = (capacity) => {
+    this.maxCapacity = capacity;
+  };
+  isEmpty = () => {
+    return this.inner.length === 0;
+  };
+  length = () => {
+    return this.inner.length;
+  };
+  reset = () => {
+    this.inner = new Uint8Array(0);
+    this.position = 0;
+    this.reading = false;
+  };
   peek = () => {
     this.startReading();
     const value = this.inner.slice(this.position, this.position + 1)[0];
     if (this.position >= this.inner.length || value === undefined) {
-      return new Error(`peek of 1 byte exceeds the max capacity of ${this.capacity} bytes on this Bufferfish`);
+      return new Error(`peek of 1 byte exceeds the max capacity of ${this.maxCapacity} bytes on this Bufferfish`);
     }
     return value;
   };
@@ -54,34 +65,9 @@ class Bufferfish {
     this.startReading();
     const value = this.inner.slice(this.position, this.position + n);
     if (this.position + n > this.inner.length) {
-      return new Error(`peek of ${n} bytes exceeds the max capacity of ${this.capacity} bytes on this Bufferfish`);
+      return new Error(`peek of ${n} bytes exceeds the max capacity of ${this.maxCapacity} bytes on this Bufferfish`);
     }
     return value;
-  };
-  push = (arr) => {
-    if (arr instanceof Bufferfish) {
-      const err = this.write(arr.view());
-      if (err instanceof Error) {
-        return err;
-      }
-    } else if (arr instanceof Uint8Array) {
-      const err = this.write(arr);
-      if (err instanceof Error) {
-        return err;
-      }
-    } else if (arr instanceof ArrayBuffer) {
-      const err = this.write(new Uint8Array(arr));
-      if (err instanceof Error) {
-        return err;
-      }
-    } else if (arr instanceof Array) {
-      const err = this.write(new Uint8Array(arr));
-      if (err instanceof Error) {
-        return err;
-      }
-    } else {
-      return new Error("invalid type");
-    }
   };
   writeUint8 = (value) => {
     if (value > 255 || value < 0) {
@@ -119,6 +105,31 @@ class Bufferfish {
       return err;
     }
   };
+  writeUint64 = (value) => {
+    if (value > BigInt("18446744073709551615") || value < BigInt(0)) {
+      return new Error(`value ${value} must be between 0 and 18446744073709551615`);
+    }
+    const slice = new Uint8Array(8);
+    const view = new DataView(slice.buffer);
+    view.setBigUint64(0, value);
+    const err = this.write(slice);
+    if (err instanceof Error) {
+      return err;
+    }
+  };
+  writeUint128 = (value) => {
+    if (value > BigInt("340282366920938463463374607431768211455") || value < BigInt(0)) {
+      return new Error(`value ${value} must be between 0 and 340282366920938463463374607431768211455`);
+    }
+    const slice = new Uint8Array(16);
+    const view = new DataView(slice.buffer);
+    view.setBigUint64(0, value >> 64n);
+    view.setBigUint64(8, value & BigInt("0xffffffffffffffff"));
+    const err = this.write(slice);
+    if (err instanceof Error) {
+      return err;
+    }
+  };
   writeInt8 = (value) => {
     if (value > 127 || value < -128) {
       return new Error(`value ${value} must be between -128 and 127`);
@@ -150,6 +161,35 @@ class Bufferfish {
     const slice = new Uint8Array(4);
     const view = new DataView(slice.buffer);
     view.setInt32(0, value);
+    const err = this.write(slice);
+    if (err instanceof Error) {
+      return err;
+    }
+  };
+  writeInt64 = (value) => {
+    if (value > BigInt("9223372036854775807") || value < BigInt("-9223372036854775808")) {
+      return new Error(`value ${value} must be between -9223372036854775808 and 9223372036854775807`);
+    }
+    const slice = new Uint8Array(8);
+    const view = new DataView(slice.buffer);
+    view.setBigInt64(0, value);
+    const err = this.write(slice);
+    if (err instanceof Error) {
+      return err;
+    }
+  };
+  writeInt128 = (value) => {
+    if (value > BigInt("170141183460469231731687303715884105727") || value < BigInt("-170141183460469231731687303715884105728")) {
+      return new Error(`value ${value} must be between -170141183460469231731687303715884105728 and 170141183460469231731687303715884105727`);
+    }
+    const slice = new Uint8Array(16);
+    const view = new DataView(slice.buffer);
+    let unsignedValue = value;
+    if (value < 0n) {
+      unsignedValue = (1n << 128n) + value;
+    }
+    view.setBigUint64(0, unsignedValue >> 64n);
+    view.setBigUint64(8, unsignedValue & BigInt("0xffffffffffffffff"));
     const err = this.write(slice);
     if (err instanceof Error) {
       return err;
@@ -197,7 +237,22 @@ class Bufferfish {
       return err;
     }
   };
-  readUint8() {
+  writeArray = (values, writeFn) => {
+    if (values.length > 65535) {
+      return new Error(`array length ${values.length} exceeds maximum size of 65535`);
+    }
+    const err = this.writeUint16(values.length);
+    if (err instanceof Error) {
+      return err;
+    }
+    for (const value of values) {
+      const err2 = writeFn(value);
+      if (err2 instanceof Error) {
+        return err2;
+      }
+    }
+  };
+  readUint8 = () => {
     this.startReading();
     if (this.position + 1 > this.inner.length) {
       return new Error(OVERFLOW_ERR);
@@ -205,8 +260,8 @@ class Bufferfish {
     const value = new DataView(this.inner.buffer, this.position, 1).getUint8(0);
     this.position += 1;
     return value;
-  }
-  readUint16() {
+  };
+  readUint16 = () => {
     this.startReading();
     if (this.position + 2 > this.inner.length) {
       return new Error(OVERFLOW_ERR);
@@ -214,8 +269,8 @@ class Bufferfish {
     const value = new DataView(this.inner.buffer, this.position, 2).getUint16(0);
     this.position += 2;
     return value;
-  }
-  readUint32() {
+  };
+  readUint32 = () => {
     this.startReading();
     if (this.position + 4 > this.inner.length) {
       return new Error(OVERFLOW_ERR);
@@ -223,8 +278,27 @@ class Bufferfish {
     const value = new DataView(this.inner.buffer, this.position, 4).getUint32(0);
     this.position += 4;
     return value;
-  }
-  readInt8() {
+  };
+  readUint64 = () => {
+    this.startReading();
+    if (this.position + 8 > this.inner.length) {
+      return new Error(OVERFLOW_ERR);
+    }
+    const value = new DataView(this.inner.buffer, this.position, 8).getBigUint64(0);
+    this.position += 8;
+    return value;
+  };
+  readUint128 = () => {
+    this.startReading();
+    if (this.position + 16 > this.inner.length) {
+      return new Error(OVERFLOW_ERR);
+    }
+    const high = new DataView(this.inner.buffer, this.position, 8).getBigUint64(0);
+    const low = new DataView(this.inner.buffer, this.position + 8, 8).getBigUint64(0);
+    this.position += 16;
+    return high << 64n | low;
+  };
+  readInt8 = () => {
     this.startReading();
     if (this.position + 1 > this.inner.length) {
       return new Error(OVERFLOW_ERR);
@@ -232,8 +306,8 @@ class Bufferfish {
     const value = new DataView(this.inner.buffer, this.position, 1).getInt8(0);
     this.position += 1;
     return value;
-  }
-  readInt16() {
+  };
+  readInt16 = () => {
     this.startReading();
     if (this.position + 2 > this.inner.length) {
       return new Error(OVERFLOW_ERR);
@@ -241,8 +315,8 @@ class Bufferfish {
     const value = new DataView(this.inner.buffer, this.position, 2).getInt16(0);
     this.position += 2;
     return value;
-  }
-  readInt32() {
+  };
+  readInt32 = () => {
     this.startReading();
     if (this.position + 4 > this.inner.length) {
       return new Error(OVERFLOW_ERR);
@@ -250,15 +324,38 @@ class Bufferfish {
     const value = new DataView(this.inner.buffer, this.position, 4).getInt32(0);
     this.position += 4;
     return value;
-  }
-  readBool() {
+  };
+  readInt64 = () => {
+    this.startReading();
+    if (this.position + 8 > this.inner.length) {
+      return new Error(OVERFLOW_ERR);
+    }
+    const value = new DataView(this.inner.buffer, this.position, 8).getBigInt64(0);
+    this.position += 8;
+    return value;
+  };
+  readInt128 = () => {
+    this.startReading();
+    if (this.position + 16 > this.inner.length) {
+      return new Error(OVERFLOW_ERR);
+    }
+    const high = new DataView(this.inner.buffer, this.position, 8).getBigUint64(0);
+    const low = new DataView(this.inner.buffer, this.position + 8, 8).getBigUint64(0);
+    this.position += 16;
+    let value = high << 64n | low;
+    if (value >> 127n === 1n) {
+      value = value - (1n << 128n);
+    }
+    return value;
+  };
+  readBool = () => {
     const valueOrError = this.readUint8();
     if (valueOrError instanceof Error) {
       return valueOrError;
     }
     return valueOrError === 1;
-  }
-  readPackedBools(count = 8) {
+  };
+  readPackedBools = (count = 8) => {
     if (count > 8) {
       return new Error("cannot read more than 8 bools from a single byte");
     }
@@ -272,8 +369,8 @@ class Bufferfish {
       bools.push((packedValue & 1 << 7 - i) !== 0);
     }
     return bools;
-  }
-  readString() {
+  };
+  readString = () => {
     const lengthOrError = this.readUint16();
     if (lengthOrError instanceof Error) {
       return lengthOrError;
@@ -287,23 +384,27 @@ class Bufferfish {
     const value = this.textDecoder.decode(this.inner.subarray(this.position, this.position + length));
     this.position += length;
     return value;
-  }
-  readArray(readFn) {
+  };
+  readArray = (readFn) => {
     const lengthOrError = this.readUint16();
     if (lengthOrError instanceof Error) {
       return lengthOrError;
     }
     const length = lengthOrError;
-    const values = [];
-    for (let i = 0;i < length; i++) {
-      const valueOrError = readFn();
-      if (valueOrError instanceof Error) {
-        return valueOrError;
+    const values = new Array(length);
+    try {
+      for (let i = 0;i < length; i++) {
+        const valueOrError = readFn();
+        if (valueOrError instanceof Error) {
+          return valueOrError;
+        }
+        values[i] = valueOrError;
       }
-      values.push(valueOrError);
+      return values;
+    } catch (error) {
+      return error instanceof Error ? error : new Error(String(error));
     }
-    return values;
-  }
+  };
 }
 export {
   Bufferfish
