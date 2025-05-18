@@ -497,7 +497,7 @@ fn get_typescript_type(ty: Type) -> String {
                  => {
                     "number".to_string()
                 },
-                Some("u64") | Some("u128") | Some("i64") | Some("i128") => "BigInt".to_string(),
+                Some("u64") | Some("u128") | Some("i64") | Some("i128") => "bigint".to_string(),
                 Some("bool") => "boolean".to_string(),
                 Some("String") => "string".to_string(),
                 _ => path
@@ -630,13 +630,13 @@ fn get_bufferfish_fn(ty: Type) -> String {
                 Some("u8") => "bf.readUint8() as number".to_string(),
                 Some("u16") => "bf.readUint16() as number".to_string(),
                 Some("u32") => "bf.readUint32() as number".to_string(),
-                Some("u64") => "bf.readUint64() as BigInt".to_string(),
-                Some("u128") => "bf.readUint128() as BigInt".to_string(),
+                Some("u64") => "bf.readUint64() as bigint".to_string(),
+                Some("u128") => "bf.readUint128() as bigint".to_string(),
                 Some("i8") => "bf.readInt8() as number".to_string(),
                 Some("i16") => "bf.readInt16() as number".to_string(),
                 Some("i32") => "bf.readInt32() as number".to_string(),
-                Some("i64") => "bf.readInt64() as BigInt".to_string(),
-                Some("i128") => "bf.readInt128() as BigInt".to_string(),
+                Some("i64") => "bf.readInt64() as bigint".to_string(),
+                Some("i128") => "bf.readInt128() as bigint".to_string(),
                 Some("bool") => "bf.readBool() as boolean".to_string(),
                 Some("String") => "bf.readString() as string".to_string(),
                 Some(custom) => format!("decode{custom}(bf)"),
