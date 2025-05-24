@@ -13,10 +13,10 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
     let ast = parse_macro_input!(input as DeriveInput);
     let name = &ast.ident;
 
-    let packet_id = get_packet_id(&ast);
-    let packet_id_snippet = {
-        if let Some(packet_id) = packet_id {
-            quote! { bf.write_u16(u16::from(#packet_id))?; }
+    let message_id = get_message_id(&ast);
+    let message_id_snippet = {
+        if let Some(message_id) = message_id {
+            quote! { bf.write_u16(u16::from(#message_id))?; }
         } else {
             quote! {}
         }
@@ -69,7 +69,7 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
 
             fn encode(&self, bf: &mut bufferfish::Bufferfish) -> Result<(), bufferfish::BufferfishError>
             {
-                #packet_id_snippet
+                #message_id_snippet
                 self.encode_value(bf)
             }
         }
@@ -84,14 +84,14 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
     let ast = parse_macro_input!(input as DeriveInput);
     let name = &ast.ident;
 
-    let packet_id = get_packet_id(&ast);
-    let has_packet_id = packet_id.is_some();
-    let packet_id_snippet = {
-        if let Some(packet_id) = packet_id {
+    let message_id = get_message_id(&ast);
+    let has_message_id = message_id.is_some();
+    let message_id_snippet = {
+        if let Some(message_id) = message_id {
             quote! {
-                let packet_id = bf.read_u16()?;
-                if packet_id != u16::from(#packet_id) {
-                    return Err(bufferfish::BufferfishError::InvalidPacketId);
+                let message_id = bf.read_u16()?;
+                if message_id != u16::from(#message_id) {
+                    return Err(bufferfish::BufferfishError::InvalidMessageId);
                 }
             }
         } else {
@@ -217,7 +217,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                 quote! {
                     impl bufferfish::Decodable for #name {
                         fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            #packet_id_snippet
+                            #message_id_snippet
                             Self::decode_value(bf)
                         }
 
@@ -228,15 +228,15 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                         }
 
                         fn min_bytes_required() -> Option<usize> {
-                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
-                            let mut min_size = packet_id_size;
+                            let message_id_size = if #has_message_id { 2 } else { 0 };
+                            let mut min_size = message_id_size;
                             #(#min_size_snippets)*
                             Some(min_size)
                         }
 
                         fn max_bytes_allowed() -> Option<usize> {
-                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
-                            let mut max_size = packet_id_size;
+                            let message_id_size = if #has_message_id { 2 } else { 0 };
+                            let mut max_size = message_id_size;
                             #(#max_size_snippets)*
                             Some(max_size)
                         }
@@ -247,7 +247,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                 quote! {
                     impl bufferfish::Decodable for #name {
                         fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            #packet_id_snippet
+                            #message_id_snippet
                             Self::decode_value(bf)
                         }
 
@@ -258,15 +258,15 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                         }
 
                         fn min_bytes_required() -> Option<usize> {
-                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
-                            let mut min_size = packet_id_size;
+                            let message_id_size = if #has_message_id { 2 } else { 0 };
+                            let mut min_size = message_id_size;
                             #(#min_size_snippets)*
                             Some(min_size)
                         }
 
                         fn max_bytes_allowed() -> Option<usize> {
-                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
-                            let mut max_size = packet_id_size;
+                            let message_id_size = if #has_message_id { 2 } else { 0 };
+                            let mut max_size = message_id_size;
                             #(#max_size_snippets)*
                             Some(max_size)
                         }
@@ -277,7 +277,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                 quote! {
                     impl bufferfish::Decodable for #name {
                         fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            #packet_id_snippet
+                            #message_id_snippet
                             Self::decode_value(bf)
                         }
 
@@ -286,13 +286,13 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                         }
 
                         fn min_bytes_required() -> Option<usize> {
-                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
-                            Some(packet_id_size)
+                            let message_id_size = if #has_message_id { 2 } else { 0 };
+                            Some(message_id_size)
                         }
 
                         fn max_bytes_allowed() -> Option<usize> {
-                            let packet_id_size = if #has_packet_id { 2 } else { 0 };
-                            Some(packet_id_size)
+                            let message_id_size = if #has_message_id { 2 } else { 0 };
+                            Some(message_id_size)
                         }
                     }
                 }
@@ -302,7 +302,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
             quote! {
                 impl bufferfish::Decodable for #name {
                     fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                        #packet_id_snippet
+                        #message_id_snippet
                         Self::decode_value(bf)
                     }
 
@@ -315,15 +315,15 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
                     }
 
                     fn min_bytes_required() -> Option<usize> {
-                        // Enum variant (u8) + packet id if present
-                        let packet_id_size = if #has_packet_id { 2 } else { 0 };
-                        Some(1 + packet_id_size) // 1 byte for variant + packet id size if present
+                        // Enum variant (u8) + message id if present
+                        let message_id_size = if #has_message_id { 2 } else { 0 };
+                        Some(1 + message_id_size) // 1 byte for variant + message id size if present
                     }
 
                     fn max_bytes_allowed() -> Option<usize> {
-                        // Enum variant (u8) + packet id if present
-                        let packet_id_size = if #has_packet_id { 2 } else { 0 };
-                        Some(1 + packet_id_size) // 1 byte for variant + packet id size if present
+                        // Enum variant (u8) + message id if present
+                        let message_id_size = if #has_message_id { 2 } else { 0 };
+                        Some(1 + message_id_size) // 1 byte for variant + message id size if present
                     }
                 }
             }
@@ -334,7 +334,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
     generated.into()
 }
 
-fn get_packet_id(ast: &DeriveInput) -> Option<Expr> {
+fn get_message_id(ast: &DeriveInput) -> Option<Expr> {
     for attr in &ast.attrs {
         if attr.path().is_ident("bufferfish") {
             if let Ok(expr) = attr.parse_args::<syn::Expr>() {

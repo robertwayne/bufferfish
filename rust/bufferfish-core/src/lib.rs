@@ -14,8 +14,8 @@ pub use encodable::Encodable;
 pub enum BufferfishError {
     /// std::io::Error that occurred during a write operation.
     FailedWrite(std::io::Error),
-    /// Invalid - typically non-u16 - packet ID encountered during a write.
-    InvalidPacketId,
+    /// Invalid - typically non-u16 - message ID encountered during a write.
+    InvalidMessageId,
     /// Invalid enum variant encountered during encoding/decoding.
     InvalidEnumVariant,
     /// The buffer doesn't contain enough bytes for the requested operation.
@@ -31,7 +31,7 @@ impl std::fmt::Display for BufferfishError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             BufferfishError::FailedWrite(e) => write!(f, "failed to write to buffer: {e}"),
-            BufferfishError::InvalidPacketId => write!(f, "invalid packet id"),
+            BufferfishError::InvalidMessageId => write!(f, "invalid message id"),
             BufferfishError::InvalidEnumVariant => write!(f, "invalid enum variant"),
             BufferfishError::InsufficientBytes {
                 available,
@@ -61,7 +61,7 @@ impl std::error::Error for BufferfishError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             BufferfishError::FailedWrite(e) => Some(e),
-            BufferfishError::InvalidPacketId => None,
+            BufferfishError::InvalidMessageId => None,
             BufferfishError::InvalidEnumVariant => None,
             BufferfishError::InsufficientBytes { .. } => None,
             BufferfishError::ExcessiveBytes { .. } => None,

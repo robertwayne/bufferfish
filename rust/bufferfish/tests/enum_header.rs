@@ -4,20 +4,20 @@ mod tests {
     use bufferfish_derive::Encode;
 
     #[allow(dead_code)]
-    enum PacketId {
+    enum MessageId {
         Ping,
     }
 
-    impl From<PacketId> for u16 {
-        fn from(packet_id: PacketId) -> u16 {
-            match packet_id {
-                PacketId::Ping => 0,
+    impl From<MessageId> for u16 {
+        fn from(message_id: MessageId) -> u16 {
+            match message_id {
+                MessageId::Ping => 0,
             }
         }
     }
 
     #[derive(Encode, Debug)]
-    #[bufferfish(PacketId::Ping)]
+    #[bufferfish(MessageId::Ping)]
     struct Foo {
         bar: u8,
     }

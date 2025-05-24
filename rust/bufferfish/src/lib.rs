@@ -558,7 +558,7 @@ mod tests {
 
         #[derive(Encode)]
         #[bufferfish(0_u16)]
-        struct JoinPacket {
+        struct JoinMessage {
             user: User,
         }
 
@@ -568,7 +568,7 @@ mod tests {
             name: String,
         }
 
-        let bf = JoinPacket {
+        let bf = JoinMessage {
             user: User {
                 id: 0,
                 name: "Bufferfish".to_string(),
@@ -624,21 +624,21 @@ mod tests {
         use bufferfish_core::Encodable;
 
         #[derive(Encode, Clone, Copy)]
-        enum PacketId {
+        enum MessageId {
             Join,
         }
 
-        impl From<PacketId> for u16 {
-            fn from(value: PacketId) -> Self {
+        impl From<MessageId> for u16 {
+            fn from(value: MessageId) -> Self {
                 match value {
-                    PacketId::Join => 0,
+                    MessageId::Join => 0,
                 }
             }
         }
 
         #[derive(Encode)]
-        #[bufferfish(PacketId::Join)]
-        struct JoinPacket {
+        #[bufferfish(MessageId::Join)]
+        struct JoinMessage {
             class: Class,
         }
 
@@ -656,7 +656,7 @@ mod tests {
             }
         }
 
-        let bf = JoinPacket {
+        let bf = JoinMessage {
             class: Class::Warrior,
         }
         .to_bufferfish()
@@ -672,7 +672,7 @@ mod tests {
 
         #[derive(Encode)]
         #[bufferfish(0_u16)]
-        struct JoinPacket {
+        struct JoinMessage {
             user: User,
         }
 
@@ -687,9 +687,9 @@ mod tests {
             id: 0,
             name: "Bufferfish".to_string(),
         };
-        let packet = JoinPacket { user };
+        let message = JoinMessage { user };
 
-        packet.encode(&mut bf).unwrap();
+        message.encode(&mut bf).unwrap();
 
         assert_eq!(
             bf.as_ref(),
@@ -739,21 +739,21 @@ mod tests {
         use bufferfish_core::Encodable;
 
         #[derive(Encode, Clone, Copy)]
-        enum PacketId {
+        enum MessageId {
             Join,
         }
 
-        impl From<PacketId> for u16 {
-            fn from(value: PacketId) -> Self {
+        impl From<MessageId> for u16 {
+            fn from(value: MessageId) -> Self {
                 match value {
-                    PacketId::Join => 0,
+                    MessageId::Join => 0,
                 }
             }
         }
 
         #[derive(Encode)]
-        #[bufferfish(PacketId::Join)]
-        struct JoinPacket {
+        #[bufferfish(MessageId::Join)]
+        struct JoinMessage {
             class: Class,
         }
 
@@ -772,11 +772,11 @@ mod tests {
         }
 
         let mut bf = Bufferfish::new();
-        let packet = JoinPacket {
+        let message = JoinMessage {
             class: Class::Warrior,
         };
 
-        packet.encode(&mut bf).unwrap();
+        message.encode(&mut bf).unwrap();
 
         assert_eq!(bf.as_ref(), &[0, 0, 0]);
     }
@@ -845,23 +845,23 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_with_packet_id() {
+    fn test_decode_with_message_id() {
         use bufferfish_core as bufferfish;
         use bufferfish_core::{Decodable, Encodable};
 
         #[derive(Decode, Encode)]
         #[bufferfish(0_u16)]
-        struct JoinPacket {
+        struct JoinMessage {
             user: String,
         }
 
-        let mut bf = JoinPacket {
+        let mut bf = JoinMessage {
             user: "Bufferfish".to_string(),
         }
         .to_bufferfish()
         .unwrap();
 
-        let result = JoinPacket::decode(&mut bf).unwrap();
+        let result = JoinMessage::decode(&mut bf).unwrap();
 
         assert_eq!(result.user, "Bufferfish");
     }
@@ -883,12 +883,12 @@ mod tests {
         }
 
         #[derive(Encode, Decode)]
-        pub struct JoinPacket {
+        pub struct JoinMessage {
             user: User,
             role: Role,
         }
 
-        let mut bf = JoinPacket {
+        let mut bf = JoinMessage {
             user: User {
                 id: 0,
                 name: "Bufferfish".to_string(),
@@ -898,7 +898,7 @@ mod tests {
         .to_bufferfish()
         .unwrap();
 
-        let result = JoinPacket::decode(&mut bf).unwrap();
+        let result = JoinMessage::decode(&mut bf).unwrap();
 
         assert_eq!(
             result.user,
