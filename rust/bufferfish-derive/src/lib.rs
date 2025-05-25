@@ -7,13 +7,27 @@ use syn::{
     Data, DeriveInput, Expr, Fields, Index, Type, TypePath, parse_macro_input, spanned::Spanned,
 };
 
+fn extract_message_id(ast: &DeriveInput) -> Option<Expr> {
+    for attr in &ast.attrs {
+        if attr.path().is_ident("bufferfish") {
+            if let Ok(expr) = attr.parse_args::<syn::Expr>() {
+                return Some(expr);
+            } else {
+                abort!(attr.span(), "expected a single expression");
+            }
+        }
+    }
+
+    None
+}
+
 #[proc_macro_derive(Encode, attributes(bufferfish))]
 #[proc_macro_error]
 pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
     let name = &ast.ident;
 
-    let message_id = get_message_id(&ast);
+    let message_id = extract_message_id(&ast);
     let message_id_snippet = {
         if let Some(message_id) = message_id {
             quote! { bf.write_u16(u16::from(#message_id))?; }
@@ -25,32 +39,13 @@ pub fn bufferfish_impl_encodable(input: proc_macro::TokenStream) -> proc_macro::
     let mut encoded_snippets = Vec::new();
 
     match &ast.data {
-        Data::Struct(data) => match &data.fields {
-            Fields::Named(fields) => {
-                for field in &fields.named {
-                    let Some(ident) = field.ident.as_ref() else {
-                        abort!(field.span(), "named fields are required");
-                    };
-
-                    encode_type(quote! { self.#ident }, &field.ty, &mut encoded_snippets)
-                }
-            }
-            Fields::Unnamed(fields) => {
-                for (i, field) in fields.unnamed.iter().enumerate() {
-                    let index = Index::from(i);
-                    encode_type(quote! { self.#index }, &field.ty, &mut encoded_snippets)
-                }
-            }
-            Fields::Unit => {}
-        },
-        Data::Enum(_) => {
-            // Enums are just encoded as a u8.
-            // TODO: Support any size.
-            encoded_snippets.push(quote! {
-                bf.write_u8(*self as u8)?;
-            });
+        Data::Struct(data) => {
+            encoded_snippets = generate_struct_field_encoders(data);
         }
-        Data::Union(_) => abort!(ast.span(), "decoding union types is not supported"),
+        Data::Enum(data_enum) => {
+            encoded_snippets.push(generate_enum_variant_encoders(name, data_enum));
+        }
+        Data::Union(_) => abort!(ast.span(), "encoding union types is not supported"),
     };
 
     let generated = quote! {
@@ -84,7 +79,7 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
     let ast = parse_macro_input!(input as DeriveInput);
     let name = &ast.ident;
 
-    let message_id = get_message_id(&ast);
+    let message_id = extract_message_id(&ast);
     let has_message_id = message_id.is_some();
     let message_id_snippet = {
         if let Some(message_id) = message_id {
@@ -99,205 +94,52 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
         }
     };
 
-    let decoded_snippets = match &ast.data {
-        Data::Struct(data) => match &data.fields {
-            Fields::Named(fields) => fields
-                .named
-                .iter()
-                .map(|field| {
-                    let ident = field.ident.as_ref().expect("named fields required");
-                    let ty = &field.ty;
-                    quote! {
-                        #ident: <#ty as bufferfish::Decodable>::decode_value(bf)?,
-                    }
-                })
-                .collect::<Vec<_>>(),
-            Fields::Unnamed(fields) => fields
-                .unnamed
-                .iter()
-                .map(|field| {
-                    let ty = &field.ty;
-                    quote! {
-                        <#ty as bufferfish::Decodable>::decode_value(bf)?,
-                    }
-                })
-                .collect::<Vec<_>>(),
-            Fields::Unit => Vec::new(),
-        },
-        Data::Enum(data_enum) => data_enum
-            .variants
-            .iter()
-            .enumerate()
-            .map(|(i, variant)| {
-                let ident = &variant.ident;
-                let idx = Index::from(i);
-                quote! {
-                    #idx => Self::#ident,
-                }
-            })
-            .collect::<Vec<_>>(),
+    let decoded_snippets;
+    let min_size_logic;
+    let max_size_logic;
+
+    match &ast.data {
+        Data::Struct(data_struct) => {
+            decoded_snippets = generate_struct_field_decoders(data_struct);
+            min_size_logic = generate_struct_min_size_logic(data_struct, has_message_id);
+            max_size_logic = generate_struct_max_size_logic(data_struct, has_message_id);
+        }
+        Data::Enum(data_enum) => {
+            decoded_snippets = generate_enum_variant_decoders(data_enum);
+            min_size_logic = generate_enum_min_size_logic(data_enum, has_message_id);
+            max_size_logic = generate_enum_max_size_logic(data_enum, has_message_id);
+        }
         Data::Union(_) => abort!(ast.span(), "unions are not supported"),
     };
 
-    // Generate size calculation for fields
-    let min_size_snippets = match &ast.data {
-        Data::Struct(data) => match &data.fields {
-            Fields::Named(fields) => fields
-                .named
-                .iter()
-                .map(|field| {
-                    let ty = &field.ty;
-                    quote! {
-                        if let Some(size) = <#ty as bufferfish::Decodable>::min_bytes_required() {
-                            min_size += size;
-                        }
-                    }
-                })
-                .collect::<Vec<_>>(),
-            Fields::Unnamed(fields) => fields
-                .unnamed
-                .iter()
-                .map(|field| {
-                    let ty = &field.ty;
-                    quote! {
-                        if let Some(size) = <#ty as bufferfish::Decodable>::min_bytes_required() {
-                            min_size += size;
-                        }
-                    }
-                })
-                .collect::<Vec<_>>(),
-            Fields::Unit => Vec::new(),
-        },
-        Data::Enum(_) => vec![quote! { min_size = 1; }], // Enum variant as u8
-        Data::Union(_) => Vec::new(),
-    };
-
-    // Generate max size calculation for fields
-    let max_size_snippets = match &ast.data {
-        Data::Struct(data) => match &data.fields {
-            Fields::Named(fields) => fields
-                .named
-                .iter()
-                .map(|field| {
-                    let ty = &field.ty;
-                    quote! {
-                        if let Some(size) = <#ty as bufferfish::Decodable>::max_bytes_allowed() {
-                            max_size += size;
-                        } else {
-                            // If any field doesn't have a max size, we can't determine overall max size
-                            return None;
-                        }
-                    }
-                })
-                .collect::<Vec<_>>(),
-            Fields::Unnamed(fields) => fields
-                .unnamed
-                .iter()
-                .map(|field| {
-                    let ty = &field.ty;
-                    quote! {
-                        if let Some(size) = <#ty as bufferfish::Decodable>::max_bytes_allowed() {
-                            max_size += size;
-                        } else {
-                            // If any field doesn't have a max size, we can't determine overall max size
-                            return None;
-                        }
-                    }
-                })
-                .collect::<Vec<_>>(),
-            Fields::Unit => Vec::new(),
-        },
-        Data::Enum(_) => vec![quote! { max_size = 1; }], // Enum variant as u8
-        _ => Vec::new(),
-    };
-
     let generated = match &ast.data {
-        Data::Struct(data) => match &data.fields {
-            Fields::Named(_) => {
-                quote! {
-                    impl bufferfish::Decodable for #name {
-                        fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            #message_id_snippet
-                            Self::decode_value(bf)
-                        }
+        Data::Struct(data_struct) => {
+            let construction = match &data_struct.fields {
+                Fields::Named(_) => quote! { Self #decoded_snippets },
+                Fields::Unnamed(_) => quote! { Self #decoded_snippets },
+                Fields::Unit => quote! { Self {} },
+            };
+            quote! {
+                impl bufferfish::Decodable for #name {
+                    fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
+                        #message_id_snippet
+                        Self::decode_value(bf)
+                    }
 
-                        fn decode_value(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            Ok(Self {
-                                #(#decoded_snippets)*
-                            })
-                        }
+                    fn decode_value(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
+                        Ok(#construction)
+                    }
 
-                        fn min_bytes_required() -> Option<usize> {
-                            let message_id_size = if #has_message_id { 2 } else { 0 };
-                            let mut min_size = message_id_size;
-                            #(#min_size_snippets)*
-                            Some(min_size)
-                        }
+                    fn min_bytes_required() -> Option<usize> {
+                        #min_size_logic
+                    }
 
-                        fn max_bytes_allowed() -> Option<usize> {
-                            let message_id_size = if #has_message_id { 2 } else { 0 };
-                            let mut max_size = message_id_size;
-                            #(#max_size_snippets)*
-                            Some(max_size)
-                        }
+                    fn max_bytes_allowed() -> Option<usize> {
+                        #max_size_logic
                     }
                 }
             }
-            Fields::Unnamed(_) => {
-                quote! {
-                    impl bufferfish::Decodable for #name {
-                        fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            #message_id_snippet
-                            Self::decode_value(bf)
-                        }
-
-                        fn decode_value(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            Ok(Self(
-                                #(#decoded_snippets)*
-                            ))
-                        }
-
-                        fn min_bytes_required() -> Option<usize> {
-                            let message_id_size = if #has_message_id { 2 } else { 0 };
-                            let mut min_size = message_id_size;
-                            #(#min_size_snippets)*
-                            Some(min_size)
-                        }
-
-                        fn max_bytes_allowed() -> Option<usize> {
-                            let message_id_size = if #has_message_id { 2 } else { 0 };
-                            let mut max_size = message_id_size;
-                            #(#max_size_snippets)*
-                            Some(max_size)
-                        }
-                    }
-                }
-            }
-            Fields::Unit => {
-                quote! {
-                    impl bufferfish::Decodable for #name {
-                        fn decode(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            #message_id_snippet
-                            Self::decode_value(bf)
-                        }
-
-                        fn decode_value(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
-                            Ok(Self)
-                        }
-
-                        fn min_bytes_required() -> Option<usize> {
-                            let message_id_size = if #has_message_id { 2 } else { 0 };
-                            Some(message_id_size)
-                        }
-
-                        fn max_bytes_allowed() -> Option<usize> {
-                            let message_id_size = if #has_message_id { 2 } else { 0 };
-                            Some(message_id_size)
-                        }
-                    }
-                }
-            }
-        },
+        }
         Data::Enum(_) => {
             quote! {
                 impl bufferfish::Decodable for #name {
@@ -308,22 +150,15 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
 
                     fn decode_value(bf: &mut bufferfish::Bufferfish) -> Result<Self, bufferfish::BufferfishError> {
                         let variant_idx = bf.read_u8()?;
-                        Ok(match variant_idx {
-                            #(#decoded_snippets)*
-                            _ => return Err(bufferfish::BufferfishError::InvalidEnumVariant),
-                        })
+                        #decoded_snippets
                     }
 
                     fn min_bytes_required() -> Option<usize> {
-                        // Enum variant (u8) + message id if present
-                        let message_id_size = if #has_message_id { 2 } else { 0 };
-                        Some(1 + message_id_size) // 1 byte for variant + message id size if present
+                        #min_size_logic
                     }
 
                     fn max_bytes_allowed() -> Option<usize> {
-                        // Enum variant (u8) + message id if present
-                        let message_id_size = if #has_message_id { 2 } else { 0 };
-                        Some(1 + message_id_size) // 1 byte for variant + message id size if present
+                        #max_size_logic
                     }
                 }
             }
@@ -334,23 +169,387 @@ pub fn bufferfish_impl_decodable(input: proc_macro::TokenStream) -> proc_macro::
     generated.into()
 }
 
-fn get_message_id(ast: &DeriveInput) -> Option<Expr> {
-    for attr in &ast.attrs {
-        if attr.path().is_ident("bufferfish") {
-            if let Ok(expr) = attr.parse_args::<syn::Expr>() {
-                return Some(expr);
-            } else {
-                abort!(attr.span(), "expected a single expression");
+fn generate_struct_field_encoders(data: &syn::DataStruct) -> Vec<TokenStream> {
+    let mut encoded_snippets = Vec::new();
+
+    match &data.fields {
+        Fields::Named(fields) => {
+            for field in &fields.named {
+                let Some(ident) = field.ident.as_ref() else {
+                    abort!(field.span(), "named fields are required");
+                };
+
+                encode_type(quote! { self.#ident }, &field.ty, &mut encoded_snippets)
+            }
+        }
+        Fields::Unnamed(fields) => {
+            for (i, field) in fields.unnamed.iter().enumerate() {
+                let index = Index::from(i);
+                encode_type(quote! { self.#index }, &field.ty, &mut encoded_snippets)
+            }
+        }
+        Fields::Unit => {}
+    }
+
+    encoded_snippets
+}
+
+fn generate_enum_variant_encoders(
+    name: &proc_macro2::Ident,
+    data_enum: &syn::DataEnum,
+) -> TokenStream {
+    let mut variant_match_arms = Vec::new();
+
+    for (discriminant_value, variant) in data_enum.variants.iter().enumerate() {
+        let variant_ident = &variant.ident;
+        let discriminant_lit = Index::from(discriminant_value);
+
+        match &variant.fields {
+            Fields::Unit => {
+                variant_match_arms.push(quote! {
+                    #name::#variant_ident => {
+                        bf.write_u8(#discriminant_lit as u8)?;
+                    }
+                });
+            }
+            Fields::Unnamed(fields) => {
+                let field_idents: Vec<_> = (0..fields.unnamed.len())
+                    .map(|i| syn::Ident::new(&format!("f{i}"), fields.unnamed.span()))
+                    .collect();
+
+                let mut field_encoders = Vec::new();
+                for (i, field) in fields.unnamed.iter().enumerate() {
+                    let field_ident = &field_idents[i];
+                    encode_type(quote! { #field_ident }, &field.ty, &mut field_encoders);
+                }
+
+                variant_match_arms.push(quote! {
+                    #name::#variant_ident( #(#field_idents),* ) => {
+                        bf.write_u8(#discriminant_lit as u8)?;
+                        #(#field_encoders)*
+                    }
+                });
+            }
+            Fields::Named(fields) => {
+                let field_idents: Vec<_> = fields
+                    .named
+                    .iter()
+                    .map(|f| f.ident.as_ref().unwrap().clone())
+                    .collect();
+
+                let mut field_encoders = Vec::new();
+                for (i, field) in fields.named.iter().enumerate() {
+                    let field_ident = &field_idents[i];
+                    encode_type(quote! { #field_ident }, &field.ty, &mut field_encoders);
+                }
+
+                variant_match_arms.push(quote! {
+                    #name::#variant_ident { #(#field_idents),* } => {
+                        bf.write_u8(#discriminant_lit as u8)?;
+                        #(#field_encoders)*
+                    }
+                });
             }
         }
     }
 
-    None
+    quote! {
+        match self {
+            #(#variant_match_arms)*
+        }
+    }
 }
 
-fn encode_type(accessor: TokenStream, ty: &Type, dst: &mut Vec<TokenStream>) {
-    match ty {
-        // Handle primitive types
+fn generate_struct_field_decoders(data: &syn::DataStruct) -> TokenStream {
+    match &data.fields {
+        Fields::Named(fields) => {
+            let field_initializers = fields.named.iter().map(|field| {
+                let ident = field.ident.as_ref().expect("named fields required");
+                let ty = &field.ty;
+                quote! { #ident: <#ty as bufferfish::Decodable>::decode_value(bf)?, }
+            });
+            quote! { { #(#field_initializers)* } }
+        }
+        Fields::Unnamed(fields) => {
+            let field_initializers = fields.unnamed.iter().map(|field| {
+                let ty = &field.ty;
+                quote! { <#ty as bufferfish::Decodable>::decode_value(bf)?, }
+            });
+            quote! { ( #(#field_initializers)* ) }
+        }
+        Fields::Unit => quote! { {} },
+    }
+}
+
+fn generate_enum_variant_decoders(data_enum: &syn::DataEnum) -> TokenStream {
+    let mut arms = Vec::new();
+
+    for (discriminant_value, variant) in data_enum.variants.iter().enumerate() {
+        let variant_ident = &variant.ident;
+        let discriminant_lit = Index::from(discriminant_value);
+
+        match &variant.fields {
+            Fields::Unit => {
+                arms.push(quote! { #discriminant_lit => Ok(Self::#variant_ident), });
+            }
+            Fields::Unnamed(fields) => {
+                let mut field_decoders = Vec::new();
+
+                for field in fields.unnamed.iter() {
+                    let ty = &field.ty;
+                    field_decoders
+                        .push(quote! { <#ty as bufferfish::Decodable>::decode_value(bf)? });
+                }
+                arms.push(quote! {
+                    #discriminant_lit => {
+                        Ok(Self::#variant_ident( #( #field_decoders ),* ))
+                    }
+                });
+            }
+            Fields::Named(fields) => {
+                let mut field_decoders = Vec::new();
+
+                for field in fields.named.iter() {
+                    let field_ident = field.ident.as_ref().unwrap();
+                    let ty = &field.ty;
+                    field_decoders.push(
+                        quote! { #field_ident: <#ty as bufferfish::Decodable>::decode_value(bf)? },
+                    );
+                }
+                arms.push(quote! {
+                    #discriminant_lit => {
+                        Ok(Self::#variant_ident { #( #field_decoders ),* })
+                    }
+                });
+            }
+        }
+    }
+
+    quote! {
+        match variant_idx {
+            #(#arms)*
+            _ => return Err(bufferfish::BufferfishError::InvalidEnumVariant),
+        }
+    }
+}
+
+fn generate_struct_min_size_logic(data: &syn::DataStruct, has_message_id: bool) -> TokenStream {
+    let struct_min_field_calcs = match &data.fields {
+        Fields::Named(fields) => fields.named.iter().map(|field| {
+            let ty = &field.ty;
+            quote! { min_size += <#ty as bufferfish::Decodable>::min_bytes_required().unwrap_or(0); }
+        }).collect::<Vec<_>>(),
+        Fields::Unnamed(fields) => fields.unnamed.iter().map(|field| {
+            let ty = &field.ty;
+            quote! { min_size += <#ty as bufferfish::Decodable>::min_bytes_required().unwrap_or(0); }
+        }).collect::<Vec<_>>(),
+        Fields::Unit => Vec::new(),
+    };
+
+    quote! {
+        let mut min_size = if #has_message_id { 2 } else { 0 };
+        #(#struct_min_field_calcs)*
+        Some(min_size)
+    }
+}
+
+fn generate_struct_max_size_logic(data: &syn::DataStruct, has_message_id: bool) -> TokenStream {
+    let struct_max_field_calcs = match &data.fields {
+        Fields::Named(fields) => fields
+            .named
+            .iter()
+            .map(|field| generate_max_size_field_calc(&field.ty))
+            .collect::<Vec<_>>(),
+        Fields::Unnamed(fields) => fields
+            .unnamed
+            .iter()
+            .map(|field| generate_max_size_field_calc(&field.ty))
+            .collect::<Vec<_>>(),
+        Fields::Unit => Vec::new(),
+    };
+
+    quote! {
+        let mut current_max_size: Option<usize> = Some(if #has_message_id { 2 } else { 0 });
+        #(#struct_max_field_calcs)*
+        current_max_size
+    }
+}
+
+fn generate_max_size_field_calc(ty: &Type) -> TokenStream {
+    quote! {
+        current_max_size = current_max_size.and_then(|acc_val| {
+            <#ty as bufferfish::Decodable>::max_bytes_allowed().map(|field_m| acc_val + field_m)
+        });
+    }
+}
+
+fn generate_enum_min_size_logic(data: &syn::DataEnum, has_message_id: bool) -> TokenStream {
+    let mut variant_min_field_sizes_calcs = Vec::new();
+
+    for variant in data.variants.iter() {
+        match &variant.fields {
+            Fields::Unit => {
+                variant_min_field_sizes_calcs.push(quote! { 0 });
+            }
+            Fields::Unnamed(fields) => {
+                let mut current_variant_min_field_calcs = Vec::new();
+
+                for field in fields.unnamed.iter() {
+                    let ty = &field.ty;
+                    current_variant_min_field_calcs.push(quote! { <#ty as bufferfish::Decodable>::min_bytes_required().unwrap_or(0) });
+                }
+                variant_min_field_sizes_calcs
+                    .push(quote! { 0 #( + #current_variant_min_field_calcs)* });
+            }
+            Fields::Named(fields) => {
+                let mut current_variant_min_field_calcs = Vec::new();
+
+                for field in fields.named.iter() {
+                    let ty = &field.ty;
+                    current_variant_min_field_calcs.push(quote! { <#ty as bufferfish::Decodable>::min_bytes_required().unwrap_or(0) });
+                }
+                variant_min_field_sizes_calcs
+                    .push(quote! { 0 #( + #current_variant_min_field_calcs)* });
+            }
+        }
+    }
+
+    quote! {
+        let mut min_total_size = if #has_message_id { 2 } else { 0 };
+        min_total_size += 1;
+
+        let mut min_variant_fields_contribution = usize::MAX;
+        if [#(#variant_min_field_sizes_calcs),*].is_empty() {
+            min_variant_fields_contribution = 0;
+        } else {
+            for size_calc in [#(#variant_min_field_sizes_calcs),*] {
+                if size_calc < min_variant_fields_contribution {
+                    min_variant_fields_contribution = size_calc;
+                }
+            }
+        }
+        if min_variant_fields_contribution == usize::MAX {
+             min_variant_fields_contribution = 0;
+        }
+        min_total_size += min_variant_fields_contribution;
+        Some(min_total_size)
+    }
+}
+
+fn generate_enum_max_size_logic(data: &syn::DataEnum, has_message_id: bool) -> TokenStream {
+    let variant_max_field_sizes_calcs: Vec<TokenStream> = data
+        .variants
+        .iter()
+        .map(generate_enum_variant_max_size_calc)
+        .collect();
+
+    quote! {
+        let mut max_total_size_opt: Option<usize> = Some(if #has_message_id { 2 } else { 0 });
+
+        if let Some(current_max) = max_total_size_opt {
+            max_total_size_opt = Some(current_max + 1);
+        } else {
+            return None;
+        }
+
+        let variant_field_max_options = vec![#(#variant_max_field_sizes_calcs),*];
+        let mut overall_max_variant_fields_size: Option<usize> = None;
+
+        if variant_field_max_options.is_empty() {
+            overall_max_variant_fields_size = Some(0);
+        } else {
+            let mut current_max_val: Option<usize> = Some(0);
+            for opt_size in variant_field_max_options {
+                if let Some(size) = opt_size {
+                    if let Some(current_m) = current_max_val {
+                        if size > current_m { current_max_val = Some(size); }
+                    } else { }
+                } else {
+                    current_max_val = None;
+                    break;
+                }
+            }
+            overall_max_variant_fields_size = current_max_val;
+        }
+
+        if let Some(current_total_max) = max_total_size_opt {
+            if let Some(fields_max) = overall_max_variant_fields_size {
+                max_total_size_opt = Some(current_total_max + fields_max);
+            } else {
+                max_total_size_opt = None;
+            }
+        }
+
+        max_total_size_opt
+    }
+}
+
+fn generate_enum_variant_max_size_calc(variant: &syn::Variant) -> TokenStream {
+    match &variant.fields {
+        Fields::Unit => quote! { Some(0) },
+        Fields::Unnamed(fields) => {
+            let field_calcs: Vec<_> = fields
+                .unnamed
+                .iter()
+                .map(|f| {
+                    let ty = &f.ty;
+                    quote! { <#ty as bufferfish::Decodable>::max_bytes_allowed() }
+                })
+                .collect();
+            quote! {{
+                let mut acc: Option<usize> = Some(0);
+                #(
+                    if let Some(sum) = acc {
+                        if let Some(val) = #field_calcs {
+                            acc = Some(sum + val);
+                        } else {
+                            acc = None;
+                        }
+                    }
+                )*
+                acc
+            }}
+        }
+        Fields::Named(fields) => {
+            let field_calcs: Vec<_> = fields
+                .named
+                .iter()
+                .map(|f| {
+                    let ty = &f.ty;
+                    quote! { <#ty as bufferfish::Decodable>::max_bytes_allowed() }
+                })
+                .collect();
+            quote! {{
+                let mut acc: Option<usize> = Some(0);
+                #(
+                    if let Some(sum) = acc {
+                        if let Some(val) = #field_calcs {
+                            acc = Some(sum + val);
+                        } else {
+                            acc = None;
+                        }
+                    }
+                )*
+                acc
+            }}
+        }
+    }
+}
+
+fn encode_type(accessor: TokenStream, field_type: &Type, dst: &mut Vec<TokenStream>) {
+    let target_accessor = if let Type::Reference(_) = field_type {
+        accessor
+    } else {
+        quote! { &(#accessor) }
+    };
+
+    let effective_type = if let Type::Reference(type_ref) = field_type {
+        &*type_ref.elem
+    } else {
+        field_type
+    };
+
+    match effective_type {
         Type::Path(TypePath { path, .. })
             if path.is_ident("u8")
                 || path.is_ident("u16")
@@ -364,23 +563,29 @@ fn encode_type(accessor: TokenStream, ty: &Type, dst: &mut Vec<TokenStream>) {
                 || path.is_ident("String") =>
         {
             dst.push(quote! {
-                bufferfish::Encodable::encode(&#accessor, bf)?;
+                bufferfish::Encodable::encode(#target_accessor, bf)?;
             });
         }
-        // Handle arrays where elements impl Encodable
         Type::Path(TypePath { path, .. })
             if path.segments.len() == 1 && path.segments[0].ident == "Vec" =>
         {
             dst.push(quote! {
-                bf.write_array(&#accessor)?;
+                bf.write_array(#target_accessor)?;
             });
         }
-        // Handle nested structs where fields impl Encodable
+        Type::Array(_type_array) => {
+            dst.push(quote! {
+                bufferfish::Encodable::encode(#target_accessor, bf)?;
+            });
+        }
         Type::Path(TypePath { .. }) => {
             dst.push(quote! {
-                bufferfish::Encodable::encode(&#accessor, bf)?;
+                bufferfish::Encodable::encode(#target_accessor, bf)?;
             });
         }
-        _ => abort!(ty.span(), "type cannot be encoded into a bufferfish"),
+        _ => abort!(
+            effective_type.span(),
+            "type cannot be encoded into a bufferfish"
+        ),
     }
 }
