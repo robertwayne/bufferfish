@@ -1084,4 +1084,41 @@ mod tests {
             _ => panic!("Decoded complex type did not match expected variant"),
         }
     }
+
+    #[test]
+    fn test_manual_encode_decode_impl() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::{Decodable, Encodable};
+
+        #[derive(Debug)]
+        struct CustomType {
+            value: u32,
+        }
+
+        impl bufferfish::Encodable for CustomType {
+            fn encode_value(
+                &self,
+                bf: &mut bufferfish::Bufferfish,
+            ) -> Result<(), bufferfish::BufferfishError> {
+                bf.write_u32(self.value)
+            }
+        }
+
+        impl bufferfish::Decodable for CustomType {
+            fn decode_value(
+                bf: &mut bufferfish::Bufferfish,
+            ) -> Result<Self, bufferfish::BufferfishError> {
+                let value = bf.read_u32()?;
+                Ok(CustomType { value })
+            }
+        }
+
+        let mut bf = bufferfish::Bufferfish::new();
+        let custom = CustomType { value: 42 };
+        custom.encode(&mut bf).unwrap();
+        assert_eq!(bf.as_ref(), &[0, 0, 0, 42]);
+
+        let decoded = CustomType::decode(&mut bf).unwrap();
+        assert_eq!(decoded.value, 42);
+    }
 }
