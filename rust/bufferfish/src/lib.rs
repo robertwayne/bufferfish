@@ -1023,4 +1023,65 @@ mod tests {
         assert_eq!(bf.len(), 0);
         assert_eq!(bf.as_ref(), &[]);
     }
+
+    #[test]
+    fn test_encode_decode_complex_enums() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::{Decodable, Encodable};
+        use bufferfish_derive::{Decode, Encode};
+
+        #[derive(Encode, Decode)]
+        enum Object {
+            Variant1 { a: u32, b: String },
+            Variant2 { c: i32, d: bool },
+        }
+
+        #[derive(Encode, Decode)]
+        enum Complex {
+            Object(Object),
+            Stringly(String),
+            Simple(u8),
+            Other,
+        }
+
+        #[derive(Encode, Decode)]
+        #[bufferfish(0_u16)]
+        enum ObjectId {
+            Test,
+        }
+
+        impl From<ObjectId> for u16 {
+            fn from(value: ObjectId) -> Self {
+                match value {
+                    ObjectId::Test => 0,
+                }
+            }
+        }
+
+        #[derive(Encode, Decode)]
+        #[bufferfish(ObjectId::Test)]
+        pub struct ObjectContainer {
+            complex: Complex,
+        }
+
+        let mut bf = Bufferfish::new();
+        let complex = ObjectContainer {
+            complex: Complex::Object(Object::Variant1 {
+                a: 42,
+                b: "Hello".to_string(),
+            }),
+        };
+
+        complex.encode(&mut bf).unwrap();
+
+        let decoded = ObjectContainer::decode(&mut bf).unwrap();
+
+        match decoded.complex {
+            Complex::Object(Object::Variant1 { a, b }) => {
+                assert_eq!(a, 42);
+                assert_eq!(b, "Hello");
+            }
+            _ => panic!("Decoded complex type did not match expected variant"),
+        }
+    }
 }

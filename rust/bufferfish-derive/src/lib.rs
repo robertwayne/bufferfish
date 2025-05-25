@@ -1,10 +1,11 @@
 extern crate proc_macro;
 
 use proc_macro_error::{abort, proc_macro_error};
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, Literal, Span, TokenStream};
 use quote::quote;
 use syn::{
-    Data, DeriveInput, Expr, Fields, Index, Type, TypePath, parse_macro_input, spanned::Spanned,
+    Data, DataEnum, DeriveInput, Expr, Fields, Index, Type, TypePath, parse_macro_input,
+    spanned::Spanned,
 };
 
 fn extract_message_id(ast: &DeriveInput) -> Option<Expr> {
@@ -194,59 +195,56 @@ fn generate_struct_field_encoders(data: &syn::DataStruct) -> Vec<TokenStream> {
     encoded_snippets
 }
 
-fn generate_enum_variant_encoders(
-    name: &proc_macro2::Ident,
-    data_enum: &syn::DataEnum,
-) -> TokenStream {
-    let mut variant_match_arms = Vec::new();
+fn generate_enum_variant_encoders(name: &Ident, data_enum: &DataEnum) -> TokenStream {
+    let mut arms = Vec::new();
 
-    for (discriminant_value, variant) in data_enum.variants.iter().enumerate() {
-        let variant_ident = &variant.ident;
-        let discriminant_lit = Index::from(discriminant_value);
+    for (idx, variant) in data_enum.variants.iter().enumerate() {
+        let v_ident = &variant.ident;
+        let discrim = Literal::u8_unsuffixed(idx as u8);
 
         match &variant.fields {
             Fields::Unit => {
-                variant_match_arms.push(quote! {
-                    #name::#variant_ident => {
-                        bf.write_u8(#discriminant_lit as u8)?;
+                arms.push(quote! {
+                    #name::#v_ident => {
+                        bf.write_u8(#discrim)?;
                     }
                 });
             }
             Fields::Unnamed(fields) => {
-                let field_idents: Vec<_> = (0..fields.unnamed.len())
-                    .map(|i| syn::Ident::new(&format!("f{i}"), fields.unnamed.span()))
+                let idents: Vec<Ident> = (0..fields.unnamed.len())
+                    .map(|i| Ident::new(&format!("f{i}"), Span::call_site()))
                     .collect();
 
-                let mut field_encoders = Vec::new();
+                let mut encoders = Vec::new();
                 for (i, field) in fields.unnamed.iter().enumerate() {
-                    let field_ident = &field_idents[i];
-                    encode_type(quote! { #field_ident }, &field.ty, &mut field_encoders);
+                    let fld = &idents[i];
+                    encode_type(quote! { #fld }, &field.ty, &mut encoders);
                 }
 
-                variant_match_arms.push(quote! {
-                    #name::#variant_ident( #(#field_idents),* ) => {
-                        bf.write_u8(#discriminant_lit as u8)?;
-                        #(#field_encoders)*
+                arms.push(quote! {
+                    #name::#v_ident( #(#idents),* ) => {
+                        bf.write_u8(#discrim)?;
+                        #(#encoders)*
                     }
                 });
             }
             Fields::Named(fields) => {
-                let field_idents: Vec<_> = fields
+                let idents: Vec<Ident> = fields
                     .named
                     .iter()
-                    .map(|f| f.ident.as_ref().unwrap().clone())
+                    .map(|f| f.ident.clone().unwrap())
                     .collect();
 
-                let mut field_encoders = Vec::new();
+                let mut encoders = Vec::new();
                 for (i, field) in fields.named.iter().enumerate() {
-                    let field_ident = &field_idents[i];
-                    encode_type(quote! { #field_ident }, &field.ty, &mut field_encoders);
+                    let fld = &idents[i];
+                    encode_type(quote! { #fld }, &field.ty, &mut encoders);
                 }
 
-                variant_match_arms.push(quote! {
-                    #name::#variant_ident { #(#field_idents),* } => {
-                        bf.write_u8(#discriminant_lit as u8)?;
-                        #(#field_encoders)*
+                arms.push(quote! {
+                    #name::#v_ident { #(#idents),* } => {
+                        bf.write_u8(#discrim)?;
+                        #(#encoders)*
                     }
                 });
             }
@@ -255,7 +253,7 @@ fn generate_enum_variant_encoders(
 
     quote! {
         match self {
-            #(#variant_match_arms)*
+            #(#arms),*
         }
     }
 }
@@ -537,12 +535,6 @@ fn generate_enum_variant_max_size_calc(variant: &syn::Variant) -> TokenStream {
 }
 
 fn encode_type(accessor: TokenStream, field_type: &Type, dst: &mut Vec<TokenStream>) {
-    let target_accessor = if let Type::Reference(_) = field_type {
-        accessor
-    } else {
-        quote! { &(#accessor) }
-    };
-
     let effective_type = if let Type::Reference(type_ref) = field_type {
         &*type_ref.elem
     } else {
@@ -550,6 +542,11 @@ fn encode_type(accessor: TokenStream, field_type: &Type, dst: &mut Vec<TokenStre
     };
 
     match effective_type {
+        Type::Path(TypePath { path, .. }) if path.is_ident("String") => {
+            dst.push(quote! {
+                (#accessor).encode(bf)?;
+            });
+        }
         Type::Path(TypePath { path, .. })
             if path.is_ident("u8")
                 || path.is_ident("u16")
@@ -559,28 +556,29 @@ fn encode_type(accessor: TokenStream, field_type: &Type, dst: &mut Vec<TokenStre
                 || path.is_ident("i16")
                 || path.is_ident("i32")
                 || path.is_ident("i64")
-                || path.is_ident("bool")
-                || path.is_ident("String") =>
+                || path.is_ident("bool") =>
         {
             dst.push(quote! {
-                bufferfish::Encodable::encode(#target_accessor, bf)?;
+                (#accessor).encode(bf)?;
             });
         }
         Type::Path(TypePath { path, .. })
             if path.segments.len() == 1 && path.segments[0].ident == "Vec" =>
         {
             dst.push(quote! {
-                bf.write_array(#target_accessor)?;
+                (#accessor).encode(bf)?;
             });
         }
         Type::Array(_type_array) => {
             dst.push(quote! {
-                bufferfish::Encodable::encode(#target_accessor, bf)?;
+                (#accessor).encode(bf)?;
             });
         }
         Type::Path(TypePath { .. }) => {
+            // Catch-all for other user-defined types (structs/enums)
+            // These are assumed to implement Encodable.
             dst.push(quote! {
-                bufferfish::Encodable::encode(#target_accessor, bf)?;
+                (#accessor).encode(bf)?;
             });
         }
         _ => abort!(
