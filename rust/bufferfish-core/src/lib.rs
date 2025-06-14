@@ -643,3 +643,17 @@ impl From<&Bufferfish> for bytes::Bytes {
         bytes::Bytes::copy_from_slice(buffer.as_ref())
     }
 }
+
+#[cfg(feature = "bytes")]
+impl From<Bufferfish> for bytes::BytesMut {
+    fn from(buffer: Bufferfish) -> Self {
+        bytes::BytesMut::from(buffer.as_ref())
+    }
+}
+
+#[cfg(feature = "bytes")]
+impl From<&Bufferfish> for bytes::BytesMut {
+    fn from(buffer: &Bufferfish) -> Self {
+        bytes::BytesMut::from(buffer.as_ref())
+    }
+}
