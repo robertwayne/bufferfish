@@ -372,6 +372,27 @@ impl Bufferfish {
         Ok(())
     }
 
+    /// Writes an `Option<T>` to the buffer, where `T` implements the
+    /// Encodable trait. If the option is `Some`, it will write a u8 with value
+    /// 1, followed by the encoded value. If the option is `None`, it will write
+    /// a u8 with value 0.
+    pub fn write_option<T: Encodable>(
+        &mut self,
+        option: &Option<T>,
+    ) -> Result<(), BufferfishError> {
+        match option {
+            Some(value) => {
+                self.write_u8(1)?;
+                value.encode_value(self)?;
+            }
+            None => {
+                self.write_u8(0)?;
+            }
+        }
+
+        Ok(())
+    }
+
     /// Writes an array of raw bytes to the buffer. Useful for encoding
     /// distinct structs into byte arrays and appending them to a buffer later.
     pub fn write_raw_bytes(&mut self, bytes: &[u8]) -> Result<(), BufferfishError> {
@@ -545,6 +566,19 @@ impl Bufferfish {
         }
 
         Ok(vec)
+    }
+}
+
+/// Reads an `Option<T>` from the buffer, where `T` implements the
+/// Decodable trait. If the option is `Some`, it will read a u8 with value
+/// 1, followed by the decoded value. If the option is `None`, it will read
+/// a u8 with value 0.
+pub fn read_option<T: Decodable>(bf: &mut Bufferfish) -> Result<Option<T>, BufferfishError> {
+    let flag = bf.read_u8()?;
+    match flag {
+        0 => Ok(None),
+        1 => Ok(Some(T::decode(bf)?)),
+        _ => Err(BufferfishError::InvalidEnumVariant),
     }
 }
 

@@ -1121,4 +1121,99 @@ mod tests {
         let decoded = CustomType::decode(&mut bf).unwrap();
         assert_eq!(decoded.value, 42);
     }
+
+    #[test]
+    fn test_optional_encode() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Encodable;
+
+        #[derive(Debug, Encode)]
+        struct OptionContainer {
+            value: Option<u32>,
+        }
+
+        let mut bf = Bufferfish::new();
+        let container_with_value = OptionContainer { value: Some(42) };
+        let container_without_value = OptionContainer { value: None };
+
+        container_with_value.encode(&mut bf).unwrap();
+        container_without_value.encode(&mut bf).unwrap();
+
+        assert_eq!(bf.as_ref(), &[1, 0, 0, 0, 42, 0]);
+    }
+
+    #[test]
+    fn test_optional_decode_some() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Decodable;
+
+        #[derive(Debug, Decode)]
+        struct OptionContainer {
+            value: Option<u32>,
+        }
+
+        let mut bf = Bufferfish::new();
+        bf.write_option(&Some(42)).unwrap();
+
+        let container_with_value = OptionContainer::decode(&mut bf).unwrap();
+
+        assert_eq!(container_with_value.value, Some(42));
+    }
+
+    #[test]
+    fn test_optional_decode_none() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::Decodable;
+
+        #[derive(Debug, Decode)]
+        struct OptionContainer {
+            value: Option<u32>,
+        }
+
+        let mut bf = Bufferfish::new();
+        bf.write_option(&None::<u32>).unwrap();
+
+        let container_without_value = OptionContainer::decode(&mut bf).unwrap();
+
+        assert_eq!(container_without_value.value, None);
+    }
+
+    #[test]
+    fn test_encode_decode_with_option() {
+        use bufferfish_core as bufferfish;
+        use bufferfish_core::{Decodable, Encodable};
+
+        #[derive(Debug, Encode, Decode)]
+        struct User {
+            id: u32,
+            name: String,
+            age: Option<u8>,
+        }
+
+        let mut bf = Bufferfish::new();
+        let user_with_age = User {
+            id: 1,
+            name: "Bufferfish".to_string(),
+            age: Some(10),
+        };
+        let user_without_age = User {
+            id: 2,
+            name: "Bufferfish2".to_string(),
+            age: None,
+        };
+
+        user_with_age.encode(&mut bf).unwrap();
+        user_without_age.encode(&mut bf).unwrap();
+
+        let decoded_user_with_age = User::decode(&mut bf).unwrap();
+        let decoded_user_without_age = User::decode(&mut bf).unwrap();
+
+        assert_eq!(decoded_user_with_age.id, 1);
+        assert_eq!(decoded_user_with_age.name, "Bufferfish");
+        assert_eq!(decoded_user_with_age.age, Some(10));
+
+        assert_eq!(decoded_user_without_age.id, 2);
+        assert_eq!(decoded_user_without_age.name, "Bufferfish2");
+        assert_eq!(decoded_user_without_age.age, None);
+    }
 }

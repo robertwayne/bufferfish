@@ -105,3 +105,15 @@ impl<T: Encodable> Encodable for Vec<T> {
         bf.write_array(self)
     }
 }
+
+impl<T: Encodable> Encodable for Option<T> {
+    fn encode_value(&self, bf: &mut Bufferfish) -> Result<(), BufferfishError> {
+        match self {
+            Some(value) => {
+                bf.write_u8(1)?;
+                value.encode_value(bf)
+            }
+            None => bf.write_u8(0),
+        }
+    }
+}

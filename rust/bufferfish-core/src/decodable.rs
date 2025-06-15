@@ -243,3 +243,22 @@ impl<T: Decodable> Decodable for Vec<T> {
         T::max_bytes_allowed().map(|max_t_size| 2 + (u16::MAX as usize * max_t_size))
     }
 }
+
+impl<T: Decodable> Decodable for Option<T> {
+    fn decode_value(bf: &mut Bufferfish) -> Result<Option<T>, BufferfishError> {
+        let flag = bf.read_u8()?;
+        match flag {
+            0 => Ok(None),
+            1 => Ok(Some(T::decode_value(bf)?)),
+            _ => Err(BufferfishError::InvalidEnumVariant),
+        }
+    }
+
+    fn min_bytes_required() -> Option<usize> {
+        Some(1)
+    }
+
+    fn max_bytes_allowed() -> Option<usize> {
+        T::max_bytes_allowed().map(|max_t_size| 1 + max_t_size)
+    }
+}
